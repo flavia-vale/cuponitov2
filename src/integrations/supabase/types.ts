@@ -14,16 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      blog_authors: {
+        Row: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          avatar_url?: string
+          bio?: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          avatar_url?: string
+          bio?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      blog_categories: {
+        Row: {
+          color_hex: string
+          created_at: string
+          description: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color_hex?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          category_id: string | null
+          content: string
+          cover_image: string
+          created_at: string
+          cta_config: Json | null
+          excerpt: string
+          featured: boolean
+          id: string
+          meta_description: string
+          meta_title: string
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["blog_post_status"]
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          author_id?: string | null
+          category_id?: string | null
+          content?: string
+          cover_image?: string
+          created_at?: string
+          cta_config?: Json | null
+          excerpt?: string
+          featured?: boolean
+          id?: string
+          meta_description?: string
+          meta_title?: string
+          published_at?: string | null
+          slug: string
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          author_id?: string | null
+          category_id?: string | null
+          content?: string
+          cover_image?: string
+          created_at?: string
+          cta_config?: Json | null
+          excerpt?: string
+          featured?: boolean
+          id?: string
+          meta_description?: string
+          meta_title?: string
+          published_at?: string | null
+          slug?: string
+          status?: Database["public"]["Enums"]["blog_post_status"]
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "blog_authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "blog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          description: string
+          discount: string
+          expiry: string
+          id: string
+          is_flash: boolean
+          link: string
+          status: boolean
+          store: string
+          success_rate: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          code?: string
+          created_at?: string
+          description?: string
+          discount?: string
+          expiry?: string
+          id?: string
+          is_flash?: boolean
+          link?: string
+          status?: boolean
+          store: string
+          success_rate?: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          description?: string
+          discount?: string
+          expiry?: string
+          id?: string
+          is_flash?: boolean
+          link?: string
+          status?: boolean
+          store?: string
+          success_rate?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stores: {
+        Row: {
+          brand_color: string
+          created_at: string
+          display_name: string
+          fallback_color: string
+          icon_emoji: string
+          id: string
+          slug: string
+        }
+        Insert: {
+          brand_color?: string
+          created_at?: string
+          display_name: string
+          fallback_color?: string
+          icon_emoji?: string
+          id?: string
+          slug: string
+        }
+        Update: {
+          brand_color?: string
+          created_at?: string
+          display_name?: string
+          fallback_color?: string
+          icon_emoji?: string
+          id?: string
+          slug?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_blog_views: { Args: { post_id: string }; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      blog_post_status: "draft" | "published" | "scheduled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +356,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      blog_post_status: ["draft", "published", "scheduled"],
+    },
   },
 } as const
