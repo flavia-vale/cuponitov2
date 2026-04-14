@@ -23,13 +23,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cupons de Desconto - Amazon, Shopee e Mercado Livre | Cuponito" },
+      { title: "Cuponito Cupons de Desconto - Amazon, Shopee e Mercado Livre" },
       { name: "description", content: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre. Economize nas compras online!" },
       { name: "author", content: "Cuponito" },
-      { property: "og:title", content: "Cupons de Desconto | Cuponito" },
-      { property: "og:description", content: "Os melhores cupons de desconto para as maiores lojas online do Brasil." },
+      { property: "og:title", content: "Cuponito Cupons de Desconto - Amazon, Shopee e Mercado Livre" },
+      { property: "og:description", content: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre. Economize nas compras online!" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Cuponito Cupons de Desconto - Amazon, Shopee e Mercado Livre" },
+      { name: "twitter:description", content: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre. Economize nas compras online!" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
