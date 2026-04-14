@@ -61,7 +61,7 @@ function extractDrafts(text: string, fallbackStore: string): { drafts: DraftCoup
   return { drafts, detectedStore };
 }
 
-export const Route = createFileRoute('/admin')({
+export const Route = createFileRoute('/admin/')({
   component: AdminPage,
   head: () => ({ meta: [{ title: 'Admin | Cuponito' }, { name: 'robots', content: 'noindex, nofollow' }] }),
 });

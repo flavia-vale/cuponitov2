@@ -9,7 +9,7 @@ import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import EmptyState from '@/components/EmptyState';
 
-export const Route = createFileRoute('/blog')({
+export const Route = createFileRoute('/blog/')({
   component: BlogPage,
   head: () => ({
     meta: [
