@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
-import "../styles.css";
 
 function NotFoundComponent() {
   return (
@@ -27,11 +26,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Cuponito - Cupons de Desconto" },
       { name: "description", content: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre." },
     ],
-    links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" },
-    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -39,25 +33,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  // Client-only guard para evitar conflitos com o servidor
+  if (typeof window === 'undefined') {
+    return null;
+  }
 
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <head suppressHydrationWarning>
+    <html lang="pt-BR">
+      <head>
         <HeadContent />
       </head>
       <body>
-        {isMounted ? (
-          <div id="app-root">
-            {children}
-          </div>
-        ) : (
-          <div id="app-root" className="min-h-screen bg-background" />
-        )}
+        <div id="app-root">
+          {children}
+        </div>
         <Scripts />
       </body>
     </html>
