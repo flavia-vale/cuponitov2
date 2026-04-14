@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useJsonLd } from '@/hooks/useJsonLd';
@@ -44,7 +44,7 @@ function StorePage() {
   const monthYear = getMonthYear();
 
   const filtered = useMemo(() => {
-    if (!coupons || !storeInfo) return [];
+    if (!coup ons || !storeInfo) return [];
     return coupons.filter((c) => {
       const matchStore = c.store === storeInfo.name;
       const matchSearch =
@@ -61,6 +61,11 @@ function StorePage() {
       ? { type: 'store', storeName: storeInfo.name, slug: slug!, coupons: filtered }
       : { type: 'generic' }
   );
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (!storeInfo) {
     return (
@@ -106,18 +111,26 @@ function StorePage() {
           />
         </div>
 
-        {isLoading ? (
+        {isMounted ? (
+          isLoading ? (
+            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-52 rounded-2xl" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState message={`Nenhum cupom encontrado para ${storeInfo.name}`} />
+          ) : (
+            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((c, i) => (
+                <CouponCard key={c.id} coupon={c} index={i} />
+              ))}
+            </div>
+          )
+        ) : (
           <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-52 rounded-2xl" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState message={`Nenhum cupom encontrado para ${storeInfo.name}`} />
-        ) : (
-          <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((c, i) => (
-              <CouponCard key={c.id} coupon={c} index={i} />
             ))}
           </div>
         )}

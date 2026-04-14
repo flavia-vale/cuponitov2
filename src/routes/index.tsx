@@ -1,4 +1,4 @@
-import { useMemo, lazy, Suspense } from 'react';
+import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import HeroBanner from '@/components/HeroBanner';
 import StoreCards from '@/components/StoreCards';
@@ -35,6 +35,11 @@ function Index() {
 
   const jsonLd = useJsonLd({ type: 'home', coupons: relevantCoupons });
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {jsonLd.map((schema, i) => (
@@ -58,22 +63,30 @@ function Index() {
           <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
         </div>
 
-        {isLoading ? (
+        {isMounted ? (
+          isLoading ? (
+            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-52 rounded-2xl" />
+              ))}
+            </div>
+          ) : relevantCoupons.length === 0 ? (
+            <EmptyState message="Nenhum cupom encontrado" />
+          ) : (
+            <Suspense fallback={<div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}</div>}>
+              <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {relevantCoupons.map((c, i) => (
+                  <CouponCard key={c.id} coupon={c} index={i} />
+                ))}
+              </div>
+            </Suspense>
+          )
+        ) : (
           <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-52 rounded-2xl" />
             ))}
           </div>
-        ) : relevantCoupons.length === 0 ? (
-          <EmptyState message="Nenhum cupom encontrado" />
-        ) : (
-          <Suspense fallback={<div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}</div>}>
-            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {relevantCoupons.map((c, i) => (
-                <CouponCard key={c.id} coupon={c} index={i} />
-              ))}
-            </div>
-          </Suspense>
         )}
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
