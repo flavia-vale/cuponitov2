@@ -44,7 +44,7 @@ function StorePage() {
   const monthYear = getMonthYear();
 
   const filtered = useMemo(() => {
-    if (!coup ons || !storeInfo) return [];
+    if (!coupons || !storeInfo) return [];
     return coupons.filter((c) => {
       const matchStore = c.store === storeInfo.name;
       const matchSearch =
