@@ -1,12 +1,11 @@
 import "./styles.css";
-import { hydrateRoot, createRoot } from "react-dom/client";
-import { StartClient } from "@tanstack/react-start/client";
+import { createRoot } from "react-dom/client";
+import { RouterProvider } from "@tanstack/react-router";
+import { getRouter } from "./router";
+
+const router = getRouter();
 
 const rootElement = document.getElementById("root");
 if (rootElement) {
-  if (rootElement.innerHTML.trim()) {
-    hydrateRoot(rootElement, <StartClient />);
-  } else {
-    createRoot(rootElement).render(<StartClient />);
-  }
+  createRoot(rootElement).render(<RouterProvider router={router} />);
 }
