@@ -63,9 +63,10 @@ function DefaultErrorComponent({
 }
 
 export const getRouter = () => {
+  const queryClient = new QueryClient();
   const router = createRouter({
     routeTree,
-    context: {},
+    context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
