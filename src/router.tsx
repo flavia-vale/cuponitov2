@@ -63,8 +63,10 @@ function DefaultErrorComponent({
   );
 }
 
+// Criação do Singleton do QueryClient para evitar múltiplas instâncias
+const queryClient = new QueryClient();
+
 export const getRouter = () => {
-  const queryClient = new QueryClient();
   const router = createRouter({
     routeTree,
     context: { queryClient },
