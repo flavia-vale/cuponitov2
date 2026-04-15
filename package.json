@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && echo 'SOU_EU_O_DYAD' > dist/quem-sou-eu.txt",
+    "build": "vite build && mkdir -p dist/desconto && cp dist/index.html dist/desconto/index.html && mkdir -p dist/blog && cp dist/index.html dist/blog/index.html && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "lint": "eslint .",
     "build:dev": "vite build"
