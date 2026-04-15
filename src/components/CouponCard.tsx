@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Copy, ExternalLink, Clock, Eye } from 'lucide-react';
+import { useState } from 'react';
+import { Copy, ExternalLink, Clock, Eye, Scissors } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Coupon } from '@/hooks/useCoupons';
@@ -14,12 +14,6 @@ import {
 } from '@/components/ui/dialog';
 
 const FALLBACK_COLOR = '#575ecf';
-const FALLBACK_EMOJI = '🏷️';
-
-function maskCode(code: string) {
-  if (code.length <= 3) return code;
-  return '•'.repeat(code.length - 3) + code.slice(-3);
-}
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -29,9 +23,6 @@ interface CouponCardProps {
 
 const CouponCard = ({ coupon, index = 0, storeBrand }: CouponCardProps) => {
   const brandColor = storeBrand?.brand_color || FALLBACK_COLOR;
-  const emoji = storeBrand?.icon_emoji || FALLBACK_EMOJI;
-  const logoUrl = storeBrand?.logo_url;
-
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleCopyAndGo = () => {
@@ -39,112 +30,109 @@ const CouponCard = ({ coupon, index = 0, storeBrand }: CouponCardProps) => {
       navigator.clipboard.writeText(coupon.code);
       toast({ title: 'Código copiado!', description: coupon.code });
     }
-    window.open(coupon.link, '_blank', 'noopener,noreferrer');
+    window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
     setModalOpen(false);
   };
 
-  const handleCodeClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setModalOpen(true);
-  };
-
-  const socialProofCount = useMemo(() => Math.floor(Math.random() * 401) + 100, []);
-
   return (
     <>
-      <a
-        href={coupon.link}
-        target="_blank"
-        rel="nofollow sponsored noopener noreferrer"
-        aria-label={`${coupon.discount} de desconto em ${coupon.store}: ${coupon.title}`}
+      <div
+        onClick={() => setModalOpen(true)}
         className={cn(
-          'group flex flex-col rounded-2xl border-l-4 bg-card p-3 sm:p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-fade-in',
-          coupon.is_flash && 'ring-2 ring-destructive/60'
+          "group relative flex flex-col cursor-pointer overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl opacity-0 animate-fade-in",
+          coupon.is_flash && "ring-2 ring-destructive animate-pulse"
         )}
-        style={{
-          borderLeftColor: brandColor,
-          boxShadow: 'var(--shadow-card)',
-          animationDelay: `${index * 80}ms`,
-        }}
+        style={{ animationDelay: `${index * 50}ms`, boxShadow: '0 10px 30px -10px rgba(0,0,0,0.1)' }}
       >
-        {coupon.is_flash && (
-          <div className="mb-2">
-            <FlashBadge />
-          </div>
-        )}
-
-        <div className="mb-2.5 flex items-center justify-between gap-2">
-          <span
-            className="shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
-            style={{ backgroundColor: brandColor }}
-          >
-            {logoUrl ? (
-              <img src={logoUrl} alt="" className="h-3.5 w-3.5 object-contain brightness-0 invert" />
+        {/* Lado Esquerdo (Destaque do Desconto) */}
+        <div 
+          className="flex h-16 items-center justify-between px-4 text-white"
+          style={{ backgroundColor: brandColor }}
+        >
+          <div className="flex items-center gap-2">
+            {storeBrand?.logo_url ? (
+              <img src={storeBrand.logo_url} alt="" className="h-8 w-8 rounded-lg bg-white p-1 object-contain" />
             ) : (
-              <span>{emoji}</span>
+              <span className="text-xl">{storeBrand?.icon_emoji || '🏷️'}</span>
             )}
-            {coupon.store}
-          </span>
-          <span className="rounded-lg bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary sm:text-sm">
-            {coupon.discount}
-          </span>
-        </div>
-
-        <h3 className="mb-1 text-base font-bold text-card-foreground leading-snug line-clamp-2 sm:text-lg">{coupon.title}</h3>
-        <p className="mb-3 text-xs text-muted-foreground line-clamp-2 sm:text-sm">{coupon.description}</p>
-
-        <div className="mt-auto flex items-center gap-2">
-          {coupon.code ? (
-            <button
-              onClick={handleCodeClick}
-              aria-label={`Mostrar código do cupom ${coupon.title}`}
-              className="group/code relative flex items-center gap-1.5 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-mono font-bold text-primary transition hover:bg-primary/10 overflow-hidden sm:text-sm sm:px-3 sm:py-1.5 min-h-[36px]"
-            >
-              <span className="transition-opacity group-hover/code:opacity-0">
-                {maskCode(coupon.code)}
-              </span>
-              <span className="absolute inset-0 flex items-center justify-center gap-1 text-xs font-sans opacity-0 transition-opacity group-hover/code:opacity-100">
-                <Eye className="h-3.5 w-3.5" aria-hidden="true" /> Mostrar
-              </span>
-            </button>
-          ) : (
-            <span className="text-xs text-muted-foreground">Sem código necessário</span>
-          )}
-
-          <span className="ml-auto flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition group-hover:scale-105 min-h-[36px] sm:px-4">
-            Pegar Cupom <ExternalLink className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
-          </span>
-        </div>
-
-        {coupon.expiry && (
-          <div className="mt-2.5 flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" aria-hidden="true" />
-            Válido até {new Date(coupon.expiry).toLocaleDateString('pt-BR')}
+            <span className="text-sm font-bold uppercase tracking-wider">{coupon.store}</span>
           </div>
-        )}
+          <div className="text-xl font-black">{coupon.discount}</div>
+        </div>
 
-        <p className="mt-2 text-[11px] text-muted-foreground/70" aria-hidden="true">
-          🔥 Código utilizado por {socialProofCount} pessoas nas últimas 2 horas
-        </p>
-      </a>
+        {/* Divisor "Ticket" */}
+        <div className="relative flex items-center px-4">
+          <div className="absolute -left-3 h-6 w-6 rounded-full bg-background" />
+          <div className="w-full border-t-2 border-dashed border-border" />
+          <div className="absolute -right-3 h-6 w-6 rounded-full bg-background" />
+        </div>
+
+        {/* Conteúdo */}
+        <div className="flex flex-1 flex-col p-5">
+          <h3 className="mb-2 text-lg font-bold text-foreground leading-tight line-clamp-2">
+            {coupon.title}
+          </h3>
+          <p className="mb-4 text-sm text-muted-foreground line-clamp-2">
+            {coupon.description}
+          </p>
+
+          <div className="mt-auto flex items-center justify-between gap-3">
+            {coupon.code ? (
+              <div className="flex-1 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 py-2 text-center font-mono text-sm font-bold text-primary">
+                {coupon.code.slice(0, 3)}***
+              </div>
+            ) : (
+              <div className="flex-1 text-xs font-semibold text-muted-foreground italic">Oferta Ativada</div>
+            )}
+            
+            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white transition-transform group-hover:scale-110">
+              <ExternalLink size={18} />
+            </button>
+          </div>
+          
+          {coupon.expiry && (
+            <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+              <Clock size={10} /> Expira em: {new Date(coupon.expiry).toLocaleDateString('pt-BR')}
+            </div>
+          )}
+        </div>
+      </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-sm text-center">
-          <DialogHeader>
-            <DialogTitle>{coupon.title}</DialogTitle>
-            <DialogDescription>{coupon.discount} — {coupon.store}</DialogDescription>
+        <DialogContent className="max-w-md rounded-[2rem] p-8">
+          <DialogHeader className="items-center text-center">
+            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10">
+              <Scissors className="h-10 w-10 text-primary" />
+            </div>
+            <DialogTitle className="text-2xl font-black">{coupon.title}</DialogTitle>
+            <DialogDescription className="text-base font-medium">
+              {coupon.discount} de desconto na {coupon.store}
+            </DialogDescription>
           </DialogHeader>
-          <div className="my-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 px-6 py-4 font-mono text-2xl font-bold text-primary tracking-wider">
-            {coupon.code}
+
+          <div className="my-6 space-y-4">
+            {coupon.code ? (
+              <div className="rounded-2xl border-2 border-dashed border-primary bg-primary/5 p-6 text-center font-mono text-3xl font-black tracking-[0.2em] text-primary">
+                {coupon.code}
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-primary/10 p-6 text-center text-lg font-bold text-primary">
+                🎉 Desconto aplicado automaticamente no link!
+              </div>
+            )}
+
+            <Button
+              onClick={handleCopyAndGo}
+              className="h-14 w-full rounded-2xl text-lg font-bold shadow-lg shadow-primary/20"
+            >
+              <Copy className="mr-2 h-5 w-5" />
+              {coupon.code ? 'Copiar e ir para Loja' : 'Pegar Desconto Agora'}
+            </Button>
+            
+            <p className="text-center text-xs text-muted-foreground">
+              Você será redirecionado para o site oficial da {coupon.store}
+            </p>
           </div>
-          <button
-            onClick={handleCopyAndGo}
-            aria-label="Copiar código e ir para a loja"
-            className="w-full rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition hover:bg-primary/90 flex items-center justify-center gap-2 min-h-[48px]"
-          >
-            <Copy className="h-4 w-4" aria-hidden="true" /> Copiar e ir para loja
-          </button>
         </DialogContent>
       </Dialog>
     </>
