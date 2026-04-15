@@ -1,6 +1,7 @@
 "use client";
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from "@/components/ui/sonner";
@@ -19,11 +20,33 @@ const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Componente que intercepta o redirecionamento do 404.html
+ * Ele lê o parâmetro 'p' da URL e navega internamente para a rota correta.
+ */
+function SPAUrlHandler() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const redirectPath = params.get('p');
+    
+    if (redirectPath) {
+      // Remove o parâmetro 'p' da URL e faz a navegação interna silenciosa
+      navigate(decodeURIComponent(redirectPath), { replace: true });
+    }
+  }, [navigate, location]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <SPAUrlHandler />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/desconto/:slug" element={<StoreDetail />} />
@@ -31,7 +54,6 @@ export default function App() {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            {/* Rota curinga (Truque do Lovable/Surge) */}
             <Route path="*" element={<Home />} />
           </Routes>
         </BrowserRouter>
