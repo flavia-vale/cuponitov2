@@ -42,7 +42,7 @@ function Index() {
   }, [storeBrands]);
 
   const seo = useMemo(() => {
-    if (!settings) return { title: `Cupom de Desconto ${monthYear} | Cuponito`, description: 'Economize agora.' };
+    if (!settings) return { title: `Cupom de Desconto ${monthYear} | Cuponito`, description: 'Economize agora com os melhores cupons.' };
     return {
       title: settings.seo_defaults.home_title.replace('{month_year}', monthYear),
       description: settings.seo_defaults.home_description.replace('{month_year}', monthYear)
@@ -63,59 +63,66 @@ function Index() {
 
       <Header />
       <HeroBanner />
-      <StoreCards />
+      
+      <main className="relative z-10 -mt-8 md:-mt-12">
+        <StoreCards />
 
-      <Suspense fallback={null}>
-        <WhatsAppCTA variant="urgency" />
-      </Suspense>
+        <Suspense fallback={null}>
+          <WhatsAppCTA variant="urgency" />
+        </Suspense>
 
-      <section className="mx-auto max-w-6xl px-4 pb-8 md:pb-12">
-        <div className="mb-5 md:mb-8 flex items-center justify-center gap-2">
-          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-          <h2 className="text-xl font-bold text-foreground md:text-3xl">Top cupons</h2>
-          <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-        </div>
-
-        {isMounted ? (
-          couponsLoading ? (
-            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-52 rounded-2xl" />
-              ))}
+        <section className="mx-auto max-w-6xl px-4 pb-8 md:pb-12">
+          <div className="mb-6 md:mb-10 flex items-center justify-center gap-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-border" />
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+              <h2 className="text-2xl font-bold text-foreground md:text-4xl">Ofertas em Destaque</h2>
+              <Sparkles className="h-5 w-5 text-primary animate-pulse" />
             </div>
-          ) : relevantCoupons.length === 0 ? (
-            <EmptyState message="Nenhum cupom encontrado" />
-          ) : (
-            <Suspense fallback={<div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}</div>}>
-              <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {relevantCoupons.map((c, i) => (
-                  <CouponCard key={c.id} coupon={c} index={i} storeBrand={storeBrandMap[c.store]} />
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-border" />
+          </div>
+
+          {isMounted ? (
+            couponsLoading ? (
+              <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-56 rounded-3xl" />
                 ))}
               </div>
-            </Suspense>
-          )
-        ) : (
-          <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-52 rounded-2xl" />
-            ))}
+            ) : relevantCoupons.length === 0 ? (
+              <EmptyState message="Nenhum cupom encontrado" />
+            ) : (
+              <Suspense fallback={null}>
+                <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {relevantCoupons.map((c, i) => (
+                    <CouponCard key={c.id} coupon={c} index={i} storeBrand={storeBrandMap[c.store]} />
+                  ))}
+                </div>
+              </Suspense>
+            )
+          ) : (
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-56 rounded-3xl" />
+              ))}
+            </div>
+          )}
+
+          <div className="mt-10 text-center">
+            <p className="mb-4 text-sm text-muted-foreground">
+              Quer ver todos os cupons de uma loja específica?
+            </p>
+            <a href="#lojas" className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-6 py-2 text-sm font-bold text-primary transition hover:bg-primary/10">
+              Ver Todas as Lojas
+            </a>
           </div>
-        )}
+        </section>
 
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          Encontre mais ofertas selecionando sua loja favorita acima. 👆
-        </p>
-        <div className="mt-2 text-center">
-          <a href="#lojas" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-            Ver todas as lojas
-          </a>
-        </div>
-      </section>
-
-      <Suspense fallback={null}>
-        <WhatsAppCTA variant="social-proof" />
-        <Footer />
-      </Suspense>
+        <Suspense fallback={null}>
+          <WhatsAppCTA variant="social-proof" />
+          <Footer />
+        </Suspense>
+      </main>
     </div>
   );
 }
