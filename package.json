@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && cp dist/index.html dist/404.html && cp dist/index.html dist/200.html && echo 'O build do Dyad está funcionando.' > dist/teste-servidor.txt",
+    "build": "vite build && echo '/* /index.html 200' > dist/_redirects",
     "preview": "vite preview",
     "lint": "eslint .",
     "build:dev": "vite build"
