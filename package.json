@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && echo '/desconto/* /index.html 200' > dist/_redirects && echo '/blog/* /index.html 200' >> dist/_redirects && echo '/* /index.html 200' >> dist/_redirects && printf \"/*\\n  Cache-Control: no-cache\\n\" > dist/_headers",
+    "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "build:dev": "vite build"
