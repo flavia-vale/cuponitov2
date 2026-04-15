@@ -200,6 +200,7 @@ export type Database = {
           icon_emoji: string
           id: string
           slug: string
+          logo_url: string | null
         }
         Insert: {
           brand_color?: string
@@ -209,6 +210,7 @@ export type Database = {
           icon_emoji?: string
           id?: string
           slug: string
+          logo_url?: string | null
         }
         Update: {
           brand_color?: string
@@ -218,6 +220,7 @@ export type Database = {
           icon_emoji?: string
           id?: string
           slug?: string
+          logo_url?: string | null
         }
         Relationships: []
       }
