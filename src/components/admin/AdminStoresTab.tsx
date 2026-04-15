@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ interface StoreForm { display_name: string; slug: string; icon_emoji: string; br
 const emptyForm: StoreForm = { display_name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf' };
 
 export function AdminStoresTab({ stores, refetchStores }: Props) {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<StoreForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -26,11 +28,11 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
       if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
       toast({ title: 'Loja cadastrada!' });
     }
-    setForm(emptyForm); setEditingId(null); refetchStores();
+    setForm(emptyForm); setEditingId(null); refetchStores(); queryClient.invalidateQueries({ queryKey: ['store-brands'] });
   };
 
   const handleEdit = (store: StoreBrand) => { setEditingId(store.id); setForm({ display_name: store.display_name, slug: store.slug, icon_emoji: store.icon_emoji, brand_color: store.brand_color, fallback_color: store.fallback_color }); };
-  const handleDelete = async (id: string) => { const { error } = await supabase.from('stores').delete().eq('id', id); if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; } toast({ title: 'Loja removida!' }); refetchStores(); };
+  const handleDelete = async (id: string) => { const { error } = await supabase.from('stores').delete().eq('id', id); if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; } toast({ title: 'Loja removida!' }); refetchStores(); queryClient.invalidateQueries({ queryKey: ['store-brands'] }); };
   const cancelEdit = () => { setEditingId(null); setForm(emptyForm); };
 
   return (
