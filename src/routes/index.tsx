@@ -30,8 +30,8 @@ function Index() {
   const { data: settings } = useSettings();
   const monthYear = getMonthYear();
 
-  const featuredCoupons = useMemo(() => coupons?.slice(0, 2) || [], [coupons]);
-  const popularCoupons = useMemo(() => coupons?.slice(2, 5) || [], [coupons]);
+  const featuredCoupons = useMemo(() => coupons?.slice(0, 3) || [], [coupons]);
+  const popularCoupons = useMemo(() => coupons?.slice(3, 8) || [], [coupons]);
 
   const storeBrandMap = useMemo(() => {
     const map: Record<string, any> = {};
@@ -51,33 +51,38 @@ function Index() {
   useEffect(() => { setIsMounted(true); }, []);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#f8f9fa] font-sans">
       <SEOHead title={seo.title} description={seo.description} jsonLdRoute={{ type: 'home', coupons: featuredCoupons }} />
       <Header />
       <HeroBanner />
       <UrgencyBanner />
       
-      <main className="relative z-10 space-y-4 pb-12">
+      <main className="relative z-10 space-y-2 pb-12">
         <CategoryScroll />
 
-        {/* Destaques do dia */}
-        <section className="mx-auto max-w-6xl px-4">
+        {/* Destaques do dia com efeito Peek no Mobile */}
+        <section className="mx-auto max-w-6xl overflow-hidden px-4">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-black text-foreground">Destaques do dia</h2>
+            <h2 className="text-lg font-bold tracking-tight text-foreground">Destaques do dia</h2>
             <Link to="/blog" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
               Ver todos <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {couponsLoading ? [1,2].map(i => <Skeleton key={i} className="h-48 rounded-3xl" />) : 
-              featuredCoupons.map(c => <FeaturedStoreCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />)}
+          
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-3 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {couponsLoading ? [1,2].map(i => <Skeleton key={i} className="h-48 min-w-[85vw] rounded-3xl sm:min-w-full" />) : 
+              featuredCoupons.map(c => (
+                <div key={c.id} className="min-w-[85vw] snap-center sm:min-w-full">
+                  <FeaturedStoreCard coupon={c} storeBrand={storeBrandMap[c.store]} />
+                </div>
+              ))}
           </div>
         </section>
 
         {/* Cupons Populares */}
-        <section className="mx-auto max-w-6xl px-4 py-4">
+        <section className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-black text-foreground">Cupons populares</h2>
+            <h2 className="text-lg font-bold tracking-tight text-foreground">Cupons populares</h2>
             <Link to="/" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
               Ver todos <ArrowRight size={14} />
             </Link>
@@ -89,9 +94,9 @@ function Index() {
         </section>
 
         {/* Lojas Parceiras */}
-        <section className="mx-auto max-w-6xl px-4 py-4">
+        <section className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-black text-foreground">Lojas parceiras</h2>
+            <h2 className="text-lg font-bold tracking-tight text-foreground">Lojas parceiras</h2>
             <Link to="/" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
               Ver todas <ArrowRight size={14} />
             </Link>
