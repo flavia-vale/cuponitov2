@@ -24,6 +24,11 @@ export const router = createRouter({
   defaultPreloadStaleTime: 0,
 });
 
+// Tratamento para evitar erro ao carregar via /index.html (comum em fallbacks de servidor)
+if (typeof window !== 'undefined' && window.location.pathname === '/index.html') {
+  history.push('/');
+}
+
 // Registro de tipos do roteador
 declare module '@tanstack/react-router' {
   interface Register {
