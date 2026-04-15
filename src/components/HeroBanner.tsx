@@ -21,14 +21,14 @@ const HeroBanner = () => {
           {heroContent.hero_subtitle}
         </p>
 
-        {/* Barra de Busca Integrada */}
+        {/* Barra de Busca Integrada - Premium Polish */}
         <div className="relative mx-auto mb-8 max-w-2xl">
-          <div className="flex items-center gap-2 rounded-full bg-white p-2 shadow-2xl">
+          <div className="group flex items-center gap-2 rounded-full bg-white p-1.5 shadow-2xl transition-all focus-within:ring-4 focus-within:ring-white/20">
             <Input 
               placeholder="Buscar loja ou cupom..." 
-              className="h-12 border-none bg-transparent pl-4 text-foreground focus-visible:ring-0 placeholder:text-muted-foreground/60"
+              className="h-12 border-none bg-transparent pl-5 text-foreground focus-visible:ring-0 placeholder:text-muted-foreground/60 text-base md:text-lg"
             />
-            <Button className="h-12 rounded-full bg-slate-900 px-8 font-bold text-white hover:bg-slate-800">
+            <Button className="h-12 rounded-full bg-slate-900 px-8 font-bold text-white hover:bg-slate-800 transition-all active:scale-95">
               Buscar
             </Button>
           </div>

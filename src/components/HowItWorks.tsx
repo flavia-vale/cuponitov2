@@ -11,24 +11,24 @@ const HowItWorks = () => {
   };
 
   const steps = [
-    { number: 1, text: content.step1, color: 'bg-orange-100 text-orange-600' },
-    { number: 2, text: content.step2, color: 'bg-blue-100 text-blue-600' },
-    { number: 3, text: content.step3, color: 'bg-green-100 text-green-600' },
+    { number: 1, text: content.step1, color: 'bg-orange-50 text-orange-600' },
+    { number: 2, text: content.step2, color: 'bg-blue-50 text-blue-600' },
+    { number: 3, text: content.step3, color: 'bg-green-50 text-green-600' },
   ];
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-8 md:py-12">
-      <div className="rounded-3xl border border-border bg-white p-8 md:p-14">
-        <h2 className="mb-12 text-center text-xl font-black text-foreground md:text-3xl">
+    <section className="mx-auto max-w-6xl px-4 py-10 md:py-16">
+      <div className="rounded-[2.5rem] border border-border bg-white px-6 py-12 md:px-16 md:py-20 shadow-sm">
+        <h2 className="mb-14 text-center text-2xl font-black text-foreground md:text-4xl">
           {content.title}
         </h2>
-        <div className="grid gap-10 md:grid-cols-3">
+        <div className="grid gap-12 md:grid-cols-3">
           {steps.map((step) => (
             <div key={step.number} className="flex flex-col items-center text-center">
-              <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-full text-xl font-black shadow-sm ${step.color}`}>
+              <div className={`mb-6 flex h-16 w-16 items-center justify-center rounded-full text-2xl font-black shadow-inner ${step.color}`}>
                 {step.number}
               </div>
-              <p className="text-base font-bold text-muted-foreground max-w-[220px] leading-snug">
+              <p className="text-base font-bold text-muted-foreground max-w-[200px] leading-snug md:text-lg">
                 {step.text}
               </p>
             </div>
