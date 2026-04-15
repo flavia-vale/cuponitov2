@@ -1,11 +1,10 @@
 import { defineConfig } from '@tanstack/react-start/config';
-import { cloudflareAdapter } from '@tanstack/start-adapter-cloudflare';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   server: {
+    // O preset 'cloudflare-pages' configura automaticamente o runtime para o Cloudflare
     preset: 'cloudflare-pages',
-    adapter: cloudflareAdapter,
   },
   vite: {
     plugins: [
