@@ -1,5 +1,6 @@
 import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
+import Header from '@/components/Header';
 import HeroBanner from '@/components/HeroBanner';
 import StoreCards from '@/components/StoreCards';
 import SEOHead from '@/components/SEOHead';
@@ -51,6 +52,7 @@ function Index() {
         jsonLdRoute={{ type: 'home', coupons: relevantCoupons }}
       />
 
+      <Header />
       <HeroBanner />
       <StoreCards />
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import Header from '@/components/Header';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import SEOHead from '@/components/SEOHead';
@@ -78,6 +79,8 @@ function StorePage() {
           jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filtered }}
         />
       )}
+
+      <Header />
 
       <div
         className="px-4 py-8 md:py-12 text-center text-white"
