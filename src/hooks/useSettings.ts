@@ -8,8 +8,8 @@ export interface SiteSettings {
     contact_email: string;
   };
   hero_content: {
-    title: string;
-    subtitle: string;
+    hero_title: string;
+    hero_subtitle: string;
     description: string;
     button_text: string;
   };
@@ -26,10 +26,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
     contact_email: "contato@cuponito.com.br"
   },
   hero_content: {
-    title: "Cupons de Desconto {month_year} 🎯",
-    subtitle: "Amazon, Shopee e Mercado Livre",
-    description: "Encontre o melhor cupom de desconto e código promocional válido para as maiores lojas online do Brasil.",
-    button_text: "Receba os cupons em tempo real pelo WhatsApp"
+    hero_title: "Economize em cada compra",
+    hero_subtitle: "+3.000 cupons verificados todos os dias",
+    description: "Encontre o melhor cupom de desconto válido para as maiores lojas online do Brasil.",
+    button_text: "Buscar"
   },
   seo_defaults: {
     home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje",

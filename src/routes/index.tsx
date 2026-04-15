@@ -2,6 +2,7 @@ import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import HeroBanner from '@/components/HeroBanner';
+import UrgencyBanner from '@/components/UrgencyBanner';
 import StoreCards from '@/components/StoreCards';
 import SEOHead from '@/components/SEOHead';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -63,8 +64,9 @@ function Index() {
 
       <Header />
       <HeroBanner />
+      <UrgencyBanner />
       
-      <main className="relative z-10 -mt-8 md:-mt-12">
+      <main className="relative z-10">
         <StoreCards />
 
         <Suspense fallback={null}>
@@ -107,15 +109,6 @@ function Index() {
               ))}
             </div>
           )}
-
-          <div className="mt-10 text-center">
-            <p className="mb-4 text-sm text-muted-foreground">
-              Quer ver todos os cupons de uma loja específica?
-            </p>
-            <a href="#lojas" className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-6 py-2 text-sm font-bold text-primary transition hover:bg-primary/10">
-              Ver Todas as Lojas
-            </a>
-          </div>
         </section>
 
         <Suspense fallback={null}>
