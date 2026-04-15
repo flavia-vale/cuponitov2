@@ -2,35 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import path from 'path';
-// @ts-ignore
-import PrerenderSpy from 'vite-plugin-prerender';
-
-const Renderer = PrerenderSpy.PuppeteerRenderer;
 
 export default defineConfig({
+  // Garante que todos os assets usem caminhos absolutos (começando com /)
   base: '/',
   plugins: [
     react(),
     tailwindcss(),
     tsconfigPaths(),
-    PrerenderSpy({
-      // Caminho para a pasta de saída do build
-      staticDir: path.join(__dirname, 'dist'),
-      // Rotas que queremos gerar arquivos index.html físicos
-      routes: [
-        '/', 
-        '/blog', 
-        '/admin', 
-        '/desconto/cupom-desconto-amazon',
-        '/desconto/cupom-desconto-shopee',
-        '/desconto/cupom-desconto-mercado-livre'
-      ],
-      renderer: new Renderer({
-        renderAfterDocumentEvent: 'render-event',
-        headless: true
-      }),
-    }),
   ],
   server: {
     fs: {
@@ -44,6 +23,7 @@ export default defineConfig({
     copyPublicDir: true,
     rollupOptions: {
       output: {
+        // Força uma estrutura limpa de assets na raiz do build
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
