@@ -16,7 +16,8 @@ const HeroBanner = () => {
   const monthYear = getMonthYear();
 
   return (
-    <section className="relative overflow-hidden py-6 md:py-12 px-4 bg-slate-900">
+    <section className="relative overflow-hidden py-12 md:py-16 px-4 bg-slate-900">
+      {/* Removendo elementos do Header */}
       <FloatingIcon className="top-8 left-[8%] animate-bounce [animation-duration:3s]">
         <ShoppingCart size={40} />
       </FloatingIcon>
@@ -45,7 +46,7 @@ const HeroBanner = () => {
           🔥 Códigos promocionais atualizados!
         </div>
 
-        <h1 className="mb-3 md:mb-4 text-2xl font-bold text-white md:text-5xl lg:text-6xl leading-tight">
+        <h1 className="mb-3 md:mb-4 text-2xl font-bold text-foreground md:text-5xl lg:text-6xl leading-tight">
           Cupons de Desconto{' '}
           <span className="relative inline-block">
             <span className="relative z-10">{monthYear}</span>

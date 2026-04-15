@@ -2,6 +2,8 @@ import "./styles.css";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 import { getRouter } from "./router";
+import Header from './components/Header'; // Novo import
+import HeroBanner from './components/HeroBanner';
 
 const router = getRouter();
 
