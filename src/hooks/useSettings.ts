@@ -19,20 +19,41 @@ export interface SiteSettings {
   };
 }
 
+const DEFAULT_SETTINGS: SiteSettings = {
+  global_links: {
+    whatsapp_group: "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
+    instagram: "",
+    contact_email: "contato@cuponito.com.br"
+  },
+  hero_content: {
+    title: "Cupons de Desconto {month_year} 🎯",
+    subtitle: "Amazon, Shopee e Mercado Livre",
+    description: "Encontre o melhor cupom de desconto e código promocional válido para as maiores lojas online do Brasil.",
+    button_text: "Receba os cupons em tempo real pelo WhatsApp"
+  },
+  seo_defaults: {
+    home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje",
+    home_description: "Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre. Economize agora com ofertas verificadas e atualizadas diariamente."
+  }
+};
+
 export function useSettings() {
   return useQuery({
     queryKey: ['site-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('site_settings').select('*');
-      if (error) throw error;
-      
-      // Transform array of {key, value} into a single object
-      return data.reduce((acc, item) => ({
-        ...acc,
-        [item.key]: item.value
-      }), {} as SiteSettings);
+      try {
+        const { data, error } = await supabase.from('site_settings').select('*');
+        if (error || !data || data.length === 0) return DEFAULT_SETTINGS;
+        
+        return data.reduce((acc, item) => ({
+          ...acc,
+          [item.key]: item.value
+        }), {} as SiteSettings);
+      } catch (e) {
+        return DEFAULT_SETTINGS;
+      }
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 }
 
