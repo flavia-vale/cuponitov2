@@ -54,13 +54,18 @@ export function useSettings() {
     queryKey: ['site-settings'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase.from('site_settings').select('*');
+        const { data, error } = await supabase.from('site_settings').select('key, value');
         if (error || !data || data.length === 0) return DEFAULT_SETTINGS;
         
-        return data.reduce((acc, item) => ({
+        const settings = data.reduce((acc, item) => ({
           ...acc,
           [item.key]: item.value
-        }), {} as SiteSettings);
+        }), {} as any);
+
+        return {
+          ...DEFAULT_SETTINGS,
+          ...settings
+        } as SiteSettings;
       } catch (e) {
         return DEFAULT_SETTINGS;
       }

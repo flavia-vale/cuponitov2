@@ -69,15 +69,15 @@ export function AdminSeoTab() {
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Título Principal</label>
                 <Input 
-                  value={localSettings.hero_content.title} 
-                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, title: e.target.value }})} 
+                  value={localSettings.hero_content.hero_title} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, hero_title: e.target.value }})} 
                 />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Subtítulo</label>
                 <Input 
-                  value={localSettings.hero_content.subtitle} 
-                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, subtitle: e.target.value }})} 
+                  value={localSettings.hero_content.hero_subtitle} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, hero_subtitle: e.target.value }})} 
                 />
               </div>
             </div>

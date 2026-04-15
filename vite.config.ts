@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [
@@ -21,11 +22,23 @@ export default defineConfig({
     fs: {
       allow: ['.', './node_modules', './src'],
     },
-    // Fixes 404 on refresh in local development
-    historyApiFallback: true,
   },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    cssCodeSplit: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        admin: resolve(__dirname, 'admin/index.html'),
+        blog: resolve(__dirname, 'blog/index.html'),
+        desconto: resolve(__dirname, 'desconto/index.html'),
+      },
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    },
   }
 });
