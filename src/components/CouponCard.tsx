@@ -3,6 +3,7 @@ import { Copy, ExternalLink, Clock, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { Coupon } from '@/hooks/useCoupons';
+import type { StoreBrand } from '@/lib/storeBranding';
 import FlashBadge from '@/components/FlashBadge';
 import {
   Dialog,
@@ -12,19 +13,24 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 
-const storeStyles: Record<string, { badge: string; accent: string; icon: string }> = {
-  Amazon: { badge: 'bg-amazon text-amazon-foreground', accent: 'border-l-amazon', icon: '🛒' },
-  Shopee: { badge: 'bg-shopee text-shopee-foreground', accent: 'border-l-shopee', icon: '🧡' },
-  'Mercado Livre': { badge: 'bg-mercadolivre text-mercadolivre-foreground', accent: 'border-l-mercadolivre', icon: '🤝' },
-};
+const FALLBACK_COLOR = '#575ecf';
+const FALLBACK_EMOJI = '🏷️';
 
 function maskCode(code: string) {
   if (code.length <= 3) return code;
   return '•'.repeat(code.length - 3) + code.slice(-3);
 }
 
-const CouponCard = ({ coupon, index = 0 }: { coupon: Coupon; index?: number }) => {
-  const style = storeStyles[coupon.store] || storeStyles.Amazon;
+interface CouponCardProps {
+  coupon: Coupon;
+  index?: number;
+  storeBrand?: StoreBrand;
+}
+
+const CouponCard = ({ coupon, index = 0, storeBrand }: CouponCardProps) => {
+  const brandColor = storeBrand?.brand_color || FALLBACK_COLOR;
+  const emoji = storeBrand?.icon_emoji || FALLBACK_EMOJI;
+
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleCopyAndGo = () => {
@@ -53,10 +59,13 @@ const CouponCard = ({ coupon, index = 0 }: { coupon: Coupon; index?: number }) =
         aria-label={`${coupon.discount} de desconto em ${coupon.store}: ${coupon.title}`}
         className={cn(
           'group flex flex-col rounded-2xl border-l-4 bg-card p-3 sm:p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-fade-in',
-          style.accent,
           coupon.is_flash && 'ring-2 ring-destructive/60'
         )}
-        style={{ boxShadow: 'var(--shadow-card)', animationDelay: `${index * 80}ms` }}
+        style={{
+          borderLeftColor: brandColor,
+          boxShadow: 'var(--shadow-card)',
+          animationDelay: `${index * 80}ms`,
+        }}
       >
         {coupon.is_flash && (
           <div className="mb-2">
@@ -65,8 +74,11 @@ const CouponCard = ({ coupon, index = 0 }: { coupon: Coupon; index?: number }) =
         )}
 
         <div className="mb-2.5 flex items-center justify-between gap-2">
-          <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold', style.badge)}>
-            {style.icon} {coupon.store}
+          <span
+            className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
+            style={{ backgroundColor: brandColor }}
+          >
+            {emoji} {coupon.store}
           </span>
           <span className="rounded-lg bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary sm:text-sm">
             {coupon.discount}
