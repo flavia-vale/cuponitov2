@@ -1,6 +1,6 @@
 import "./styles.css";
 import { createRoot } from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { RouterProvider, createRouter, createBrowserHistory } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
@@ -13,9 +13,12 @@ export const queryClient = new QueryClient({
   },
 });
 
+const history = createBrowserHistory();
+
 // Criando o router no formato esperado pelo analisador estático
 export const router = createRouter({
   routeTree,
+  history,
   context: { queryClient },
   scrollRestoration: true,
   defaultPreloadStaleTime: 0,

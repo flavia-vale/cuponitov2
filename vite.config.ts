@@ -28,6 +28,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     cssCodeSplit: true,
+    copyPublicDir: true,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
