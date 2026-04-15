@@ -31,12 +31,12 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        admin: resolve(__dirname, 'admin/index.html'),
-        blog: resolve(__dirname, 'blog/index.html'),
-        desconto: resolve(__dirname, 'desconto/index.html'),
-        'desconto-amazon': resolve(__dirname, 'desconto/amazon/index.html'),
-        'desconto-shopee': resolve(__dirname, 'desconto/shopee/index.html'),
-        'desconto-mercado-livre': resolve(__dirname, 'desconto/mercado-livre/index.html'),
+        admin: resolve(__dirname, 'admin.html'),
+        blog: resolve(__dirname, 'blog.html'),
+        desconto: resolve(__dirname, 'desconto.html'),
+        'desconto-amazon': resolve(__dirname, 'desconto-amazon.html'),
+        'desconto-shopee': resolve(__dirname, 'desconto-shopee.html'),
+        'desconto-mercado-livre': resolve(__dirname, 'desconto-mercado-livre.html'),
       },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
