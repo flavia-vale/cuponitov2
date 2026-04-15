@@ -52,7 +52,13 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">
-      <SEOHead title={seo.title} description={seo.description} jsonLdRoute={{ type: 'home', coupons: featuredCoupons }} />
+      {/* Agora passando featuredCoupons para gerar o Schema ItemList no Google */}
+      <SEOHead 
+        title={seo.title} 
+        description={seo.description} 
+        jsonLdRoute={{ type: 'home', coupons: featuredCoupons }} 
+      />
+      
       <Header />
       <HeroBanner />
       <UrgencyBanner />
@@ -60,7 +66,6 @@ function Index() {
       <main className="relative z-10 space-y-2 pb-12">
         <CategoryScroll />
 
-        {/* Destaques do dia com efeito Peek no Mobile */}
         <section className="mx-auto max-w-6xl overflow-hidden px-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Destaques do dia</h2>
@@ -79,7 +84,6 @@ function Index() {
           </div>
         </section>
 
-        {/* Cupons Populares */}
         <section className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Cupons populares</h2>
@@ -93,7 +97,6 @@ function Index() {
           </div>
         </section>
 
-        {/* Lojas Parceiras */}
         <section className="mx-auto max-w-6xl px-4 py-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Lojas parceiras</h2>

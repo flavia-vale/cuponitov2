@@ -1,5 +1,7 @@
-import { Copy } from 'lucide-react';
+import { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import type { Coupon } from '@/hooks/useCoupons';
 import type { StoreBrand } from '@/lib/storeBranding';
 
@@ -13,13 +15,17 @@ function getInitials(name: string) {
 }
 
 const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
-  const brandColor = storeBrand?.brand_color || '#94a3b8'; // Fallback cinza padrão
+  const [copied, setCopied] = useState(false);
+  const brandColor = storeBrand?.brand_color || '#94a3b8';
   
   const handleCopy = () => {
     if (coupon.code) {
       navigator.clipboard.writeText(coupon.code);
+      setCopied(true);
       toast({ title: 'Código copiado!', description: 'Use no carrinho para economizar.' });
       window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
+      
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -27,7 +33,7 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
 
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-border bg-white p-4 transition-all hover:shadow-md">
-      {/* Logo da Loja com Cor Dinâmica */}
+      {/* Logo da Loja */}
       <div 
         className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white shadow-sm"
         style={{ backgroundColor: brandColor }}
@@ -48,15 +54,25 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
         </p>
       </div>
 
-      {/* Box de Código */}
+      {/* Box de Código com Feedback */}
       <div className="flex flex-col items-center gap-1">
         <button
           onClick={handleCopy}
-          className="group relative flex h-10 w-24 items-center justify-center rounded-lg border-2 border-dashed border-[#ff5200]/40 bg-[#ff5200]/5 px-2 text-xs font-black tracking-wider text-[#ff5200] transition-colors hover:bg-[#ff5200]/10"
+          className={cn(
+            "group relative flex h-10 w-24 items-center justify-center rounded-lg border-2 border-dashed transition-all active:scale-95",
+            copied 
+              ? "border-green-500 bg-green-50 text-green-600" 
+              : "border-[#ff5200]/40 bg-[#ff5200]/5 text-[#ff5200] hover:bg-[#ff5200]/10"
+          )}
         >
-          {coupon.code || 'OFERTA'}
-          <div className="absolute -right-2 -top-2 flex h-5 w-5 scale-0 items-center justify-center rounded-full bg-[#ff5200] text-white transition-transform group-hover:scale-100">
-            <Copy size={10} />
+          <span className="text-[10px] font-black tracking-wider uppercase">
+            {copied ? 'COPIADO!' : (coupon.code || 'OFERTA')}
+          </span>
+          <div className={cn(
+            "absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-white transition-all",
+            copied ? "scale-100 bg-green-500" : "scale-0 bg-[#ff5200] group-hover:scale-100"
+          )}>
+            {copied ? <Check size={10} /> : <Copy size={10} />}
           </div>
         </button>
         <span className="text-[10px] font-medium text-muted-foreground/70">
