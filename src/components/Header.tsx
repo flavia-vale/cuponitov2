@@ -1,14 +1,11 @@
 import { Link } from '@tanstack/react-router';
-import { Ticket, BookOpen } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 const Header = () => (
   <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
     <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
       <Link to="/" className="flex items-center gap-2 font-lexend font-bold text-foreground">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <Ticket className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <span className="text-lg sm:text-xl tracking-tight">Cuponito</span>
+        <span className="text-lg sm:text-xl tracking-tight">cuponito</span>
       </Link>
 
       <nav className="flex items-center gap-1 sm:gap-2">
