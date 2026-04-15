@@ -51,8 +51,8 @@ function Index() {
         jsonLdRoute={{ type: 'home', coupons: relevantCoupons }}
       />
 
+      <Header />
       <HeroBanner />
-      <StoreCards />
 
       <Suspense fallback={null}>
         <WhatsAppCTA variant="urgency" />
