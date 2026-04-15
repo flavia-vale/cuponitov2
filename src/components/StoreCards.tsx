@@ -44,16 +44,20 @@ const StoreCards = () => {
                   background: `linear-gradient(135deg, ${store.brand_color}, ${store.fallback_color})`,
                 }}
               />
-              <div className="relative z-10">
-                <div className="mb-2 sm:mb-4 inline-flex rounded-xl bg-white/20 p-2 sm:p-3">
-                  <span className={isFeatured ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}>
-                    {store.icon_emoji}
-                  </span>
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="mb-2 sm:mb-4 inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-white/20 p-2 backdrop-blur-sm overflow-hidden">
+                  {store.logo_url ? (
+                    <img src={store.logo_url} alt={store.display_name} className="h-full w-full object-contain brightness-0 invert" />
+                  ) : (
+                    <span className={isFeatured ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}>
+                      {store.icon_emoji}
+                    </span>
+                  )}
                 </div>
                 <h3 className={`mb-0.5 sm:mb-1 font-bold ${isFeatured ? 'text-base sm:text-2xl' : 'text-sm sm:text-xl'}`}>
                   {store.display_name}
                 </h3>
-                <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-white/90 group-hover:gap-2 transition-all">
+                <span className="mt-auto inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-white/90 group-hover:gap-2 transition-all">
                   Ver cupons <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                 </span>
               </div>

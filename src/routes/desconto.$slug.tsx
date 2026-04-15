@@ -30,6 +30,7 @@ function StorePage() {
 
   const storeName = storeBrand?.display_name;
   const storeEmoji = storeBrand?.icon_emoji || '🏷️';
+  const storeLogo = storeBrand?.logo_url;
   const brandColor = storeBrand?.brand_color || '#575ecf';
 
   const storeBrandMap = useMemo(() => {
@@ -85,8 +86,17 @@ function StorePage() {
         <Link to="/" className="mb-3 md:mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur-sm transition hover:bg-white/25">
           <ArrowLeft className="h-3.5 w-3.5" /> Voltar
         </Link>
+        
+        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 p-3 backdrop-blur-md md:h-24 md:w-24">
+          {storeLogo ? (
+            <img src={storeLogo} alt={storeName} className="h-full w-full object-contain brightness-0 invert" />
+          ) : (
+            <span className="text-4xl md:text-5xl">{storeEmoji}</span>
+          )}
+        </div>
+
         <h1 className="text-xl font-bold md:text-4xl lg:text-5xl">
-          {storeEmoji} {storeName || 'Carregando...'} — Cupons de Desconto {monthYear}
+          {storeName || 'Carregando...'} — Cupons de Desconto {monthYear}
         </h1>
         <p className="mx-auto mt-2 md:mt-3 max-w-lg text-sm md:text-base text-white/80">
           Todos os códigos promocionais e ofertas exclusivas para {storeName || '...'}

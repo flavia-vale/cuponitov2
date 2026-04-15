@@ -30,6 +30,7 @@ interface CouponCardProps {
 const CouponCard = ({ coupon, index = 0, storeBrand }: CouponCardProps) => {
   const brandColor = storeBrand?.brand_color || FALLBACK_COLOR;
   const emoji = storeBrand?.icon_emoji || FALLBACK_EMOJI;
+  const logoUrl = storeBrand?.logo_url;
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -75,10 +76,15 @@ const CouponCard = ({ coupon, index = 0, storeBrand }: CouponCardProps) => {
 
         <div className="mb-2.5 flex items-center justify-between gap-2">
           <span
-            className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
+            className="shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
             style={{ backgroundColor: brandColor }}
           >
-            {emoji} {coupon.store}
+            {logoUrl ? (
+              <img src={logoUrl} alt="" className="h-3.5 w-3.5 object-contain brightness-0 invert" />
+            ) : (
+              <span>{emoji}</span>
+            )}
+            {coupon.store}
           </span>
           <span className="rounded-lg bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary sm:text-sm">
             {coupon.discount}

@@ -42,7 +42,16 @@ export function AdminDashboardTab({ coupons, stores }: Props) {
               const activeCount = coupons.filter((c) => c.store === store.display_name && c.status).length;
               return (
                 <div key={store.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                  <div className="flex items-center gap-3"><span className="text-xl">{store.icon_emoji}</span><span className="text-sm font-medium">{store.display_name}</span></div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-muted/30 overflow-hidden">
+                      {store.logo_url ? (
+                        <img src={store.logo_url} alt="" className="h-full w-full object-contain p-1" />
+                      ) : (
+                        <span className="text-lg">{store.icon_emoji}</span>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{store.display_name}</span>
+                  </div>
                   <div className="text-sm text-muted-foreground">{activeCount} ativos / {count} total</div>
                 </div>
               );

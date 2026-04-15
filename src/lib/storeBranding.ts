@@ -7,6 +7,7 @@ export interface StoreBrand {
   brand_color: string;
   fallback_color: string;
   icon_emoji: string;
+  logo_url?: string | null;
 }
 
 const FALLBACK_COLOR = '#575ecf';
