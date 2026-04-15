@@ -1,29 +1,130 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Save, Settings } from 'lucide-react';
+import { Save, Settings, Link as LinkIcon, Home } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useSettings, useUpdateSettings, type SiteSettings } from '@/hooks/useSettings';
 
 export function AdminSeoTab() {
-  const [title, setTitle] = useState('Cupom de Desconto 2025 → Ofertas Atualizadas Hoje');
-  const [description, setDescription] = useState('Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre. Economize agora com ofertas verificadas e atualizadas diariamente.');
+  const { data: settings, isLoading } = useSettings();
+  const updateSettings = useUpdateSettings();
+  const [localSettings, setLocalSettings] = useState<SiteSettings | null>(null);
 
-  const handleSave = () => { toast({ title: 'Configurações de SEO salvas!', description: 'As alterações serão refletidas no próximo deploy.' }); };
+  useEffect(() => {
+    if (settings) setLocalSettings(settings);
+  }, [settings]);
+
+  const handleSave = async (key: keyof SiteSettings) => {
+    if (!localSettings) return;
+    try {
+      await updateSettings.mutateAsync({ key, value: localSettings[key] });
+      toast({ title: 'Configurações salvas!', description: `A seção ${key} foi atualizada.` });
+    } catch (err: any) {
+      toast({ title: 'Erro ao salvar', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  if (isLoading || !localSettings) return <div className="p-8 text-center text-muted-foreground">Carregando configurações...</div>;
 
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-foreground">SEO & Configurações</h1><p className="text-sm text-muted-foreground">Configure os metadados globais do site</p></div>
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Settings className="h-4 w-4" /> Metadados da Home</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Título da Página (max 60 caracteres)</label><Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} /><p className="mt-1 text-xs text-muted-foreground">{title.length}/60 caracteres</p></div>
-          <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Meta Description (max 160 caracteres)</label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={160} rows={3} /><p className="mt-1 text-xs text-muted-foreground">{description.length}/160 caracteres</p></div>
-          <div className="rounded-lg border border-border bg-muted/30 p-3"><p className="mb-1 text-xs font-medium text-muted-foreground">Pré-visualização no Google:</p><p className="text-sm font-medium text-blue-600">{title || 'Título da página'}</p><p className="text-xs text-green-700">cuponito.com.br</p><p className="text-xs text-muted-foreground">{description || 'Descrição da página...'}</p></div>
-          <Button onClick={handleSave} className="gap-1.5"><Save className="h-4 w-4" /> Salvar configurações</Button>
-        </CardContent>
-      </Card>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">SEO & Configurações Gerais</h1>
+        <p className="text-sm text-muted-foreground">Controle total sobre textos, links e metadados sem código</p>
+      </div>
+
+      <div className="grid gap-6">
+        {/* SEO HOME */}
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Home className="h-4 w-4" /> SEO da Home</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Título (use {'{month_year}'} para data automática)</label>
+              <Input 
+                value={localSettings.seo_defaults.home_title} 
+                onChange={(e) => setLocalSettings({ ...localSettings, seo_defaults: { ...localSettings.seo_defaults, home_title: e.target.value }})} 
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Meta Description</label>
+              <Textarea 
+                value={localSettings.seo_defaults.home_description} 
+                onChange={(e) => setLocalSettings({ ...localSettings, seo_defaults: { ...localSettings.seo_defaults, home_description: e.target.value }})}
+                rows={3} 
+              />
+            </div>
+            <Button onClick={() => handleSave('seo_defaults')} disabled={updateSettings.isPending} className="gap-1.5">
+              <Save className="h-4 w-4" /> Salvar SEO
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* HERO SECTION */}
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Settings className="h-4 w-4" /> Conteúdo do Hero (Página Inicial)</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Título Principal</label>
+                <Input 
+                  value={localSettings.hero_content.title} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, title: e.target.value }})} 
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Subtítulo</label>
+                <Input 
+                  value={localSettings.hero_content.subtitle} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, subtitle: e.target.value }})} 
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Descrição</label>
+              <Textarea 
+                value={localSettings.hero_content.description} 
+                onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, description: e.target.value }})}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Texto do Botão WhatsApp</label>
+              <Input 
+                value={localSettings.hero_content.button_text} 
+                onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, button_text: e.target.value }})} 
+              />
+            </div>
+            <Button onClick={() => handleSave('hero_content')} disabled={updateSettings.isPending} className="gap-1.5">
+              <Save className="h-4 w-4" /> Salvar Hero
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* LINKS GLOBAIS */}
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2 text-base"><LinkIcon className="h-4 w-4" /> Links e Contatos</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Link do Grupo WhatsApp</label>
+              <Input 
+                value={localSettings.global_links.whatsapp_group} 
+                onChange={(e) => setLocalSettings({ ...localSettings, global_links: { ...localSettings.global_links, whatsapp_group: e.target.value }})} 
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">E-mail de Contato</label>
+              <Input 
+                value={localSettings.global_links.contact_email} 
+                onChange={(e) => setLocalSettings({ ...localSettings, global_links: { ...localSettings.global_links, contact_email: e.target.value }})} 
+              />
+            </div>
+            <Button onClick={() => handleSave('global_links')} disabled={updateSettings.isPending} className="gap-1.5">
+              <Save className="h-4 w-4" /> Salvar Links
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

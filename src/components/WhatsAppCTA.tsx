@@ -1,7 +1,6 @@
 import { MessageCircle, Users, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const WHATSAPP_LINK = 'https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C';
+import { useSettings } from '@/hooks/useSettings';
 
 type Variant = 'urgency' | 'social-proof' | 'store';
 
@@ -28,11 +27,14 @@ function getText(variant: Variant, storeName?: string) {
 }
 
 const WhatsAppCTA = ({ variant, storeName }: WhatsAppCTAProps) => {
+  const { data: settings } = useSettings();
   const { icon: Icon, buttonText } = config[variant];
   const text = getText(variant, storeName);
+  
+  const whatsappLink = settings?.global_links.whatsapp_group || '#';
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-6 border-none border border-primary">
+    <section className="mx-auto max-w-6xl px-4 py-6 border-none">
       <div className="relative overflow-hidden rounded-2xl border-[oklch(0.85_0.1_150)] bg-gradient-to-r from-[oklch(0.96_0.03_150)] to-[oklch(0.94_0.03_150)] p-6 md:p-8 border">
         <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-[oklch(0.55_0.17_150/0.08)]" />
         <div className="absolute -bottom-4 -left-4 h-16 w-16 rounded-full bg-[oklch(0.55_0.17_150/0.06)]" />
@@ -48,7 +50,7 @@ const WhatsAppCTA = ({ variant, storeName }: WhatsAppCTAProps) => {
             {text}
           </p>
 
-          <a href={WHATSAPP_LINK} target="_blank" rel="nofollow noopener noreferrer">
+          <a href={whatsappLink} target="_blank" rel="nofollow noopener noreferrer">
             <Button className="gap-2 rounded-full bg-[oklch(0.55_0.17_150)] px-4 py-2 text-sm md:px-6 md:text-base font-semibold text-white shadow-md hover:bg-[oklch(0.48_0.17_150)] hover:shadow-lg transition-all">
               <Icon className="h-5 w-5" />
               {buttonText}

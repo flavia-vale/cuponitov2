@@ -7,7 +7,7 @@ import SEOHead from '@/components/SEOHead';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
-import { normalizeStoreSlug } from '@/lib/storeBranding';
+import { useSettings } from '@/hooks/useSettings';
 import { getMonthYear } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
@@ -21,8 +21,9 @@ export const Route = createFileRoute('/')({
 });
 
 function Index() {
-  const { data: coupons, isLoading } = useCoupons();
+  const { data: coupons, isLoading: couponsLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
+  const { data: settings } = useSettings();
   const monthYear = getMonthYear();
 
   const relevantCoupons = useMemo(() => {
@@ -40,14 +41,22 @@ function Index() {
     return map;
   }, [storeBrands]);
 
+  const seo = useMemo(() => {
+    if (!settings) return { title: `Cupom de Desconto ${monthYear} | Cuponito`, description: 'Economize agora.' };
+    return {
+      title: settings.seo_defaults.home_title.replace('{month_year}', monthYear),
+      description: settings.seo_defaults.home_description.replace('{month_year}', monthYear)
+    };
+  }, [settings, monthYear]);
+
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`Cupom de Desconto ${monthYear} — Amazon, Shopee e Mercado Livre | Cuponito`}
-        description={`Cupons de desconto atualizados em ${monthYear} para Amazon, Shopee e Mercado Livre. Economize nas compras online!`}
+        title={seo.title}
+        description={seo.description}
         canonical="https://cuponito.com.br/"
         jsonLdRoute={{ type: 'home', coupons: relevantCoupons }}
       />
@@ -68,7 +77,7 @@ function Index() {
         </div>
 
         {isMounted ? (
-          isLoading ? (
+          couponsLoading ? (
             <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Skeleton key={i} className="h-52 rounded-2xl" />
