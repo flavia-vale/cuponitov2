@@ -6,6 +6,8 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  // Base absoluta é essencial para domínios customizados com sub-rotas
+  base: '/',
   plugins: [
     TanStackRouterVite({
       target: 'react',
@@ -35,6 +37,7 @@ export default defineConfig({
         desconto: resolve(__dirname, 'desconto/index.html'),
       },
       output: {
+        // Assets com hash para Cache Busting, carregados da raiz (/)
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
