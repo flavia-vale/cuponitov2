@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && cp dist/index.html dist/200.html",
+    "build": "vite build && mkdir -p dist/desconto && cp dist/index.html dist/404.html && mkdir -p dist/desconto/cupom-desconto-amazon && cp dist/index.html dist/desconto/cupom-desconto-amazon/index.html && mkdir -p dist/desconto/cupom-desconto-shopee && cp dist/index.html dist/desconto/cupom-desconto-shopee/index.html && mkdir -p dist/desconto/cupom-desconto-mercado-livre && cp dist/index.html dist/desconto/cupom-desconto-mercado-livre/index.html && mkdir -p dist/desconto/cupom-desconto-magalu && cp dist/index.html dist/desconto/cupom-desconto-magalu/index.html && mkdir -p dist/desconto/cupom-desconto-aliexpress && cp dist/index.html dist/desconto/cupom-desconto-aliexpress/index.html",
     "preview": "vite preview",
     "lint": "eslint .",
     "build:dev": "vite build"
