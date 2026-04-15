@@ -17,6 +17,12 @@ export interface SiteSettings {
     home_title: string;
     home_description: string;
   };
+  how_it_works: {
+    title: string;
+    step1: string;
+    step2: string;
+    step3: string;
+  };
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -34,6 +40,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
   seo_defaults: {
     home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje",
     home_description: "Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre. Economize agora com ofertas verificadas e atualizadas diariamente."
+  },
+  how_it_works: {
+    title: "Como usar um cupom?",
+    step1: "Encontre sua loja favorita",
+    step2: "Copie o código com 1 clique",
+    step3: "Cole no carrinho e economize!"
   }
 };
 
