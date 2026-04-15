@@ -199,8 +199,8 @@ export type Database = {
           fallback_color: string
           icon_emoji: string
           id: string
-          slug: string
           logo_url: string | null
+          slug: string
         }
         Insert: {
           brand_color?: string
@@ -209,8 +209,8 @@ export type Database = {
           fallback_color?: string
           icon_emoji?: string
           id?: string
-          slug: string
           logo_url?: string | null
+          slug: string
         }
         Update: {
           brand_color?: string
@@ -219,8 +219,8 @@ export type Database = {
           fallback_color?: string
           icon_emoji?: string
           id?: string
-          slug?: string
           logo_url?: string | null
+          slug?: string
         }
         Relationships: []
       }
