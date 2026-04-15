@@ -28,7 +28,7 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
       if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
       toast({ title: 'Loja cadastrada!' });
     }
-    setForm(emptyForm); setEditingId(null); refetchStores();
+    setForm(emptyForm); setEditingId(null); refetchStores(); queryClient.invalidateQueries({ queryKey: ['store-brands'] });
   };
 
   const handleEdit = (store: StoreBrand) => { setEditingId(store.id); setForm({ display_name: store.display_name, slug: store.slug, icon_emoji: store.icon_emoji, brand_color: store.brand_color, fallback_color: store.fallback_color }); };
