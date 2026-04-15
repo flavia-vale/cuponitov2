@@ -26,7 +26,20 @@ function StorePage() {
 
   const storeBrand = useMemo(() => {
     if (!storeBrands) return undefined;
-    return storeBrands.find((b) => b.slug === slug);
+    
+    // First try exact match
+    let found = storeBrands.find((b) => b.slug === slug);
+    
+    // If not found, try common SEO variations
+    if (!found && slug) {
+      const normalizedSlug = slug
+        .replace(/^cupom-desconto-/, '')
+        .replace(/-/g, '_');
+      
+      found = storeBrands.find((b) => b.slug === normalizedSlug || b.slug.replace(/-/g, '_') === normalizedSlug);
+    }
+    
+    return found;
   }, [storeBrands, slug]);
 
   const storeName = storeBrand?.display_name;
