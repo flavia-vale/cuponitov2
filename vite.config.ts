@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
-import cloudflare from '@cloudflare/vite-plugin';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig({
   plugins: [
@@ -17,7 +17,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     tsconfigPaths(),
-    // Ativando o plugin da Cloudflare para integração com o runtime
+    // Ativando o plugin da Cloudflare com o named import correto
     cloudflare(),
   ],
   server: {
