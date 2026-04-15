@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, Trigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Trash2, Zap, Sparkles, Plus, Save, Menu } from 'lucide-react';
+import { Trash2, Zap, Sparkles, Plus, Save, Menu, ArrowLeft } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { AdminSidebar, type AdminTab } from '@/components/admin/AdminSidebar';
@@ -139,6 +139,11 @@ function AdminPage() {
 
       <main className="flex-1 overflow-auto md:ml-56">
         <div className="mx-auto max-w-5xl px-4 py-6 pt-14 md:pt-6">
+          {/* Back to home button */}
+          <Link to="/" className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/20">
+            <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
+          </Link>
+          
           {activeTab === 'dashboard' && <AdminDashboardTab coupons={coupons} stores={stores} />}
           {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
           {activeTab === 'blog' && <AdminBlogTab />}
