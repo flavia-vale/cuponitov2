@@ -14,6 +14,8 @@ import { ArrowRight } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import HowItWorks from '@/components/HowItWorks';
 
+//teste sincronizacao
+
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 const Footer = lazy(() => import('@/components/Footer'));
 const FeaturedStoreCard = lazy(() => import('@/components/FeaturedStoreCard'));
