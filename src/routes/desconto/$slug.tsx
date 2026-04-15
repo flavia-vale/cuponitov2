@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Search, ArrowLeft } from 'lucide-react';
 import { getMonthYear } from '@/lib/utils';
 
+// Garantindo o match exato com o sistema de arquivos
 export const Route = createFileRoute('/desconto/$slug')({
   component: StorePage,
 });
@@ -29,15 +30,13 @@ function StorePage() {
   const storeBrand = useMemo(() => {
     if (!storeBrands || !slug) return undefined;
     
-    // 1. Tenta correspondência exata
     let found = storeBrands.find((b) => b.slug === slug);
     if (found) return found;
 
-    // 2. Normalização para busca flexível (SEO)
     const cleanSlug = slug
-      .replace(/^cupom-desconto-/, '') // Remove prefixo comum
+      .replace(/^cupom-desconto-/, '')
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, ''); // Remove tudo que não é letra/número
+      .replace(/[^a-z0-9]/g, '');
 
     return storeBrands.find((b) => {
       const dbSlugClean = b.slug.toLowerCase().replace(/[^a-z0-9]/g, '');

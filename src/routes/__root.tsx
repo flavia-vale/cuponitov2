@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRouteWithContext } from "@tanstack/react-router
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
 
 function NotFoundComponent() {
   return (
@@ -10,6 +11,7 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe ou foi movida.</p>
+        <p className="mt-4 text-xs font-mono text-muted-foreground/60">Caminho tentado: {typeof window !== 'undefined' ? window.location.pathname : ''}</p>
         <div className="mt-6">
           <Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Voltar ao início</Link>
         </div>
@@ -25,6 +27,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('🔍 URL ATUAL:', window.location.pathname);
+    }
+  }, []);
 
   return (
     <HelmetProvider>

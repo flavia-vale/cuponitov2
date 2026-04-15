@@ -22,6 +22,7 @@ export const router = createRouter({
   context: { queryClient },
   scrollRestoration: true,
   defaultPreloadStaleTime: 0,
+  basepath: '/',
 });
 
 // Tratamento para evitar erro ao carregar via /index.html (comum em fallbacks de servidor)
