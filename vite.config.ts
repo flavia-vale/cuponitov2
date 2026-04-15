@@ -23,6 +23,12 @@ export default defineConfig({
     },
     port: 32111,
     strictPort: true,
+    // Habilita o fallback para SPA para evitar 404 em F5/acesso direto
+    historyApiFallback: true,
+  },
+  optimizeDeps: {
+    // Evita erros de pre-bundling com react-start em modo SPA
+    exclude: ['@tanstack/react-start'],
   },
   build: {
     outDir: 'dist',
