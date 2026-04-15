@@ -19,11 +19,8 @@ export const Route = createFileRoute('/blog/')({
   }),
 });
 
-const ITEMS_PER_PAGE = 12;
-
 function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
   const { data: allPosts, isLoading: postsLoading } = useBlogPosts();
   const { data: categories } = useBlogCategories();
 
@@ -34,9 +31,6 @@ function BlogPage() {
     if (!cat) return allPosts;
     return allPosts.filter((p) => p.category_id === cat.id);
   }, [allPosts, selectedCategory, categories]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-background">
@@ -49,20 +43,13 @@ function BlogPage() {
         </div>
       </div>
       <main className="mx-auto max-w-6xl px-4 py-8 md:py-10">
-        {categories && categories.length > 0 && <div className="mb-6 md:mb-8"><BlogCategoryFilter categories={categories} selected={selectedCategory} onSelect={(slug) => { setSelectedCategory(slug); setPage(1); }} /></div>}
+        {categories && categories.length > 0 && <div className="mb-6 md:mb-8"><BlogCategoryFilter categories={categories} selected={selectedCategory} onSelect={(slug) => setSelectedCategory(slug)} /></div>}
         {postsLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-72 rounded-2xl" />)}</div>
-        ) : paginated.length === 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-72 rounded-2xl" />)}</div>
+        ) : filtered.length === 0 ? (
           <EmptyState message="Nenhum artigo encontrado" />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{paginated.map((post, i) => <BlogPostCard key={post.id} post={post} index={i} />)}</div>
-        )}
-        {totalPages > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button key={i} onClick={() => { setPage(i + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`h-9 min-w-[36px] rounded-full px-3 text-sm font-semibold transition ${page === i + 1 ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>{i + 1}</button>
-            ))}
-          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{filtered.map((post, i) => <BlogPostCard key={post.id} post={post} index={i} />)}</div>
         )}
       </main>
       <Footer />
