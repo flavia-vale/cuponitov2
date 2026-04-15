@@ -1,11 +1,2 @@
-# SPA Fallback para a seção Admin
-/admin/* /admin/index.html 200
-
-# SPA Fallback para a seção Blog
-/blog/* /blog/index.html 200
-
-# SPA Fallback para a seção Descontos
-/desconto/* /desconto/index.html 200
-
-# Fallback global para a Home
+# SPA Fallback
 /* /index.html 200

@@ -29,15 +29,6 @@ export default defineConfig({
     emptyOutDir: true,
     cssCodeSplit: true,
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-        admin: resolve(__dirname, 'admin.html'),
-        blog: resolve(__dirname, 'blog.html'),
-        desconto: resolve(__dirname, 'desconto.html'),
-        'desconto-amazon': resolve(__dirname, 'desconto-amazon.html'),
-        'desconto-shopee': resolve(__dirname, 'desconto-shopee.html'),
-        'desconto-mercado-livre': resolve(__dirname, 'desconto-mercado-livre.html'),
-      },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
