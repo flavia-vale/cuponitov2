@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useMemo } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
@@ -25,21 +27,23 @@ function StorePage() {
   const monthYear = getMonthYear();
 
   const storeBrand = useMemo(() => {
-    if (!storeBrands) return undefined;
+    if (!storeBrands || !slug) return undefined;
     
-    // First try exact match
+    // 1. Tenta correspondência exata
     let found = storeBrands.find((b) => b.slug === slug);
-    
-    // If not found, try common SEO variations
-    if (!found && slug) {
-      const normalizedSlug = slug
-        .replace(/^cupom-desconto-/, '')
-        .replace(/-/g, '_');
-      
-      found = storeBrands.find((b) => b.slug === normalizedSlug || b.slug.replace(/-/g, '_') === normalizedSlug);
-    }
-    
-    return found;
+    if (found) return found;
+
+    // 2. Normalização para busca flexível (SEO)
+    const cleanSlug = slug
+      .replace(/^cupom-desconto-/, '') // Remove prefixo comum
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, ''); // Remove tudo que não é letra/número
+
+    return storeBrands.find((b) => {
+      const dbSlugClean = b.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const dbNameClean = b.display_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return dbSlugClean === cleanSlug || dbNameClean === cleanSlug;
+    });
   }, [storeBrands, slug]);
 
   const storeName = storeBrand?.display_name;
@@ -52,7 +56,6 @@ function StorePage() {
     const map: Record<string, (typeof storeBrands)[number]> = {};
     storeBrands.forEach((b) => {
       map[b.display_name] = b;
-      map[b.slug] = b;
     });
     return map;
   }, [storeBrands]);
@@ -65,7 +68,7 @@ function StorePage() {
         !search ||
         c.title.toLowerCase().includes(search.toLowerCase()) ||
         c.description.toLowerCase().includes(search.toLowerCase()) ||
-        c.code.toLowerCase().includes(search.toLowerCase());
+        (c.code && c.code.toLowerCase().includes(search.toLowerCase()));
       return matchStore && matchSearch;
     });
   }, [coupons, storeName, search]);
@@ -73,11 +76,19 @@ function StorePage() {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => { setIsMounted(true); }, []);
 
-  if (storeBrands && !storeBrand) {
+  if (storeBrands && !storeBrand && !isLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <p className="text-lg text-muted-foreground">Loja não encontrada</p>
-        <Link to="/" className="text-primary underline">Voltar ao início</Link>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-4 text-center">
+        <Header />
+        <div className="max-w-md space-y-4 py-20">
+          <div className="text-6xl">😕</div>
+          <h2 className="text-2xl font-bold">Loja não encontrada</h2>
+          <p className="text-muted-foreground">Não encontramos a loja "{slug}" em nossa base de dados.</p>
+          <Link to="/" className="inline-flex items-center gap-2 text-primary font-bold hover:underline">
+            <ArrowLeft size={18} /> Voltar ao início
+          </Link>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -133,26 +144,18 @@ function StorePage() {
           />
         </div>
 
-        {isMounted ? (
-          isLoading || !storeBrands ? (
-            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-52 rounded-2xl" />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <EmptyState message={`Nenhum cupom encontrado para ${storeName}`} />
-          ) : (
-            <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((c, i) => (
-                <CouponCard key={c.id} coupon={c} index={i} storeBrand={storeBrandMap[c.store]} />
-              ))}
-            </div>
-          )
-        ) : (
+        {!isMounted || isLoading || !storeBrands ? (
           <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-52 rounded-2xl" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState message={`Nenhum cupom encontrado para ${storeName}`} />
+        ) : (
+          <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((c, i) => (
+              <CouponCard key={c.id} coupon={c} index={i} storeBrand={storeBrandMap[c.store]} />
             ))}
           </div>
         )}
@@ -162,3 +165,5 @@ function StorePage() {
     </div>
   );
 }
+
+export default StorePage;
