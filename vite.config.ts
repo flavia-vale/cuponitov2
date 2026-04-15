@@ -23,7 +23,6 @@ export default defineConfig({
     copyPublicDir: true,
     rollupOptions: {
       output: {
-        // Força uma estrutura limpa de assets na raiz do build
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
