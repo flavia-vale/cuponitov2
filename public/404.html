@@ -2,15 +2,15 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Cuponito</title>
+    <title>Redirecionando...</title>
     <script type="text/javascript">
-      // Captura o caminho completo (path + search + hash)
+      // Captura o caminho e a query string originais
       var path = window.location.pathname;
       var search = window.location.search;
-      var hash = window.location.hash;
       
-      // Redireciona para a raiz passando a rota original no parâmetro 'p'
-      window.location.replace('/?p=' + encodeURIComponent(path + search + hash));
+      // Redireciona para a raiz passando a rota original no parâmetro 'path'
+      // Isso evita que o servidor (ou Cloudflare) mostre uma página de erro
+      window.location.replace('/?path=' + encodeURIComponent(path + search));
     </script>
   </head>
   <body>

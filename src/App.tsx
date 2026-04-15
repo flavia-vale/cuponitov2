@@ -21,20 +21,23 @@ const queryClient = new QueryClient({
 });
 
 /**
- * Componente que intercepta o redirecionamento do 404.html
- * Ele lê o parâmetro 'p' da URL e navega internamente para a rota correta.
+ * Gerenciador de Redirecionamento SPA
+ * Detecta se viemos de um 404 (parâmetro ?path=) e restaura a URL original
  */
-function SPAUrlHandler() {
+function SPANavigationHandler() {
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const redirectPath = params.get('p');
+    const redirectPath = params.get('path');
     
     if (redirectPath) {
-      // Remove o parâmetro 'p' da URL e faz a navegação interna silenciosa
-      navigate(decodeURIComponent(redirectPath), { replace: true });
+      const decodedPath = decodeURIComponent(redirectPath);
+      // 1. Limpa a URL visualmente (remove o ?path=...) sem recarregar
+      window.history.replaceState(null, '', decodedPath);
+      // 2. Faz a navegação interna no React Router
+      navigate(decodedPath, { replace: true });
     }
   }, [navigate, location]);
 
@@ -46,7 +49,7 @@ export default function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <SPAUrlHandler />
+          <SPANavigationHandler />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/desconto/:slug" element={<StoreDetail />} />
