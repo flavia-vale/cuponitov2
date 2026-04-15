@@ -17,6 +17,13 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  server: {
+    fs: {
+      allow: ['.', './node_modules', './src'],
+    },
+    // Fixes 404 on refresh in local development
+    historyApiFallback: true,
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
