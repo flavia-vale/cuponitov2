@@ -1,3 +1,5 @@
+"use client";
+
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
@@ -9,9 +11,9 @@ const Header = () => (
       </Link>
 
       <nav className="hidden items-center gap-8 md:flex">
-        <a href="/#lojas" className="text-sm font-semibold text-white/90 transition hover:text-white">
+        <Link to="/#lojas" className="text-sm font-semibold text-white/90 transition hover:text-white">
           Lojas
-        </a>
+        </Link>
         <Link
           to="/blog"
           className="text-sm font-semibold text-white/90 transition hover:text-white"
