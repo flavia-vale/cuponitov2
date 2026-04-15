@@ -13,6 +13,7 @@ interface StoreForm { display_name: string; slug: string; icon_emoji: string; br
 const emptyForm: StoreForm = { display_name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf' };
 
 export function AdminStoresTab({ stores, refetchStores }: Props) {
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<StoreForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
 
