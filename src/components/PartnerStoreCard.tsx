@@ -11,6 +11,8 @@ function getInitials(name: string) {
 }
 
 const PartnerStoreCard = ({ store, couponCount }: Props) => {
+  const brandColor = store.brand_color || '#94a3b8'; // Fallback cinza padrão
+
   return (
     <Link
       to="/desconto/$slug"
@@ -19,7 +21,7 @@ const PartnerStoreCard = ({ store, couponCount }: Props) => {
     >
       <div 
         className="mb-3 flex h-12 w-14 items-center justify-center rounded-xl text-xs font-black text-white shadow-sm"
-        style={{ backgroundColor: store.brand_color }}
+        style={{ backgroundColor: brandColor }}
       >
         {getInitials(store.display_name)}
       </div>

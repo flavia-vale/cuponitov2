@@ -17,7 +17,7 @@ function getStoreInitials(name: string) {
 }
 
 const FeaturedStoreCard = ({ coupon, storeBrand }: FeaturedStoreCardProps) => {
-  const brandColor = storeBrand?.brand_color || '#575ecf';
+  const brandColor = storeBrand?.brand_color || '#94a3b8'; // Fallback cinza padrão
   const initials = getStoreInitials(coupon.store);
 
   const handleOpen = () => {

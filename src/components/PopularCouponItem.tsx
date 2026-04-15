@@ -13,7 +13,7 @@ function getInitials(name: string) {
 }
 
 const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
-  const brandColor = storeBrand?.brand_color || '#ff5200';
+  const brandColor = storeBrand?.brand_color || '#94a3b8'; // Fallback cinza padrão
   
   const handleCopy = () => {
     if (coupon.code) {
@@ -23,12 +23,11 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
     }
   };
 
-  // Mock de usos baseado no ID para estabilidade visual
   const usageCount = (coupon.id.charCodeAt(0) * 15).toLocaleString('pt-BR');
 
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-border bg-white p-4 transition-all hover:shadow-md">
-      {/* Logo da Loja */}
+      {/* Logo da Loja com Cor Dinâmica */}
       <div 
         className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white shadow-sm"
         style={{ backgroundColor: brandColor }}
