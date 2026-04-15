@@ -8,10 +8,10 @@ export default defineConfig({
   plugins: [
     TanStackRouterVite({
       target: "react",
-      routesDirectory: "./src/routes", // Força o diretório correto
-      generatedRouteTree: "./src/routeTree.gen.ts", // Garante o destino do mapa
-      autoCodeSplitting: true, 
-      quoteStyle: 'single', // Padroniza as aspas para o crawler do DYAD
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/routeTree.gen.ts",
+      autoCodeSplitting: false, 
+      quoteStyle: 'single',
     }),
     react(),
     tailwindcss(),
