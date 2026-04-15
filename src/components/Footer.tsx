@@ -1,11 +1,10 @@
 import { Heart, Lock, Instagram, Mail } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
+import { Link } from 'react-router-dom';
 
 const Footer = () => (
   <footer className="bg-[#121212] py-12 md:py-16 text-white/50">
     <div className="mx-auto max-w-6xl px-4">
       <div className="grid gap-10 md:grid-cols-4">
-        {/* Coluna Logo */}
         <div className="space-y-4">
           <Link to="/" className="font-lexend text-2xl font-bold text-white">
             cuponito<span className="text-[#ff5200]">.</span>
@@ -19,7 +18,6 @@ const Footer = () => (
           </div>
         </div>
 
-        {/* Coluna Sobre */}
         <div>
           <h4 className="mb-5 text-sm font-black uppercase tracking-widest text-white/90">Sobre</h4>
           <ul className="space-y-3 text-sm">
@@ -29,7 +27,6 @@ const Footer = () => (
           </ul>
         </div>
 
-        {/* Coluna Contato */}
         <div>
           <h4 className="mb-5 text-sm font-black uppercase tracking-widest text-white/90">Contato</h4>
           <ul className="space-y-3 text-sm">
@@ -39,7 +36,6 @@ const Footer = () => (
           </ul>
         </div>
 
-        {/* Coluna Lojas */}
         <div>
           <h4 className="mb-5 text-sm font-black uppercase tracking-widest text-white/90">Para Lojas</h4>
           <ul className="space-y-3 text-sm">

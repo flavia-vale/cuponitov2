@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { Link, useParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
@@ -15,13 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Search, ArrowLeft } from 'lucide-react';
 import { getMonthYear } from '@/lib/utils';
 
-// Garantindo o match exato com o sistema de arquivos
-export const Route = createFileRoute('/desconto/$slug')({
-  component: StorePage,
-});
-
-function StorePage() {
-  const { slug } = Route.useParams();
+export default function StoreDetail() {
+  const { slug } = useParams();
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
   const [search, setSearch] = useState('');
@@ -164,5 +159,3 @@ function StorePage() {
     </div>
   );
 }
-
-export default StorePage;

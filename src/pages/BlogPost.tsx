@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Calendar, Eye, User } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPost, useBlogAuthors, useIncrementBlogViews } from '@/hooks/useBlog';
@@ -7,13 +9,10 @@ import BlogCtaBanner, { type CtaConfig } from '@/components/blog/BlogCtaBanner';
 import BlogSidebarCoupons from '@/components/blog/BlogSidebarCoupons';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
+import SEOHead from '@/components/SEOHead';
 
-export const Route = createFileRoute('/blog/$slug')({
-  component: BlogPostPage,
-});
-
-function BlogPostPage() {
-  const { slug } = Route.useParams();
+export default function BlogPost() {
+  const { slug } = useParams();
   const { data: post, isLoading } = useBlogPost(slug || '');
   const { data: authors } = useBlogAuthors();
   const incrementViews = useIncrementBlogViews();
@@ -21,9 +20,7 @@ function BlogPostPage() {
   useEffect(() => { if (post?.id) incrementViews.mutate(post.id); }, [post?.id]);
 
   const author = authors?.find((a) => a.id === post?.author_id);
-
   const ctaConfig: CtaConfig | null = post?.cta_config && typeof post.cta_config === 'object' && Object.keys(post.cta_config).length > 0 ? (post.cta_config as CtaConfig) : null;
-
   const publishedDate = post?.published_at ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : null;
 
   if (isLoading) {
@@ -36,6 +33,21 @@ function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title={`${post.meta_title || post.title} | Cuponito`} 
+        description={post.meta_description || post.excerpt} 
+        jsonLdRoute={{ 
+          type: 'blog', 
+          article: {
+            title: post.title,
+            slug: post.slug,
+            description: post.excerpt,
+            datePublished: post.published_at || post.created_at,
+            authorName: author?.name,
+            imageUrl: post.cover_image
+          }
+        }}
+      />
       <Header />
       {post.cover_image && <div className="h-48 w-full overflow-hidden bg-muted sm:h-64 md:h-80"><img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" /></div>}
       <div className="mx-auto max-w-5xl px-4 py-8 md:py-10">
@@ -50,7 +62,7 @@ function BlogPostPage() {
             </div>
             {post.excerpt && <p className="mb-6 text-base text-muted-foreground italic border-l-4 border-primary/30 pl-4">{post.excerpt}</p>}
             {ctaConfig && <BlogCtaBanner config={ctaConfig} />}
-            <div className="prose prose-neutral max-w-none text-foreground leading-relaxed whitespace-pre-line">{post.content}</div>
+            <div className="prose prose-neutral max-w-none text-foreground leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: post.content }} />
             {ctaConfig && <BlogCtaBanner config={ctaConfig} />}
           </article>
           <div className="w-full shrink-0 lg:w-72 xl:w-80"><div className="sticky top-20 space-y-5"><BlogSidebarCoupons /></div></div>

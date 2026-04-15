@@ -1,5 +1,6 @@
+"use client";
+
 import { useState, useMemo } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
 import { BookOpen } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPosts, useBlogCategories } from '@/hooks/useBlog';
@@ -8,18 +9,9 @@ import BlogCategoryFilter from '@/components/blog/BlogCategoryFilter';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import EmptyState from '@/components/EmptyState';
+import SEOHead from '@/components/SEOHead';
 
-export const Route = createFileRoute('/blog/')({
-  component: BlogPage,
-  head: () => ({
-    meta: [
-      { title: 'Blog — Dicas e Ofertas | Cuponito' },
-      { name: 'description', content: 'Artigos, dicas de economia e ofertas atualizadas. Aprenda a economizar com cupons de desconto!' },
-    ],
-  }),
-});
-
-function BlogPage() {
+export default function BlogList() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { data: allPosts, isLoading: postsLoading } = useBlogPosts();
   const { data: categories } = useBlogCategories();
@@ -34,6 +26,11 @@ function BlogPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="Blog — Dicas e Ofertas | Cuponito" 
+        description="Artigos, dicas de economia e ofertas atualizadas. Aprenda a economizar com cupons de desconto!" 
+        jsonLdRoute={{ type: 'generic' }}
+      />
       <Header />
       <div className="bg-gradient-to-br from-primary to-accent px-4 py-10 text-center text-white md:py-14">
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-3">

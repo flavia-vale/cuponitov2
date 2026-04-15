@@ -1,7 +1,8 @@
+"use client";
+
 import { useState, useEffect } from 'react';
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { AdminSidebar, type AdminTab } from '@/components/admin/AdminSidebar';
@@ -14,11 +15,7 @@ import type { Tables } from '@/integrations/supabase/types';
 
 type Coupon = Tables<'coupons'>;
 
-export const Route = createFileRoute('/admin/')({
-  component: AdminPage,
-});
-
-function AdminPage() {
+export default function AdminDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminTab>('cupons');
@@ -29,7 +26,7 @@ function AdminPage() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate({ to: '/admin/login' }); return; }
+      if (!session) { navigate('/admin/login'); return; }
       setLoading(false);
       const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
       setCoupons(data || []);
@@ -37,7 +34,7 @@ function AdminPage() {
     checkAuth();
   }, [navigate]);
 
-  const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: '/admin/login' }); };
+  const handleLogout = async () => { await supabase.auth.signOut(); navigate('/admin/login'); };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
 

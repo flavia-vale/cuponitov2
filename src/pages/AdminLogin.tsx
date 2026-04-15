@@ -1,25 +1,23 @@
+"use client";
+
 import { useState, useEffect } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Lock } from 'lucide-react';
+import SEOHead from '@/components/SEOHead';
 
-export const Route = createFileRoute('/admin/login')({
-  component: AdminLogin,
-  head: () => ({ meta: [{ title: 'Admin Login | Cuponito' }, { name: 'robots', content: 'noindex, nofollow' }] }),
-});
-
-function AdminLogin() {
+export default function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { if (session) navigate({ to: '/admin' }); });
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session) navigate({ to: '/admin' }); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { if (session) navigate('/admin'); });
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session) navigate('/admin'); });
     return () => subscription.unsubscribe();
   }, [navigate]);
 
@@ -34,6 +32,7 @@ function AdminLogin() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <SEOHead title="Admin Login | Cuponito" description="Login administrativo" jsonLdRoute={{ type: 'generic' }} />
       <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-6">
         <div className="flex flex-col items-center gap-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10"><Lock className="h-5 w-5 text-primary" /></div>

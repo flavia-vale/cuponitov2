@@ -1,5 +1,7 @@
+"use client";
+
 import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import HeroBanner from '@/components/HeroBanner';
 import UrgencyBanner from '@/components/UrgencyBanner';
@@ -11,10 +13,7 @@ import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useSettings } from '@/hooks/useSettings';
 import { getMonthYear } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
-import EmptyState from '@/components/EmptyState';
 import HowItWorks from '@/components/HowItWorks';
-
-//teste sincronizacao
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 const Footer = lazy(() => import('@/components/Footer'));
@@ -22,11 +21,7 @@ const FeaturedStoreCard = lazy(() => import('@/components/FeaturedStoreCard'));
 const PopularCouponItem = lazy(() => import('@/components/PopularCouponItem'));
 const PartnerStoreCard = lazy(() => import('@/components/PartnerStoreCard'));
 
-export const Route = createFileRoute('/')({
-  component: Index,
-});
-
-function Index() {
+export default function Home() {
   const { data: coupons, isLoading: couponsLoading } = useCoupons();
   const { data: storeBrands, isLoading: storesLoading } = useStoreBrands();
   const { data: settings } = useSettings();
@@ -54,7 +49,6 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">
-      {/* Agora passando featuredCoupons para gerar o Schema ItemList no Google */}
       <SEOHead 
         title={seo.title} 
         description={seo.description} 

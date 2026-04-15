@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link } from 'react-router-dom';
 import type { StoreBrand } from '@/lib/storeBranding';
 
 interface Props {
@@ -15,8 +15,7 @@ const PartnerStoreCard = ({ store, couponCount }: Props) => {
 
   return (
     <Link
-      to="/desconto/$slug"
-      params={{ slug: store.slug }}
+      to={`/desconto/${store.slug}`}
       className="group flex flex-col items-center rounded-2xl border border-border bg-white p-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] hover:border-[#ff5200]/20"
     >
       <div 

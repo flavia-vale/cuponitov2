@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router';
+import { Link } from 'react-router-dom';
 import { ExternalLink, ArrowRight } from 'lucide-react';
 
 export interface CtaConfig {
@@ -51,7 +51,7 @@ const BlogCtaBanner = ({ config }: Props) => {
     );
   }
 
-  return <Link to={href as '/'}>{content}</Link>;
+  return <Link to={href}>{content}</Link>;
 };
 
 export default BlogCtaBanner;
