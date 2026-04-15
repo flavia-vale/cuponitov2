@@ -3,7 +3,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   server: {
-    // O preset 'cloudflare-pages' configura automaticamente o runtime para o Cloudflare
+    // Este preset configura o Vinxi para gerar o output compatível com Cloudflare Pages automaticamente
     preset: 'cloudflare-pages',
   },
   vite: {
