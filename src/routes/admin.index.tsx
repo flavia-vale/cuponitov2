@@ -2,31 +2,20 @@ import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Trash2, Zap, Sparkles, Plus, Save, Menu, ArrowLeft } from 'lucide-react';
-import type { Tables } from '@/integrations/supabase/types';
+import { Menu, ArrowLeft } from 'lucide-react';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { AdminSidebar, type AdminTab } from '@/components/admin/AdminSidebar';
 import { AdminDashboardTab } from '@/components/admin/AdminDashboardTab';
 import { AdminStoresTab } from '@/components/admin/AdminStoresTab';
 import { AdminSeoTab } from '@/components/admin/AdminSeoTab';
 import { AdminBlogTab } from '@/components/admin/AdminBlogTab';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import type { Tables } from '@/integrations/supabase/types';
 
 type Coupon = Tables<'coupons'>;
 
-interface DraftCoupon { store: string; title: string; description: string; code: string; discount: string; link: string; expiry: string; is_flash: boolean; }
-
 export const Route = createFileRoute('/admin/')({
   component: AdminPage,
-  head: () => ({ meta: [{ title: 'Admin | Cuponito' }, { name: 'robots', content: 'noindex, nofollow' }] }),
 });
 
 function AdminPage() {
@@ -68,7 +57,7 @@ function AdminPage() {
           {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
           {activeTab === 'blog' && <AdminBlogTab />}
           {activeTab === 'seo' && <AdminSeoTab />}
-          {activeTab === 'cupons' && <div>{/* Componente de gestão de cupons simplificado */} <h1 className="text-2xl font-bold">Gestão de Cupons</h1></div>}
+          {activeTab === 'cupons' && <div><h1 className="text-2xl font-bold">Gestão de Cupons</h1></div>}
         </div>
       </main>
     </div>

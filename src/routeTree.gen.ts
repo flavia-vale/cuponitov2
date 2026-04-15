@@ -10,19 +10,29 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as DescontoSlugRouteImport } from './routes/desconto.$slug'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
 
 const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
 const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -36,62 +46,6 @@ const DescontoSlugRoute = DescontoSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
-export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/desconto/$slug': typeof DescontoSlugRoute
-  '/admin': typeof AdminIndexRoute
-  '/blog': typeof BlogIndexRoute
-}
-
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/desconto/$slug': typeof DescontoSlugRoute
-  '/admin': typeof AdminIndexRoute
-  '/blog': typeof BlogIndexRoute
-}
-
-export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/admin/login': typeof AdminLoginRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/desconto/$slug': typeof DescontoSlugRoute
-  '/admin/': typeof AdminIndexRoute
-  '/blog/': typeof BlogIndexRoute
-}
-
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin/login' | '/blog/$slug' | '/desconto/$slug' | '/admin' | '/blog'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin/login' | '/blog/$slug' | '/desconto/$slug' | '/admin' | '/blog'
-  id: '__root__' | '/' | '/admin/login' | '/blog/$slug' | '/desconto/$slug' | '/admin/' | '/blog/'
-  fileRoutesById: FileRoutesById
-}
-
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminLoginRoute: typeof AdminLoginRoute
-  BlogSlugRoute: typeof BlogSlugRoute
-  DescontoSlugRoute: typeof DescontoSlugRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-  BlogIndexRoute: typeof BlogIndexRoute
-}
-
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
@@ -101,11 +55,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/admin/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/$slug': {
@@ -122,28 +90,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DescontoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
-export const routeTree = rootRouteImport._addFileChildren({
+export const routeTree = rootRouteImport._addFileChildren([
   IndexRoute,
+  AdminIndexRoute,
   AdminLoginRoute,
+  BlogIndexRoute,
   BlogSlugRoute,
   DescontoSlugRoute,
-  AdminIndexRoute,
-  BlogIndexRoute,
-})
+])
