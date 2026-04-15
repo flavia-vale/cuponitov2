@@ -2,9 +2,12 @@ import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import HeroBanner from '@/components/HeroBanner';
 import StoreCards from '@/components/StoreCards';
+import SEOHead from '@/components/SEOHead';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCoupons } from '@/hooks/useCoupons';
-import { useJsonLd } from '@/hooks/useJsonLd';
+import { useStoreBrands } from '@/hooks/useStoreBrands';
+import { normalizeStoreSlug } from '@/lib/storeBranding';
+import { getMonthYear } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 
@@ -14,41 +17,40 @@ const CouponCard = lazy(() => import('@/components/CouponCard'));
 
 export const Route = createFileRoute('/')({
   component: Index,
-  head: () => ({
-    meta: [
-      { title: 'Cupons de Desconto - Amazon, Shopee e Mercado Livre | Cuponito' },
-      { name: 'description', content: 'Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre. Economize nas compras online!' },
-      { property: 'og:title', content: 'Cupons de Desconto | Cuponito' },
-      { property: 'og:description', content: 'Os melhores cupons de desconto para as maiores lojas online do Brasil.' },
-      { property: 'og:type', content: 'website' },
-    ],
-  }),
 });
 
 function Index() {
   const { data: coupons, isLoading } = useCoupons();
+  const { data: storeBrands } = useStoreBrands();
+  const monthYear = getMonthYear();
 
   const relevantCoupons = useMemo(() => {
     if (!coupons) return [];
     return coupons.slice(0, 3);
   }, [coupons]);
 
-  const jsonLd = useJsonLd({ type: 'home', coupons: relevantCoupons });
+  const storeBrandMap = useMemo(() => {
+    if (!storeBrands) return {};
+    const map: Record<string, (typeof storeBrands)[number]> = {};
+    storeBrands.forEach((b) => {
+      map[b.display_name] = b;
+      map[b.slug] = b;
+    });
+    return map;
+  }, [storeBrands]);
 
   const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  useEffect(() => { setIsMounted(true); }, []);
 
   return (
     <div className="min-h-screen bg-background">
-      {jsonLd.map((schema, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
+      <SEOHead
+        title={`Cupom de Desconto ${monthYear} — Amazon, Shopee e Mercado Livre | Cuponito`}
+        description={`Cupons de desconto atualizados em ${monthYear} para Amazon, Shopee e Mercado Livre. Economize nas compras online!`}
+        canonical="https://cuponito.com.br/"
+        jsonLdRoute={{ type: 'home', coupons: relevantCoupons }}
+      />
+
       <HeroBanner />
       <StoreCards />
 
@@ -76,7 +78,7 @@ function Index() {
             <Suspense fallback={<div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}</div>}>
               <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {relevantCoupons.map((c, i) => (
-                  <CouponCard key={c.id} coupon={c} index={i} />
+                  <CouponCard key={c.id} coupon={c} index={i} storeBrand={storeBrandMap[c.store]} />
                 ))}
               </div>
             </Suspense>
