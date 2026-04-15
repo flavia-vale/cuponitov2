@@ -5,7 +5,13 @@ import { QueryClient } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 
 // Instanciando dependências globais
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+    },
+  },
+});
 
 // Criando o router no formato esperado pelo analisador estático
 export const router = createRouter({
@@ -24,7 +30,7 @@ declare module '@tanstack/react-router' {
 
 const rootElement = document.getElementById("root");
 
-if (rootElement) {
+if (rootElement && !rootElement.innerHTML) {
   createRoot(rootElement).render(
     <RouterProvider router={router} />
   );
