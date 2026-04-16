@@ -1,11 +1,11 @@
+
 {
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
   "routes": [
     {
       "route": "/desconto/cupom-desconto-mercado-livre/*",
-      "serve": "/desconto/cupom-desconto-mercado-livre/index.html"
-    },
-    {
-      "route": "/*",
       "serve": "/index.html"
     }
   ]
