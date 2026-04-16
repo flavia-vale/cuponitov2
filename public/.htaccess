@@ -1,5 +1,14 @@
+# Configuração para servidores Apache (equivale ao seu web.xml)
 RewriteEngine On
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
-RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
+RewriteBase /
+
+# Se o arquivo ou diretório existir, use-o normalmente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
+
+# Se não existir (404), entregue o index.html (lógica do location /index.jsp)
 RewriteRule ^ /index.html [L]
+
+# Garantia extra: define o index como página de erro 404
+ErrorDocument 404 /index.html

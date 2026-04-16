@@ -1,1 +1,2 @@
+# Regra universal: redireciona todas as rotas (/*) para /index.html com status 200 (mantém a URL)
 /*    /index.html   200
