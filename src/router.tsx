@@ -1,14 +1,14 @@
-import { createRouter, createHashHistory } from '@tanstack/react-router';
+import { createRouter, createBrowserHistory } from '@tanstack/react-router';
 import { QueryClient } from '@tanstack/react-query';
 import { routeTree } from './routeTree.gen';
 
-const hashHistory = createHashHistory();
+const browserHistory = createBrowserHistory();
 
 export function createAppRouter() {
   const queryClient = new QueryClient();
   return createRouter({
     routeTree,
-    history: hashHistory,
+    history: browserHistory,
     context: { queryClient },
     defaultPreload: 'intent',
   });
