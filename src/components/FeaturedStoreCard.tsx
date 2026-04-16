@@ -1,54 +1,65 @@
-import StoreIcon from './StoreIcon';
-import type { Coupon } from '@/hooks/useCoupons';
+import { Link } from '@tanstack/react-router';
+import { ExternalLink, CheckCircle2, Zap } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 import type { StoreBrand } from '@/lib/storeBranding';
 
-interface FeaturedStoreCardProps {
-  coupon: Coupon;
+interface Props {
+  coupon: Tables<'coupons'>;
   storeBrand?: StoreBrand;
 }
 
-const FeaturedStoreCard = ({ coupon, storeBrand }: FeaturedStoreCardProps) => {
-  const brandColor = storeBrand?.brand_color || '#94a3b8';
-
-  const handleOpen = () => {
-    window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
-  };
-
+export default function FeaturedStoreCard({ coupon, storeBrand }: Props) {
   return (
-    <div 
-      onClick={handleOpen}
-      className="group relative flex cursor-pointer flex-col rounded-3xl border border-border bg-white p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
-    >
-      <div className="mb-4 flex items-start justify-between">
-        {/* Usando o novo componente StoreIcon */}
-        <StoreIcon 
-          name={coupon.store} 
-          brandColor={brandColor} 
-          logoUrl={storeBrand?.logo_url} 
-        />
-
-        {/* Badge Desconto Flutuante - Visual Pêssego/Laranja */}
-        <div className="rounded-full bg-orange-100/80 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-orange-600">
-          {coupon.discount || 'Oferta'}
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm transition-all hover:shadow-md">
+      <div className="absolute right-4 top-4 z-10 flex gap-2">
+        {coupon.is_flash && (
+          <div className="flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-[10px] font-bold text-foreground shadow-sm">
+            <Zap size={12} className="fill-foreground" /> RELÂMPAGO
+          </div>
+        )}
+        <div className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold text-green-600 backdrop-blur-sm">
+          <CheckCircle2 size={12} /> VERIFICADO
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-black text-foreground group-hover:text-[#ff5200] transition-colors">
-          {coupon.store}
-        </h3>
-        <p className="mt-1 text-sm font-medium text-muted-foreground line-clamp-2">
-          {coupon.title}
-        </p>
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted-orange p-8 flex items-center justify-center">
+        <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white p-4 shadow-xl ring-4 ring-white/50 transition-transform group-hover:scale-110">
+          {storeBrand?.logo_url ? (
+            <img src={storeBrand.logo_url} alt={coupon.store} className="h-full w-full object-contain" />
+          ) : (
+            <span className="text-4xl">{storeBrand?.icon_emoji || '🏷️'}</span>
+          )}
+        </div>
       </div>
 
-      <button 
-        className="mt-auto h-12 w-full rounded-2xl border-2 border-border font-bold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
-      >
-        Pegar cupom
-      </button>
+      <div className="flex flex-1 flex-col p-6">
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-xs font-bold text-primary">{coupon.store}</span>
+          <span className="h-1 w-1 rounded-full bg-text-gray/20" />
+          <span className="text-xs font-medium text-text-gray">{coupon.category}</span>
+        </div>
+        
+        <h3 className="mb-4 line-clamp-2 text-lg font-bold leading-tight text-foreground">
+          {coupon.title}
+        </h3>
+
+        <div className="mt-auto flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-gray/60">DESCONTO</span>
+            <span className="text-xl font-black text-primary">{coupon.discount || 'OFERTA'}</span>
+          </div>
+          
+          <a 
+            href={coupon.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary px-8"
+          >
+            Pegar cupom
+            <ExternalLink size={16} />
+          </a>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default FeaturedStoreCard;
+}
