@@ -1,12 +1,12 @@
 {
   "routes": [
     {
-      "route": "/*",
-      "serve": "/index.html"
+      "route": "/desconto/cupom-desconto-mercado-livre/*",
+      "serve": "/desconto/cupom-desconto-mercado-livre/index.html"
     },
     {
-      "route": "/desconto/cupom-desconto-mercado-livre/*",
-      "server": "desconto/cupom-desconto-mercado-livre/"
+      "route": "/*",
+      "serve": "/index.html"
     }
   ]
 }
