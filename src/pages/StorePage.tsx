@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
@@ -16,7 +16,7 @@ import { Search, ArrowLeft } from 'lucide-react';
 import { getMonthYear } from '@/lib/utils';
 
 export default function StoreDetail() {
-  const { slug } = useParams();
+  const { slug } = useParams({ strict: false });
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
   const [search, setSearch] = useState('');

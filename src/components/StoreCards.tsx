@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,7 +32,8 @@ const StoreCards = () => {
           return (
             <Link
               key={store.id}
-              to={`/desconto/${store.slug}`}
+              to="/desconto/$slug"
+              params={{ slug: store.slug }}
               aria-label={`Ver cupons de desconto ${store.display_name}`}
               className={`group relative overflow-hidden rounded-2xl p-3 sm:p-6 text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl opacity-0 animate-fade-in ${isFeatured ? 'col-span-2' : ''}`}
               style={{ animationDelay: `${i * 100}ms` }}
