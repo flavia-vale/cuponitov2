@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 export interface SiteSettings {
   global_links: {
@@ -52,25 +51,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
 export function useSettings() {
   return useQuery({
     queryKey: ['site-settings'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase.from('site_settings').select('key, value');
-        if (error || !data || data.length === 0) return DEFAULT_SETTINGS;
-        
-        const settings = data.reduce((acc, item) => ({
-          ...acc,
-          [item.key]: item.value
-        }), {} as any);
-
-        return {
-          ...DEFAULT_SETTINGS,
-          ...settings
-        } as SiteSettings;
-      } catch (e) {
-        return DEFAULT_SETTINGS;
-      }
-    },
-    staleTime: 10 * 60 * 1000,
+    queryFn: async () => DEFAULT_SETTINGS,
+    staleTime: Infinity,
   });
 }
 
@@ -78,12 +60,9 @@ export function useUpdateSettings() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ key, value }: { key: string; value: any }) => {
-      const { error } = await supabase
-        .from('site_settings')
-        .update({ value, updated_at: new Date().toISOString() })
-        .eq('key', key);
-      if (error) throw error;
+    mutationFn: async ({ key, value }: { key: string; value: unknown }) => {
+      // TODO: implement when site_settings table is created
+      console.warn('site_settings table not yet created, update skipped', key, value);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-settings'] });
