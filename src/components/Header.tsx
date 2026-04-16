@@ -1,6 +1,4 @@
-"use client";
-
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 const Header = () => (
@@ -11,7 +9,7 @@ const Header = () => (
       </Link>
 
       <nav className="hidden items-center gap-8 md:flex">
-        <Link to="/#lojas" className="text-sm font-semibold text-white/90 transition hover:text-white">
+        <Link to="/" className="text-sm font-semibold text-white/90 transition hover:text-white">
           Lojas
         </Link>
         <Link

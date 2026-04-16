@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { Calendar, ArrowRight, Eye } from 'lucide-react';
 import type { BlogPost } from '@/hooks/useBlog';
 
@@ -14,7 +14,8 @@ const BlogPostCard = ({ post, index = 0 }: Props) => {
 
   return (
     <Link
-      to={`/blog/${post.slug}`}
+      to="/blog/$slug"
+      params={{ slug: post.slug }}
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-fade-in"
       style={{ animationDelay: `${index * 60}ms`, boxShadow: 'var(--shadow-card)' }}
     >

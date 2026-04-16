@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { ExternalLink, ArrowRight } from 'lucide-react';
 
 export interface CtaConfig {
@@ -25,7 +25,6 @@ const BlogCtaBanner = ({ config }: Props) => {
   } = config;
 
   const isExternal = !!url;
-  const href = url || (store_slug ? `/desconto/${store_slug}` : '/');
 
   const content = (
     <div
@@ -45,13 +44,17 @@ const BlogCtaBanner = ({ config }: Props) => {
 
   if (isExternal) {
     return (
-      <a href={href} target="_blank" rel="nofollow sponsored noopener noreferrer">
+      <a href={url} target="_blank" rel="nofollow sponsored noopener noreferrer">
         {content}
       </a>
     );
   }
 
-  return <Link to={href}>{content}</Link>;
+  if (store_slug) {
+    return <Link to="/desconto/$slug" params={{ slug: store_slug }}>{content}</Link>;
+  }
+
+  return <Link to="/">{content}</Link>;
 };
 
 export default BlogCtaBanner;

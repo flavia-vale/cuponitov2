@@ -1,5 +1,5 @@
 import { Heart, Lock, Instagram, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 
 const Footer = () => (
   <footer className="bg-[#121212] py-12 md:py-16 text-white/50">

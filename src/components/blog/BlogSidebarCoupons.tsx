@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { ExternalLink, Sparkles } from 'lucide-react';
 import { useCoupons } from '@/hooks/useCoupons';
 
