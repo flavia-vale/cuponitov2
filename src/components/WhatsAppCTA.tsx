@@ -10,19 +10,19 @@ interface WhatsAppCTAProps {
 }
 
 const config: Record<Variant, { icon: typeof MessageCircle; buttonText: string }> = {
-  urgency: { icon: MessageCircle, buttonText: 'Entrar no Grupo' },
-  'social-proof': { icon: Users, buttonText: 'Quero economizar também' },
-  store: { icon: Bell, buttonText: 'Avisar no WhatsApp' },
+  urgency: { icon: MessageCircle, buttonText: 'Receber no WhatsApp' },
+  'social-proof': { icon: Users, buttonText: 'Receber em tempo real' },
+  store: { icon: Bell, buttonText: 'Receber no WhatsApp' },
 };
 
 function getText(variant: Variant, storeName?: string) {
   switch (variant) {
     case 'urgency':
-      return 'Os melhores cupons duram poucos minutos. Receba o alerta no celular antes que esgotem!';
+      return 'Os melhores cupons duram poucos minutos. Receba os cupons em tempo real no seu celular antes que esgotem!';
     case 'social-proof':
-      return 'Junte-se a mais de 20 mil pessoas que economizam todos os dias com nossos alertas direto no WhatsApp.';
+      return 'Junte-se a milhares de pessoas que recebem cupons em tempo real direto no WhatsApp e economizam todos os dias.';
     case 'store':
-      return `O próximo cupom de ${storeName} sai a qualquer momento. Esteja no grupo para garantir o seu.`;
+      return `Receba os cupons de ${storeName} em tempo real no seu celular e aproveite as melhores ofertas assim que elas saírem.`;
   }
 }
 

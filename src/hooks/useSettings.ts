@@ -34,8 +34,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
     hero_title: "Economize em cada compra",
     hero_subtitle: "+3.000 cupons verificados todos os dias",
     description: "Encontre o melhor cupom de desconto válido para as maiores lojas online do Brasil.",
-    button_text: "Buscar"
+    button_text: "Receber cupons em tempo real"
   },
+
   seo_defaults: {
     home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje | cuponito",
     home_description: "Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre no cuponito. Economize agora com ofertas verificadas e atualizadas diariamente."
