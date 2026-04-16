@@ -5,8 +5,6 @@ import { createAppRouter } from "./router";
 
 const router = createAppRouter();
 
-console.log("App Version: 1.0.1 - Build: " + new Date().toISOString());
-
 const rootElement = document.getElementById("root");
 
 if (rootElement) {
