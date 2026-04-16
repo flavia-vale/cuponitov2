@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "lint": "eslint .",
-    "build:dev": "vite build"
+    "build:dev": "vite build && cp dist/index.html dist/404.html"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
