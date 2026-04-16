@@ -10,6 +10,7 @@ import { AdminDashboardTab } from '@/components/admin/AdminDashboardTab';
 import { AdminStoresTab } from '@/components/admin/AdminStoresTab';
 import { AdminSeoTab } from '@/components/admin/AdminSeoTab';
 import { AdminBlogTab } from '@/components/admin/AdminBlogTab';
+import { AdminCouponsTab } from '@/components/admin/AdminCouponsTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -54,8 +55,9 @@ export default function AdminDashboard() {
           {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
           {activeTab === 'blog' && <AdminBlogTab />}
           {activeTab === 'seo' && <AdminSeoTab />}
-          {activeTab === 'cupons' && <div><h1 className="text-2xl font-bold">Gestão de Cupons</h1></div>}
+          {activeTab === 'cupons' && <AdminCouponsTab />}
         </div>
+
       </main>
     </div>
   );
