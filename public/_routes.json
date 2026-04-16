@@ -3,6 +3,9 @@
     {
       "route": "/*",
       "serve": "/index.html"
+    },
+    {
+      "route": "/"
     }
   ]
 }
