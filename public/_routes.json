@@ -5,7 +5,8 @@
       "serve": "/index.html"
     },
     {
-      "route": "/"
+      "route": "/desconto/cupom-desconto-mercado-livre/*",
+      "server": "desconto/cupom-desconto-mercado-livre/"
     }
   ]
 }
