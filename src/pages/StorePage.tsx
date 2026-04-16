@@ -108,9 +108,9 @@ export default function StoreDetail() {
           <ArrowLeft className="h-3.5 w-3.5" /> Voltar
         </Link>
         
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 p-3 backdrop-blur-md md:h-24 md:w-24">
+        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-3 shadow-xl md:h-24 md:w-24">
           {storeLogo ? (
-            <img src={storeLogo} alt={storeName} className="h-full w-full object-contain brightness-0 invert" />
+            <img src={storeLogo} alt={storeName} className="h-full w-full object-contain" />
           ) : (
             <span className="text-4xl md:text-5xl">{storeEmoji}</span>
           )}
@@ -148,9 +148,10 @@ export default function StoreDetail() {
           <EmptyState message={`Nenhum cupom encontrado para ${storeName}`} />
         ) : (
           <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((c, i) => (
-              <CouponCard key={c.id} coupon={c} index={i} storeBrand={storeBrandMap[c.store]} />
+            {filtered.map((c) => (
+              <CouponCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />
             ))}
+
           </div>
         )}
       </main>

@@ -31,21 +31,23 @@ const StoreIcon = ({ name, brandColor = '#94a3b8', size = 'md', className, logoU
   };
 
   return (
-    <div 
+    <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-xl font-black text-white shadow-sm transition-transform overflow-hidden",
+        "flex shrink-0 items-center justify-center rounded-xl font-black shadow-sm transition-transform overflow-hidden",
+        logoUrl ? "bg-white border border-black/5" : "text-white",
         sizeClasses[size],
         className
       )}
-      style={{ backgroundColor: brandColor }}
+      style={!logoUrl ? { backgroundColor: brandColor } : undefined}
     >
       {logoUrl ? (
-        <img src={logoUrl} alt={name} className="h-full w-full object-contain p-1.5 brightness-0 invert" />
+        <img src={logoUrl} alt={name} className="h-full w-full object-contain p-1.5" />
       ) : (
         <span>{initials}</span>
       )}
     </div>
   );
+
 };
 
 export default StoreIcon;

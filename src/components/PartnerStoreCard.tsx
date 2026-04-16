@@ -19,16 +19,20 @@ const PartnerStoreCard = ({ store, couponCount }: Props) => {
       params={{ slug: store.slug }}
       className="group flex flex-col items-center rounded-2xl border border-border bg-white p-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] hover:border-[#ff5200]/20"
     >
-      <div 
-        className="mb-3 flex h-12 w-14 items-center justify-center rounded-xl text-xs font-black text-white shadow-sm transition-transform group-hover:scale-110"
-        style={{ backgroundColor: brandColor }}
+      <div
+        className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-background border border-black/5 p-2 overflow-hidden transition-transform group-hover:scale-110"
       >
         {store.logo_url ? (
-          <img src={store.logo_url} alt="" className="h-8 w-8 object-contain brightness-0 invert" />
+          <img
+            src={store.logo_url}
+            alt={`Logo oficial da loja ${store.display_name}`}
+            className="h-full w-full object-contain"
+          />
         ) : (
-          getInitials(store.display_name)
+          <span className="text-3xl" style={{ color: store.brand_color }}>{store.icon_emoji}</span>
         )}
       </div>
+
       <p className="text-sm font-bold text-foreground text-center line-clamp-1 group-hover:text-[#ff5200] transition-colors">
         {store.display_name}
       </p>

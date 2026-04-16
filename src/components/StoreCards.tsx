@@ -45,15 +45,16 @@ const StoreCards = () => {
                 }}
               />
               <div className="relative z-10 flex flex-col h-full">
-                <div className="mb-2 sm:mb-4 inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-white/20 p-2 backdrop-blur-sm overflow-hidden">
+                <div className="mb-2 sm:mb-4 inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl bg-white p-2 shadow-lg overflow-hidden">
                   {store.logo_url ? (
-                    <img src={store.logo_url} alt={store.display_name} className="h-full w-full object-contain brightness-0 invert" />
+                    <img src={store.logo_url} alt={store.display_name} className="h-full w-full object-contain" />
                   ) : (
                     <span className={isFeatured ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}>
                       {store.icon_emoji}
                     </span>
                   )}
                 </div>
+
                 <h3 className={`mb-0.5 sm:mb-1 font-bold ${isFeatured ? 'text-base sm:text-2xl' : 'text-sm sm:text-xl'}`}>
                   {store.display_name}
                 </h3>
