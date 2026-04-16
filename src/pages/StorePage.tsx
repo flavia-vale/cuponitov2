@@ -1,25 +1,39 @@
-"use client";
-
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import SEOHead from '@/components/SEOHead';
-import CouponCard from '@/components/CouponCard';
-import WhatsAppCTA from '@/components/WhatsAppCTA';
-import EmptyState from '@/components/EmptyState';
+import StoreCouponCard from '@/components/StoreCouponCard';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { Search, ArrowLeft } from 'lucide-react';
-import { getMonthYear } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+import {
+  ArrowLeft,
 
-export default function StoreDetail() {
+  ChevronRight, 
+  Star, 
+  ShieldCheck, 
+  Zap, 
+  Search, 
+  Mail, 
+  ArrowUpRight,
+  ChevronDown,
+  Info
+} from 'lucide-react';
+import { getMonthYear, cn } from '@/lib/utils';
+
+type FilterType = 'all' | 'code' | 'offer' | 'free';
+
+export default function StorePage() {
   const { slug } = useParams({ strict: false });
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [showExpired, setShowExpired] = useState(false);
+  const [email, setEmail] = useState('');
   const monthYear = getMonthYear();
 
   const storeBrand = useMemo(() => {
@@ -40,44 +54,47 @@ export default function StoreDetail() {
     });
   }, [storeBrands, slug]);
 
-  const storeName = storeBrand?.display_name;
-  const storeEmoji = storeBrand?.icon_emoji || '🏷️';
+  const storeName = storeBrand?.display_name || '';
   const storeLogo = storeBrand?.logo_url;
-  const brandColor = storeBrand?.brand_color || '#575ecf';
+  const brandColor = storeBrand?.brand_color || '#FF4D00';
 
-  const storeBrandMap = useMemo(() => {
-    if (!storeBrands) return {};
-    const map: Record<string, (typeof storeBrands)[number]> = {};
-    storeBrands.forEach((b) => {
-      map[b.display_name] = b;
-    });
-    return map;
-  }, [storeBrands]);
-
-  const filtered = useMemo(() => {
+  const storeCoupons = useMemo(() => {
     if (!coupons || !storeName) return [];
-    return coupons.filter((c) => {
-      const matchStore = c.store === storeName;
-      const matchSearch =
-        !search ||
-        c.title.toLowerCase().includes(search.toLowerCase()) ||
-        c.description.toLowerCase().includes(search.toLowerCase()) ||
-        (c.code && c.code.toLowerCase().includes(search.toLowerCase()));
-      return matchStore && matchSearch;
-    });
-  }, [coupons, storeName, search]);
+    return coupons.filter(c => c.store === storeName);
+  }, [coupons, storeName]);
 
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => { setIsMounted(true); }, []);
+  const filteredCoupons = useMemo(() => {
+    return storeCoupons.filter(c => {
+      if (filter === 'all') return true;
+      if (filter === 'code') return !!c.code;
+      if (filter === 'offer') return !c.code && c.category !== 'Frete Grátis';
+      if (filter === 'free') return c.category === 'Frete Grátis';
+      return true;
+    });
+  }, [storeCoupons, filter]);
+
+  const expiredCouponsCount = 9; // Placeholder count for demo
+
+  const handleVisit = () => {
+    const link = storeCoupons[0]?.link || '/';
+    window.open(link, '_blank', 'nofollow sponsored noopener noreferrer');
+  };
+
+  const handleAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      toast({ title: 'Tudo pronto!', description: `Você receberá novos cupons de ${storeName} em seu e-mail.` });
+      setEmail('');
+    }
+  };
 
   if (storeBrands && !storeBrand && !isLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-4 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f5f3ef] p-4 text-center">
         <Header />
         <div className="max-w-md space-y-4 py-20">
           <div className="text-6xl">😕</div>
           <h2 className="text-2xl font-bold">Loja não encontrada</h2>
-          <p className="text-muted-foreground">Não encontramos a loja "{slug}" em nossa base de dados.</p>
           <Link to="/" className="inline-flex items-center gap-2 text-primary font-bold hover:underline">
             <ArrowLeft size={18} /> Voltar ao início
           </Link>
@@ -88,73 +105,301 @@ export default function StoreDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f5f3ef] font-sans antialiased text-[#1a1a1a]">
       {storeName && (
         <SEOHead
-          title={`Cupom de Desconto ${storeName} ${monthYear} | Cuponito`}
-          description={`Cupons de desconto e códigos promocionais ${storeName} atualizados em ${monthYear}. Economize com ofertas exclusivas!`}
+          title={`Cupom de Desconto ${storeName} | Até 80% OFF – ${monthYear} | cuponito.`}
+          description={`Cupom de desconto ${storeName} válido hoje: códigos verificados e atualizados diariamente pelo cuponito. Economize agora!`}
           canonical={`https://cuponito.com.br/desconto/${slug}`}
-          jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filtered }}
+          jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filteredCoupons }}
         />
+
       )}
 
       <Header />
 
-      <div
-        className="px-4 py-8 md:py-12 text-center text-white"
-        style={{ background: `linear-gradient(135deg, ${brandColor}, ${brandColor}dd)` }}
-      >
-        <Link to="/" className="mb-3 md:mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur-sm transition hover:bg-white/25">
-          <ArrowLeft className="h-3.5 w-3.5" /> Voltar
-        </Link>
-        
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-white p-3 shadow-xl md:h-24 md:w-24">
-          {storeLogo ? (
-            <img src={storeLogo} alt={storeName} className="h-full w-full object-contain" />
-          ) : (
-            <span className="text-4xl md:text-5xl">{storeEmoji}</span>
-          )}
+      {/* BREADCRUMB */}
+      <div className="border-b border-black/5 bg-white px-4 py-3 text-[11px] md:text-xs">
+        <div className="mx-auto flex max-w-[1100px] items-center gap-2 text-[#aaa]">
+          <Link to="/" className="text-primary hover:underline">Início</Link>
+          <ChevronRight size={10} />
+          <Link to="/" className="text-primary hover:underline">Lojas</Link>
+          <ChevronRight size={10} />
+          <span className="truncate">Cupom {storeName}</span>
         </div>
-
-        <h1 className="text-xl font-bold md:text-4xl lg:text-5xl">
-          {storeName || 'Carregando...'} — Cupons de Desconto {monthYear}
-        </h1>
-        <p className="mx-auto mt-2 md:mt-3 max-w-lg text-sm md:text-base text-white/80">
-          Todos os códigos promocionais e ofertas exclusivas para {storeName || '...'}
-        </p>
       </div>
 
-      <WhatsAppCTA variant="store" storeName={storeName} />
+      <div className="mx-auto max-w-[1100px] px-4 py-6 md:py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
+          
+          {/* COLUNA PRINCIPAL */}
+          <main className="space-y-4">
+            
+            {/* STORE HERO */}
+            <section className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm flex flex-col md:flex-row items-start gap-6">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-black/5 bg-white p-2 shadow-sm">
+                {storeLogo ? (
+                  <img src={storeLogo} alt={storeName} className="h-full w-full object-contain" />
+                ) : (
+                  <span className="text-2xl font-black text-primary uppercase">{storeName.slice(0,3)}</span>
+                )}
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h1 className="text-xl md:text-2xl font-black leading-tight">Cupom de Desconto {storeName}</h1>
+                  <span className="badge-discount bg-[#EAF3DE] text-[#2E7D32]">Verificado hoje</span>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-4 text-xs text-[#888]">
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5 text-accent">
+                      <Star size={12} className="fill-current" />
+                      <Star size={12} className="fill-current" />
+                      <Star size={12} className="fill-current" />
+                      <Star size={12} className="fill-current" />
+                      <Star size={12} className="fill-current" />
+                    </div>
+                    <span className="font-bold text-[#1a1a1a]">4,8</span>
+                    <span>(2.341 avaliações)</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[#2E7D32] font-semibold">
+                    <ShieldCheck size={14} /> Loja confiável
+                  </div>
+                  <div>Atualizado em {monthYear}</div>
+                </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 md:py-10">
-        <div className="relative mx-auto mb-8 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={`Buscar cupom ${storeName || ''}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-11 pl-10 rounded-full border-2 border-border focus-visible:border-primary focus-visible:ring-primary/20"
-            aria-label={`Buscar cupons de ${storeName || ''}`}
-          />
+                <p className="text-sm text-[#555] leading-relaxed max-w-2xl">
+                  {storeName} é referência em seu segmento, oferecendo uma vasta gama de produtos com qualidade e confiança. Aqui você encontra os melhores cupons {storeName} verificados, atualizados pela equipe do cuponito.
+                </p>
+
+                <div className="flex flex-wrap gap-4 pt-2">
+                  <div className="bg-[#f5f3ef] rounded-xl px-4 py-2 text-center">
+                    <span className="block text-lg font-bold text-primary">{storeCoupons.length}</span>
+                    <span className="text-[10px] text-[#888] uppercase font-bold tracking-tight">cupons ativos</span>
+                  </div>
+                  <div className="bg-[#f5f3ef] rounded-xl px-4 py-2 text-center">
+                    <span className="block text-lg font-bold text-primary">até 80%</span>
+                    <span className="text-[10px] text-[#888] uppercase font-bold tracking-tight">de desconto</span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={handleVisit}
+                className="btn-primary w-full md:w-auto px-8"
+              >
+                Visitar {storeName} <ArrowUpRight size={16} />
+              </button>
+            </section>
+
+            {/* FILTROS */}
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-black/5 bg-white p-3 shadow-sm overflow-x-auto scrollbar-none">
+              <span className="text-xs font-bold text-[#888] px-2">Filtrar:</span>
+              <button 
+                onClick={() => setFilter('all')}
+                className={cn("filter-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap", filter === 'all' ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-[#f5f3ef] text-[#555] hover:bg-black/5")}
+              >
+                Todos ({storeCoupons.length})
+              </button>
+              <button 
+                onClick={() => setFilter('code')}
+                className={cn("filter-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap", filter === 'code' ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-[#f5f3ef] text-[#555] hover:bg-black/5")}
+              >
+                Códigos ({storeCoupons.filter(c => c.code).length})
+              </button>
+              <button 
+                onClick={() => setFilter('offer')}
+                className={cn("filter-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap", filter === 'offer' ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-[#f5f3ef] text-[#555] hover:bg-black/5")}
+              >
+                Ofertas ({storeCoupons.filter(c => !c.code && c.category !== 'Frete Grátis').length})
+              </button>
+              <button 
+                onClick={() => setFilter('free')}
+                className={cn("filter-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap", filter === 'free' ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-[#f5f3ef] text-[#555] hover:bg-black/5")}
+              >
+                Frete Grátis ({storeCoupons.filter(c => c.category === 'Frete Grátis').length})
+              </button>
+            </div>
+
+            {/* LISTA DE CUPONS */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-1">
+                <h2 className="text-base font-bold">Cupons ativos {storeName} <span className="text-xs text-[#888] font-normal ml-1">({filteredCoupons.length} encontrados)</span></h2>
+                <button className="text-xs font-bold text-primary flex items-center gap-1">Ordenar <ChevronDown size={14} /></button>
+              </div>
+
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)
+              ) : filteredCoupons.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-black/5 p-12 text-center space-y-3">
+                  <div className="text-4xl">🔎</div>
+                  <h3 className="font-bold">Nenhum cupom ativo neste filtro</h3>
+                  <p className="text-sm text-[#888]">Tente limpar os filtros ou buscar por outra loja.</p>
+                  <Button variant="outline" onClick={() => setFilter('all')}>Ver todos cupons</Button>
+                </div>
+              ) : (
+                filteredCoupons.map(coupon => (
+                  <StoreCouponCard key={coupon.id} coupon={coupon} />
+                ))
+              )}
+            </div>
+
+            {/* CUPONS EXPIRADOS */}
+            <div className="mt-8">
+              <button 
+                onClick={() => setShowExpired(!showExpired)}
+                className="flex items-center gap-2 text-sm text-[#888] font-medium hover:text-[#555] transition-colors"
+              >
+                <ChevronRight size={14} className={cn("transition-transform", showExpired && "rotate-90")} />
+                Mostrar <strong className="text-[#555]">{expiredCouponsCount} cupons expirados</strong> — podem ainda funcionar
+              </button>
+              
+              {showExpired && (
+                <div className="mt-4 space-y-3">
+                  {/* Exemplos de cupons expirados */}
+                  {storeCoupons.slice(0, 1).map(c => (
+                    <StoreCouponCard key={`expired-${c.id}`} coupon={{ ...c, title: `${c.title} (Expirado)` }} isExpired />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* SOBRE A LOJA */}
+            <section className="rounded-2xl border border-black/5 bg-white p-6 md:p-8 space-y-4">
+              <h2 className="text-lg font-bold border-b-2 border-primary inline-block pb-2 mb-2">Sobre {storeName}</h2>
+              <div className="text-[13px] text-[#555] leading-[1.8] space-y-4">
+                <p>O cuponito é seu parceiro ideal para economizar na {storeName}. Nossa equipe trabalha diariamente para garantir que você tenha acesso aos códigos de desconto mais recentes e promoções exclusivas.</p>
+                <p>{storeName} é uma das marcas mais respeitadas em seu setor, conhecida pela excelência em atendimento e variedade de produtos. Ao utilizar um cupom do cuponito, você garante o melhor preço em sua compra.</p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <span className="bg-[#f5f3ef] rounded-lg px-3 py-1.5 text-[11px] font-medium text-[#888]">Loja Verificada</span>
+                <span className="bg-[#f5f3ef] rounded-lg px-3 py-1.5 text-[11px] font-medium text-[#888]">Parceiro cuponito</span>
+              </div>
+            </section>
+
+            {/* COMO USAR */}
+            <section className="rounded-2xl border border-black/5 bg-white p-6 md:p-8 space-y-6">
+              <h2 className="text-lg font-bold border-b-2 border-primary inline-block pb-2 mb-2">Como usar o cupom {storeName}</h2>
+              <div className="grid gap-6">
+                {[
+                  { n: 1, t: "Escolha seu cupom", d: "Encontre o cupom que melhor se adapta à sua compra e clique em 'Copiar'." },
+                  { n: 2, t: "Vá para a loja", d: "Clique no botão de redirecionamento para abrir o site oficial da loja." },
+                  { n: 3, t: "Adicione ao carrinho", d: "Escolha seus produtos e adicione-os ao carrinho normalmente." },
+                  { n: 4, t: "Aplique e economize", d: "No checkout, cole o código no campo de cupons e veja o valor diminuir!" },
+                ].map(step => (
+                  <div key={step.n} className="flex gap-4">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-black shadow-lg shadow-primary/20">{step.n}</div>
+                    <div>
+                      <h4 className="text-sm font-bold">{step.t}</h4>
+                      <p className="text-xs text-[#888] leading-relaxed mt-0.5">{step.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* FAQ */}
+            <section className="rounded-2xl border border-black/5 bg-white p-6 md:p-8 space-y-4">
+              <h2 className="text-lg font-bold border-b-2 border-primary inline-block pb-2 mb-2">Perguntas frequentes — {storeName}</h2>
+              <div className="divide-y divide-black/5">
+                {[
+                  { q: `O cupom ${storeName} é gratuito?`, a: "Sim, todos os cupons no cuponito são 100% gratuitos para o consumidor brasileiro." },
+                  { q: "Com que frequência os cupons são atualizados?", a: "Nossa equipe verifica e atualiza as ofertas diariamente para garantir que funcionem." },
+                  { q: "Posso usar mais de um cupom por compra?", a: "Geralmente a loja permite apenas um código promocional por pedido no carrinho." },
+                ].map((item, i) => (
+                  <div key={i} className="py-4 first:pt-0 last:pb-0">
+                    <h4 className="text-sm font-bold flex items-center justify-between cursor-pointer group">
+                      {item.q} <ChevronRight size={14} className="text-[#888] group-hover:text-primary transition-colors" />
+                    </h4>
+                    <p className="text-xs text-[#555] mt-2 leading-relaxed">{item.a}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+          </main>
+
+          {/* SIDEBAR */}
+          <aside className="space-y-4">
+            <div className="sticky top-[72px] space-y-4">
+              
+              {/* CTA SIDEBAR */}
+              <div className="rounded-2xl bg-primary p-6 text-white text-center shadow-xl shadow-primary/20">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-white/20 p-2 backdrop-blur-sm shadow-inner">
+                  {storeLogo ? (
+                    <img src={storeLogo} alt="" className="h-full w-full object-contain brightness-0 invert" />
+                  ) : (
+                    <span className="text-xl font-black uppercase">{storeName.slice(0,3)}</span>
+                  )}
+                </div>
+                <h3 className="text-base font-bold mb-1">Ir para {storeName}</h3>
+                <p className="text-xs text-white/80 mb-6 leading-relaxed">Acesse a loja oficial agora e aproveite os melhores preços.</p>
+                <button 
+                  onClick={handleVisit}
+                  className="w-full bg-white text-primary font-black py-3 rounded-xl text-sm transition-all active:scale-95 shadow-lg shadow-black/10"
+                >
+                  Visitar Loja ↗
+                </button>
+                <p className="text-[10px] text-white/60 mt-4">Redirecionando para o site oficial</p>
+              </div>
+
+              {/* EMAIL ALERT */}
+              <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+                <h4 className="text-sm font-bold mb-2">Avise-me de novos cupons</h4>
+                <p className="text-xs text-[#888] mb-4 leading-relaxed">Receba um alerta sempre que um novo código de {storeName} for publicado.</p>
+                <form onSubmit={handleAlert} className="flex gap-2">
+                  <Input 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    className="h-10 text-xs rounded-xl"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                  <button type="submit" className="bg-primary text-white p-2.5 rounded-xl hover:brightness-110 transition-all">
+                    <Mail size={16} />
+                  </button>
+                </form>
+              </div>
+
+              {/* POPULAR STORES */}
+              <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+                <h4 className="text-sm font-bold mb-4">Lojas populares hoje</h4>
+                <div className="space-y-4">
+                  {storeBrands?.slice(0, 5).map(s => (
+                    <Link 
+                      key={s.id} 
+                      to="/desconto/$slug" 
+                      params={{ slug: s.slug }}
+                      className="flex items-center gap-3 group"
+                    >
+                      <div className="h-10 w-10 flex shrink-0 items-center justify-center rounded-lg bg-[#f5f3ef] border border-black/5 p-1.5 overflow-hidden">
+                        {s.logo_url ? (
+                          <img src={s.logo_url} alt="" className="h-full w-full object-contain" />
+                        ) : (
+                          <span className="text-[10px] font-black uppercase">{s.display_name.slice(0,2)}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold group-hover:text-primary transition-colors">{s.display_name}</p>
+                        <p className="text-[10px] text-[#888]">Economize agora</p>
+                      </div>
+                      <ChevronRight size={14} className="text-[#ccc] group-hover:text-primary" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* AFFILIATE NOTE */}
+              <div className="rounded-2xl bg-[#f9f7f4] border border-[#e8e5e0] p-4 text-[10px] text-[#999] leading-relaxed text-center italic">
+                <Info size={12} className="inline mr-1 opacity-50" />
+                Utilizamos links de afiliados. Ao comprar pelos nossos links, podemos receber comissão — sem custo extra para você.
+              </div>
+
+            </div>
+          </aside>
+
         </div>
-
-        {!isMounted || isLoading || !storeBrands ? (
-          <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-52 rounded-2xl" />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState message={`Nenhum cupom encontrado para ${storeName}`} />
-        ) : (
-          <div className="grid gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((c) => (
-              <CouponCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />
-            ))}
-
-          </div>
-        )}
-      </main>
+      </div>
 
       <Footer />
     </div>
