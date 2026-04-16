@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from '@tanstack/react-router';
 import { supabase } from '@/integrations/supabase/client';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate('/admin/login'); return; }
+      if (!session) { navigate({ to: '/admin/login' }); return; }
       setLoading(false);
       const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
       setCoupons(data || []);
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
     checkAuth();
   }, [navigate]);
 
-  const handleLogout = async () => { await supabase.auth.signOut(); navigate('/admin/login'); };
+  const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: '/admin/login' }); };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
 

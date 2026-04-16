@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,8 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { if (session) navigate('/admin'); });
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session) navigate('/admin'); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { if (session) navigate({ to: '/admin' }); });
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session) navigate({ to: '/admin' }); });
     return () => subscription.unsubscribe();
   }, [navigate]);
 

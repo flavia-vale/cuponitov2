@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import HeroBanner from '@/components/HeroBanner';
 import UrgencyBanner from '@/components/UrgencyBanner';

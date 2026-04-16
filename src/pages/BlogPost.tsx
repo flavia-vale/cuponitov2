@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Calendar, Eye, User } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPost, useBlogAuthors, useIncrementBlogViews } from '@/hooks/useBlog';
@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead';
 
 export default function BlogPost() {
-  const { slug } = useParams();
+  const { slug } = useParams({ strict: false });
   const { data: post, isLoading } = useBlogPost(slug || '');
   const { data: authors } = useBlogAuthors();
   const incrementViews = useIncrementBlogViews();
