@@ -15,8 +15,8 @@ const UrgencyBanner = () => {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-4">
-      <div className="flex items-center gap-3 rounded-xl border border-yellow-200 bg-yellow-50/50 p-4 text-sm font-medium text-yellow-800">
-        <Zap className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+      <div className="banner-urgency">
+        <Zap className="h-4 w-4 fill-current" />
         <p>
           <span className="font-bold">{expiringTodayCount} cupons vencem hoje.</span> Não perca os melhores descontos!
         </p>

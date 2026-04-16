@@ -9,10 +9,15 @@
   --color-foreground: #1A1A1A;
   --color-text-gray: #555555;
   
+  /* Cores de Contexto */
+  --color-alert-bg: #FFF8E7;
+  --color-alert-border: #F5C842;
+  --color-alert-text: #7A5C00;
+  --color-success: #2E7D32;
+  
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* Escala Tipográfica do Branding */
   --font-size-h1: 24px;
   --font-size-h2: 18px;
   --font-size-h3: 15px;
@@ -24,56 +29,36 @@
   body {
     @apply bg-background text-text-gray font-sans antialiased;
     font-size: var(--font-size-body);
-    line-height: 1.7; /* Aderência ao corpo de texto */
+    line-height: 1.7;
     font-weight: 400;
   }
 
-  h1 {
-    @apply text-foreground font-semibold;
-    font-size: var(--font-size-h1);
-    line-height: 1.2;
-    text-transform: none; /* Sentence case */
-  }
-
-  h2 {
-    @apply text-foreground font-semibold;
-    font-size: var(--font-size-h2);
-    line-height: 1.3;
-    text-transform: none; /* Sentence case */
-  }
-
-  h3 {
-    @apply font-semibold;
-    color: var(--color-primary); /* Subtítulo laranja */
-    font-size: var(--font-size-h3);
-    line-height: 1.4;
-    text-transform: none; /* Sentence case */
-  }
-
-  /* Metadados e Labels */
-  small, .text-metadata {
-    font-size: var(--font-size-label);
-    font-weight: 500;
-    @apply text-text-gray/70;
-  }
+  h1 { @apply text-foreground font-semibold; font-size: var(--font-size-h1); }
+  h2 { @apply text-foreground font-semibold; font-size: var(--font-size-h2); }
+  h3 { @apply font-semibold text-primary; font-size: var(--font-size-h3); }
 }
 
 @layer components {
-  .coupon-code {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 15px;
-    @apply bg-muted-orange border-2 border-dashed border-primary text-primary px-3 py-1.5 rounded-lg;
-  }
-
+  /* Botão de ação principal (CTA) */
   .btn-primary {
     @apply bg-primary text-white font-semibold py-3 px-6 rounded-full transition-all active:scale-95 hover:brightness-110 flex items-center justify-center gap-2;
     min-height: 48px;
-    font-size: var(--font-size-body);
   }
 
+  /* Badge de desconto */
   .badge-discount {
     @apply bg-muted-orange text-primary font-bold px-2 py-0.5 rounded uppercase;
     font-size: var(--font-size-label);
+  }
+
+  /* Código de cupom */
+  .coupon-code {
+    @apply font-mono font-bold bg-muted-orange border-2 border-dashed border-primary text-primary px-3 py-1.5 rounded-lg;
+    font-size: 14px;
+  }
+
+  /* Urgência / Alerta */
+  .banner-urgency {
+    @apply bg-alert-bg border border-alert-border text-alert-text rounded-xl p-4 flex items-center gap-3 text-sm font-medium;
   }
 }
