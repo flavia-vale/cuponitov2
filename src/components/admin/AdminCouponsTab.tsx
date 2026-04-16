@@ -43,6 +43,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { CouponForm } from './CouponForm';
 import { CouponExtractor } from './CouponExtractor';
+import { AdminLinksDialog } from './AdminLinksDialog';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -50,9 +51,10 @@ export function AdminCouponsTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isExtractorOpen, setIsExtractorOpen] = useState(false);
+  const [isLinksOpen, setIsLinksOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Tables<'coupons'> | null>(null);
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null);
-  
+
   const queryClient = useQueryClient();
 
   const { data: coupons = [], isLoading } = useQuery({
@@ -121,11 +123,19 @@ export function AdminCouponsTab() {
           <p className="text-muted-foreground">Adicione, edite ou remova cupons e ofertas do site.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
+            className="gap-2 border-primary/20 text-primary hover:bg-primary/5"
+            onClick={() => setIsLinksOpen(true)}
+          >
+            <ExternalLink className="h-4 w-4" /> Links Pré-definidos
+          </Button>
+          <Button
+            variant="outline"
             className="gap-2 border-primary/20 text-primary hover:bg-primary/5"
             onClick={() => setIsExtractorOpen(true)}
           >
+
             <Sparkles className="h-4 w-4" /> Extrator Inteligente
           </Button>
           <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
@@ -266,7 +276,7 @@ export function AdminCouponsTab() {
               Cole blocos de texto ou listas de ofertas para extrair múltiplos cupons rapidamente.
             </DialogDescription>
           </DialogHeader>
-          <CouponExtractor 
+          <CouponExtractor
             stores={stores}
             onSuccess={handleSuccess}
             onCancel={() => setIsExtractorOpen(false)}
@@ -274,7 +284,15 @@ export function AdminCouponsTab() {
         </DialogContent>
       </Dialog>
 
+      {/* Predefined Links Dialog */}
+      <AdminLinksDialog
+        open={isLinksOpen}
+        onOpenChange={setIsLinksOpen}
+        stores={stores}
+      />
+
       {/* Delete Confirmation */}
+
       <AlertDialog open={!!deletingCouponId} onOpenChange={(open) => !open && setDeletingCouponId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

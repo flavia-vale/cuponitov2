@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import { usePredefinedLinks } from '@/hooks/usePredefinedLinks';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -49,6 +50,8 @@ interface CouponFormProps {
 
 export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponFormProps) {
   const [loading, setLoading] = useState(false);
+  const { data: predefinedLinks = [] } = usePredefinedLinks();
+  const [linkType, setLinkType] = useState<'manual' | string>('manual');
 
   const form = useForm<CouponFormValues>({
     resolver: zodResolver(couponSchema),
@@ -66,6 +69,28 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
     },
   });
 
+  // Check if initial link matches any predefined link
+  useEffect(() => {
+    if (initialData?.link) {
+      const match = predefinedLinks.find(l => l.url === initialData.link);
+      if (match) setLinkType(match.id);
+    }
+  }, [initialData, predefinedLinks]);
+
+  const onLinkTypeChange = (val: string) => {
+    setLinkType(val);
+    if (val === 'manual') {
+      // Don't clear if it was already manual, but if switching from predefined to manual, clear it
+      if (linkType !== 'manual') form.setValue('link', '');
+    } else {
+      const selected = predefinedLinks.find(l => l.id === val);
+      if (selected) {
+        form.setValue('link', selected.url);
+        form.setValue('store', selected.store);
+      }
+    }
+  };
+
   const onSubmit = async (values: CouponFormValues) => {
     setLoading(true);
     try {
@@ -76,7 +101,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
         discount: values.discount || '',
         expiry: values.expiry || '',
         link: values.link || '',
-        store: values.store || 'Geral', // Mantemos um fallback para o banco se estiver vazio
+        store: values.store || 'Geral',
         category: values.category || 'Geral',
         status: values.status,
         is_flash: values.is_flash,
@@ -185,19 +210,41 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="link"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Link de Afiliado</FormLabel>
-              <FormControl>
-                <Input placeholder="https://..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <FormLabel>Origem do Link</FormLabel>
+            <Select value={linkType} onValueChange={onLinkTypeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a origem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manual">Digitar link manualmente</SelectItem>
+                {predefinedLinks.map(l => (
+                  <SelectItem key={l.id} value={l.id}>{l.name} ({l.store})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="link"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Link de Afiliado</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="https://..." 
+                    {...field} 
+                    readOnly={linkType !== 'manual'}
+                    className={linkType !== 'manual' ? 'bg-muted opacity-70 cursor-not-allowed' : ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
