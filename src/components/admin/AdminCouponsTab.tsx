@@ -232,9 +232,9 @@ export function AdminCouponsTab() {
         </Table>
       </div>
 
-      {/* Manual Add/Edit Form Dialog */}
+      {/* Manual Add/Edit Form Dialog - Optimized Size */}
       <Dialog open={isFormOpen} onOpenChange={(open) => !open && handleCloseForm()}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingCoupon ? 'Editar Cupom' : 'Novo Cupom'}</DialogTitle>
             <DialogDescription>
@@ -252,7 +252,7 @@ export function AdminCouponsTab() {
 
       {/* Intelligent Extractor Dialog */}
       <Dialog open={isExtractorOpen} onOpenChange={setIsExtractorOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" /> Extrator Inteligente
