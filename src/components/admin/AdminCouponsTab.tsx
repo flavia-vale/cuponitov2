@@ -8,10 +8,10 @@ import {
   Trash2, 
   ExternalLink, 
   Sparkles,
-  Ticket,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -138,7 +138,7 @@ export function AdminCouponsTab() {
         <Search className="ml-2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por título, loja ou código..."
-          className="border-0 bg-transparent focus-visible:ring-0"
+          className="border-0 bg-transparent focus-within:ring-0 focus-visible:ring-0"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -152,6 +152,7 @@ export function AdminCouponsTab() {
               <TableHead>Loja</TableHead>
               <TableHead>Código</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-center">Relâmpago</TableHead>
               <TableHead>Validade</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -159,11 +160,11 @@ export function AdminCouponsTab() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">Carregando...</TableCell>
+                <TableCell colSpan={7} className="h-24 text-center">Carregando...</TableCell>
               </TableRow>
             ) : filteredCoupons.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">Nenhum cupom encontrado.</TableCell>
+                <TableCell colSpan={7} className="h-24 text-center">Nenhum cupom encontrado.</TableCell>
               </TableRow>
             ) : (
               filteredCoupons.map((coupon) => (
@@ -185,22 +186,26 @@ export function AdminCouponsTab() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      {coupon.status ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 gap-1 border-0">
-                          <CheckCircle2 className="h-3 w-3" /> Ativo
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-red-100 text-red-700 hover:bg-red-100 gap-1 border-0">
-                          <XCircle className="h-3 w-3" /> Inativo
-                        </Badge>
-                      )}
-                      {coupon.is_flash && (
+                    {coupon.status ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 gap-1 border-0">
+                        <CheckCircle2 className="h-3 w-3" /> Ativo
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-red-100 text-red-700 hover:bg-red-100 gap-1 border-0">
+                        <XCircle className="h-3 w-3" /> Inativo
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {coupon.is_flash ? (
+                      <div className="flex justify-center">
                         <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1 border-0">
-                          <Clock className="h-3 w-3" /> Relâmpago
+                          <Zap className="h-3 w-3 fill-amber-500" /> Sim
                         </Badge>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Não</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {coupon.expiry}
