@@ -24,7 +24,7 @@ export function AdminSidebar({ activeTab, onTabChange, onLogout, variant = 'desk
     <aside className={cn('flex flex-col border-r border-border bg-card', variant === 'desktop' ? 'fixed inset-y-0 left-0 z-30 w-56' : 'h-full w-full')}>
       <div className="flex h-14 items-center gap-2 border-b border-border px-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">C</div>
-        <span className="text-sm font-bold text-foreground">Cuponito Admin</span>
+        <span className="text-sm font-bold text-foreground">cuponito admin</span>
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => (

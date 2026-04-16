@@ -53,7 +53,7 @@ const Footer = () => (
           Feito com <Heart size={14} className="fill-[#ff5200] text-[#ff5200]" /> no Brasil — Todos os direitos reservados.
         </p>
         <p className="text-[10px] text-white/20 max-w-md">
-          Links de afiliado podem gerar comissões. Isso não altera o preço para você e ajuda a manter o Cuponito 100% gratuito.
+          Links de afiliado podem gerar comissões. Isso não altera o preço para você e ajuda a manter o cuponito 100% gratuito.
         </p>
       </div>
     </div>

@@ -37,8 +37,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     button_text: "Buscar"
   },
   seo_defaults: {
-    home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje",
-    home_description: "Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre. Economize agora com ofertas verificadas e atualizadas diariamente."
+    home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje | cuponito",
+    home_description: "Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre no cuponito. Economize agora com ofertas verificadas e atualizadas diariamente."
   },
   how_it_works: {
     title: "Como usar um cupom?",

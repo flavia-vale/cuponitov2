@@ -5,7 +5,7 @@ const Header = () => (
   <header className="w-full bg-[#ff5200]">
     <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
       <Link to="/" className="flex items-center gap-1 font-lexend font-bold text-white">
-        <span className="text-2xl tracking-tight">cuponito<span className="text-orange-300">.</span></span>
+        <span className="text-2xl tracking-tight">cuponito<span className="text-[#FFD166]">.</span></span>
       </Link>
 
       <nav className="hidden items-center gap-8 md:flex">
