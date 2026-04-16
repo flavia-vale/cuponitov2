@@ -26,14 +26,14 @@ import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
 const couponSchema = z.object({
-  title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
-  description: z.string().min(5, 'Descrição deve ter pelo menos 5 caracteres'),
+  title: z.string().optional().or(z.literal('')),
+  description: z.string().optional().or(z.literal('')),
   code: z.string().optional().or(z.literal('')),
-  discount: z.string().min(1, 'Desconto é obrigatório'),
-  expiry: z.string().min(1, 'Validade é obrigatória'),
-  link: z.string().url('Link inválido'),
-  store: z.string().min(1, 'Loja é obrigatória'),
-  category: z.string().min(1, 'Categoria é obrigatória'),
+  discount: z.string().optional().or(z.literal('')),
+  expiry: z.string().optional().or(z.literal('')),
+  link: z.string().optional().or(z.literal('')),
+  store: z.string().optional().or(z.literal('')),
+  category: z.string().optional().or(z.literal('')),
   status: z.boolean(),
   is_flash: z.boolean(),
 });
@@ -70,14 +70,14 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
     setLoading(true);
     try {
       const payload = {
-        title: values.title,
-        description: values.description,
+        title: values.title || '',
+        description: values.description || '',
         code: values.code || undefined,
-        discount: values.discount,
-        expiry: values.expiry,
-        link: values.link,
-        store: values.store,
-        category: values.category,
+        discount: values.discount || '',
+        expiry: values.expiry || '',
+        link: values.link || '',
+        store: values.store || 'Geral', // Mantemos um fallback para o banco se estiver vazio
+        category: values.category || 'Geral',
         status: values.status,
         is_flash: values.is_flash,
         updated_at: new Date().toISOString(),
@@ -90,19 +90,19 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           .eq('id', initialData.id);
 
         if (error) throw error;
-        toast.success('Cupom atualizado com sucesso!');
+        toast.success('Cupom atualizado!');
       } else {
         const { error } = await supabase
           .from('coupons')
           .insert([payload]);
 
         if (error) throw error;
-        toast.success('Cupom adicionado com sucesso!');
+        toast.success('Cupom adicionado!');
       }
       onSuccess();
     } catch (error: any) {
       console.error('Error saving coupon:', error);
-      toast.error('Erro ao salvar cupom: ' + error.message);
+      toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
               <FormItem>
                 <FormLabel>Título</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: 20% de Desconto em todo site" {...field} />
+                  <Input placeholder="Ex: 20% de Desconto..." {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -131,7 +131,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="discount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Desconto (Texto)</FormLabel>
+                <FormLabel>Desconto</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: 20% OFF" {...field} />
                 </FormControl>
@@ -148,7 +148,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             <FormItem>
               <FormLabel>Descrição</FormLabel>
               <FormControl>
-                <Textarea placeholder="Descreva os detalhes do cupom..." {...field} />
+                <Textarea placeholder="Detalhes do cupom..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -161,7 +161,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Código (Opcional)</FormLabel>
+                <FormLabel>Código</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: BEMVINDO20" {...field} />
                 </FormControl>
@@ -206,7 +206,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Loja</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a loja" />
@@ -231,7 +231,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Categoria</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a categoria" />
@@ -261,7 +261,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
               <FormItem className="flex items-center justify-between">
                 <div>
                   <FormLabel>Ativo</FormLabel>
-                  <p className="text-xs text-muted-foreground">O cupom ficará visível no site</p>
                 </div>
                 <FormControl>
                   <Switch
@@ -280,7 +279,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
               <FormItem className="flex items-center justify-between">
                 <div>
                   <FormLabel>Oferta Relâmpago</FormLabel>
-                  <p className="text-xs text-muted-foreground">Destaque especial para ofertas urgentes</p>
                 </div>
                 <FormControl>
                   <Switch
@@ -298,7 +296,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             Cancelar
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? 'Salvando...' : initialData ? 'Atualizar Cupom' : 'Criar Cupom'}
+            {loading ? 'Salvando...' : initialData ? 'Atualizar' : 'Criar'}
           </Button>
         </div>
       </form>
