@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SiteSettings {
   global_links: {
@@ -36,7 +37,6 @@ const DEFAULT_SETTINGS: SiteSettings = {
     description: "Encontre o melhor cupom de desconto válido para as maiores lojas online do Brasil.",
     button_text: "Receber cupons em tempo real"
   },
-
   seo_defaults: {
     home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje | cuponito",
     home_description: "Os melhores cupons de desconto para Amazon, Shopee e Mercado Livre no cuponito. Economize agora com ofertas verificadas e atualizadas diariamente."
@@ -52,8 +52,24 @@ const DEFAULT_SETTINGS: SiteSettings = {
 export function useSettings() {
   return useQuery({
     queryKey: ['site-settings'],
-    queryFn: async () => DEFAULT_SETTINGS,
-    staleTime: Infinity,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('key, value');
+      
+      if (error) throw error;
+
+      // Transforma o array de chaves em um objeto estruturado
+      const settings = { ...DEFAULT_SETTINGS };
+      data?.forEach((item) => {
+        if (item.key in settings) {
+          (settings as any)[item.key] = item.value;
+        }
+      });
+
+      return settings as SiteSettings;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutos
   });
 }
 
@@ -62,8 +78,24 @@ export function useUpdateSettings() {
 
   return useMutation({
     mutationFn: async ({ key, value }: { key: string; value: unknown }) => {
-      // TODO: implement when site_settings table is created
-      console.warn('site_settings table not yet created, update skipped', key, value);
+      const { data: existing } = await supabase
+        .from('site_settings')
+        .select('id')
+        .eq('key', key)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from('site_settings')
+          .update({ value: value as any, updated_at: new Date().toISOString() })
+          .eq('key', key);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('site_settings')
+          .insert([{ key, value: value as any }]);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site-settings'] });
