@@ -54,7 +54,7 @@ export default function BlogList() {
       <section className="bg-gradient-to-br from-[#FF4D00] via-[#FF7A38] to-[#FFB347] px-4 py-12 text-white">
         <div className="mx-auto max-w-4xl">
           <span className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-white/70">Blog do Cuponito</span>
-          <h1 className="mb-4 text-3xl font-white leading-tight md:text-5xl">Guias, comparativos e dicas para economizar</h1>
+          <h1 className="mb-4 text-3xl font-black leading-tight md:text-5xl">Guias, comparativos e dicas para economizar</h1>
           <p className="mb-8 text-sm font-medium text-white/80 md:text-lg">Conteúdo com cupons embutidos para você já sair comprando mais barato.</p>
           
           <div className="relative flex items-center rounded-full bg-white p-1.5 shadow-2xl">
