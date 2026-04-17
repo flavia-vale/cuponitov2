@@ -93,7 +93,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-6">
+        <section id="lojas" className="mx-auto max-w-6xl px-4 py-6 scroll-mt-20">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Lojas parceiras</h2>
             <Link to="/" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
