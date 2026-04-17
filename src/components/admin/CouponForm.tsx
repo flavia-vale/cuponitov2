@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -70,6 +70,14 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
     },
   });
 
+  const selectedStore = form.watch('store');
+
+  // Filtra os links pré-definidos com base na loja selecionada
+  const filteredLinks = useMemo(() => {
+    if (!selectedStore) return [];
+    return predefinedLinks.filter(l => l.store === selectedStore);
+  }, [predefinedLinks, selectedStore]);
+
   useEffect(() => {
     if (initialData?.link) {
       const match = predefinedLinks.find(l => l.url === initialData.link);
@@ -85,7 +93,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
       const selected = predefinedLinks.find(l => l.id === val);
       if (selected) {
         form.setValue('link', selected.url);
-        form.setValue('store', selected.store);
+        // Não alteramos a loja aqui pois o filtro já garante que é a mesma
       }
     }
   };
@@ -201,42 +209,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase text-muted-foreground">Origem do Link</Label>
-            <Select value={linkType} onValueChange={onLinkTypeChange}>
-              <SelectTrigger className="h-11 bg-white border-border focus:ring-2 focus:ring-primary/20">
-                <SelectValue placeholder="Selecione a origem" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-border shadow-xl z-50">
-                <SelectItem value="manual">Digitar link manualmente</SelectItem>
-                {predefinedLinks.map(l => (
-                  <SelectItem key={l.id} value={l.id}>{l.name} ({l.store})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <FormField
-            control={form.control}
-            name="link"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Link de Afiliado</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="https://..." 
-                    {...field} 
-                    readOnly={linkType !== 'manual'}
-                    className={`h-11 ${linkType !== 'manual' ? 'bg-muted/50 cursor-not-allowed' : 'bg-white'}`}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
+        {/* Loja e Categoria agora vêm antes dos links */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -286,6 +259,46 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                     <SelectItem value="Frete Grátis">Frete Grátis</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase text-muted-foreground">Origem do Link</Label>
+            <Select 
+              value={linkType} 
+              onValueChange={onLinkTypeChange}
+              disabled={!selectedStore}
+            >
+              <SelectTrigger className="h-11 bg-white border-border focus:ring-2 focus:ring-primary/20">
+                <SelectValue placeholder={selectedStore ? "Selecione a origem" : "Selecione uma loja primeiro"} />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-border shadow-xl z-50">
+                <SelectItem value="manual">Digitar link manualmente</SelectItem>
+                {filteredLinks.map(l => (
+                  <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="link"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Link de Afiliado</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="https://..." 
+                    {...field} 
+                    readOnly={linkType !== 'manual'}
+                    className={`h-11 ${linkType !== 'manual' ? 'bg-muted/50 cursor-not-allowed' : 'bg-white'}`}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
