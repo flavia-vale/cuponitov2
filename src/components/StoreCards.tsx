@@ -8,7 +8,7 @@ const StoreCards = () => {
 
   if (isLoading || !stores) {
     return (
-      <section id="lojas" className="mx-auto max-w-6xl px-4 py-6 md:py-10">
+      <section id="lojas" className="mx-auto max-w-6xl px-4 py-6 md:py-10 scroll-mt-20">
         <h2 className="mb-4 md:mb-6 text-center text-xl font-bold text-foreground md:text-3xl">
           Escolha sua loja favorita
         </h2>
@@ -22,7 +22,7 @@ const StoreCards = () => {
   }
 
   return (
-    <section id="lojas" className="mx-auto max-w-6xl px-4 py-6 md:py-10">
+    <section id="lojas" className="mx-auto max-w-6xl px-4 py-6 md:py-10 scroll-mt-20">
       <h2 className="mb-4 md:mb-6 text-center text-xl font-bold text-foreground md:text-3xl">
         Escolha sua loja favorita
       </h2>
