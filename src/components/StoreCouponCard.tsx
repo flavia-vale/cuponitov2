@@ -132,10 +132,10 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
                   </div>
                 </div>
                 <button 
-                  onClick={handleReveal}
+                  onClick={handleAction}
                   className="go-btn w-full border-2 border-[#FF4D00] text-[#FF4D00] font-bold py-2 rounded-xl text-xs hover:bg-[#FF4D00] hover:text-white transition-all"
                 >
-                  Ver código e ir à loja ↗
+                  Copiar e ir para a loja ↗
                 </button>
               </div>
             ) : (

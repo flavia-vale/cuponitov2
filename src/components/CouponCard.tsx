@@ -93,9 +93,9 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
 
             <button 
               onClick={copyAndGo}
-              className="btn-primary w-full shadow-lg shadow-primary/10"
+              className="btn-primary w-full shadow-lg shadow-primary/20"
             >
-              {coupon.code ? 'Pegar cupom' : 'Aproveitar oferta'}
+              {coupon.code ? 'Copiar e ir para a loja' : 'Aproveitar oferta'}
             </button>
             
             <div className="flex items-center justify-center gap-2 text-[10px] font-medium text-text-gray/60">
