@@ -135,7 +135,6 @@ export function AdminCouponsTab() {
             className="gap-2 border-primary/20 text-primary hover:bg-primary/5"
             onClick={() => setIsExtractorOpen(true)}
           >
-
             <Sparkles className="h-4 w-4" /> Extrator Inteligente
           </Button>
           <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
@@ -144,17 +143,17 @@ export function AdminCouponsTab() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-2 shadow-sm">
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 shadow-sm">
         <Search className="ml-2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por título, loja ou código..."
-          className="border-0 bg-transparent focus-within:ring-0 focus-visible:ring-0"
+          className="border-0 bg-transparent focus-within:ring-0 focus-visible:ring-0 h-10"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="rounded-md border border-border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
@@ -247,7 +246,6 @@ export function AdminCouponsTab() {
         </Table>
       </div>
 
-      {/* Manual Add/Edit Form Dialog - Optimized Size */}
       <Dialog open={isFormOpen} onOpenChange={(open) => !open && handleCloseForm()}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -265,7 +263,6 @@ export function AdminCouponsTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Intelligent Extractor Dialog */}
       <Dialog open={isExtractorOpen} onOpenChange={setIsExtractorOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -284,14 +281,11 @@ export function AdminCouponsTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Predefined Links Dialog */}
       <AdminLinksDialog
         open={isLinksOpen}
         onOpenChange={setIsLinksOpen}
         stores={stores}
       />
-
-      {/* Delete Confirmation */}
 
       <AlertDialog open={!!deletingCouponId} onOpenChange={(open) => !open && setDeletingCouponId(null)}>
         <AlertDialogContent>

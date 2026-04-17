@@ -70,7 +70,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
     },
   });
 
-  // Check if initial link matches any predefined link
   useEffect(() => {
     if (initialData?.link) {
       const match = predefinedLinks.find(l => l.url === initialData.link);
@@ -109,24 +108,16 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
       };
 
       if (initialData) {
-        const { error } = await supabase
-          .from('coupons')
-          .update(payload)
-          .eq('id', initialData.id);
-
+        const { error } = await supabase.from('coupons').update(payload).eq('id', initialData.id);
         if (error) throw error;
         toast.success('Cupom atualizado!');
       } else {
-        const { error } = await supabase
-          .from('coupons')
-          .insert([payload]);
-
+        const { error } = await supabase.from('coupons').insert([payload]);
         if (error) throw error;
         toast.success('Cupom adicionado!');
       }
       onSuccess();
     } catch (error: any) {
-      console.error('Error saving coupon:', error);
       toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setLoading(false);
@@ -135,16 +126,16 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Título</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Título</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: 20% de Desconto..." {...field} />
+                  <Input placeholder="Ex: 20% de Desconto..." {...field} className="h-11" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,9 +147,9 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="discount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Desconto</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Desconto</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: 20% OFF" {...field} />
+                  <Input placeholder="Ex: 20% OFF" {...field} className="h-11" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -171,9 +162,9 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descrição</FormLabel>
+              <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Descrição</FormLabel>
               <FormControl>
-                <Textarea placeholder="Detalhes do cupom..." {...field} />
+                <Textarea placeholder="Detalhes do cupom..." {...field} className="min-h-[80px] resize-none" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -186,9 +177,9 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Código</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Código</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: BEMVINDO20" {...field} />
+                  <Input placeholder="Ex: BEMVINDO20" {...field} className="h-11 font-mono" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -200,9 +191,9 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="expiry"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Validade</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Validade</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: 31/12/2024" {...field} />
+                  <Input placeholder="Ex: 31/12/2024" {...field} className="h-11" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -212,9 +203,9 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Origem do Link</Label>
+            <Label className="text-xs font-bold uppercase text-muted-foreground">Origem do Link</Label>
             <Select value={linkType} onValueChange={onLinkTypeChange}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11 bg-background border-border focus:ring-2 focus:ring-primary/20">
                 <SelectValue placeholder="Selecione a origem" />
               </SelectTrigger>
               <SelectContent>
@@ -231,13 +222,13 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="link"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Link de Afiliado</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Link de Afiliado</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="https://..." 
                     {...field} 
                     readOnly={linkType !== 'manual'}
-                    className={linkType !== 'manual' ? 'bg-muted opacity-70 cursor-not-allowed' : ''}
+                    className={`h-11 ${linkType !== 'manual' ? 'bg-muted/50 cursor-not-allowed' : ''}`}
                   />
                 </FormControl>
                 <FormMessage />
@@ -252,10 +243,10 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="store"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Loja</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Loja</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 bg-background border-border focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Selecione a loja" />
                     </SelectTrigger>
                   </FormControl>
@@ -277,10 +268,10 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Categoria</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Categoria</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 bg-background border-border focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                   </FormControl>
@@ -301,20 +292,15 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           />
         </div>
 
-        <div className="flex flex-col gap-4 py-2 border-y border-border">
+        <div className="flex flex-col gap-4 py-4 border-y border-border/50">
           <FormField
             control={form.control}
             name="status"
             render={({ field }) => (
-              <FormItem className="flex items-center justify-between">
-                <div>
-                  <FormLabel>Ativo</FormLabel>
-                </div>
+              <FormItem className="flex items-center justify-between space-y-0">
+                <FormLabel className="text-sm font-semibold">Cupom Ativo</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
               </FormItem>
             )}
@@ -324,27 +310,22 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
             control={form.control}
             name="is_flash"
             render={({ field }) => (
-              <FormItem className="flex items-center justify-between">
-                <div>
-                  <FormLabel>Oferta Relâmpago</FormLabel>
-                </div>
+              <FormItem className="flex items-center justify-between space-y-0">
+                <FormLabel className="text-sm font-semibold">Oferta Relâmpago</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
               </FormItem>
             )}
           />
         </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button type="button" variant="outline" onClick={onCancel} className="h-11 px-6">
             Cancelar
           </Button>
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Salvando...' : initialData ? 'Atualizar' : 'Criar'}
+          <Button type="submit" disabled={loading} className="h-11 px-8">
+            {loading ? 'Salvando...' : initialData ? 'Atualizar Cupom' : 'Criar Cupom'}
           </Button>
         </div>
       </form>
