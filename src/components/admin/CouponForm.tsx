@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
@@ -80,7 +81,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
   const onLinkTypeChange = (val: string) => {
     setLinkType(val);
     if (val === 'manual') {
-      // Don't clear if it was already manual, but if switching from predefined to manual, clear it
       if (linkType !== 'manual') form.setValue('link', '');
     } else {
       const selected = predefinedLinks.find(l => l.id === val);
@@ -212,7 +212,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <FormLabel>Origem do Link</FormLabel>
+            <Label className="text-sm font-medium">Origem do Link</Label>
             <Select value={linkType} onValueChange={onLinkTypeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione a origem" />
@@ -292,6 +292,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                     <SelectItem value="Esportes">Esportes</SelectItem>
                     <SelectItem value="Viagens">Viagens</SelectItem>
                     <SelectItem value="Geral">Geral</SelectItem>
+                    <SelectItem value="Frete Grátis">Frete Grátis</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
