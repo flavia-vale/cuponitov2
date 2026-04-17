@@ -21,14 +21,14 @@ const HeroBanner = () => {
           {heroContent.hero_subtitle}
         </p>
 
-        {/* Busca Prioritária (UI/UX Hierarquia) */}
+        {/* Busca Prioritária */}
         <div className="relative mx-auto mb-8 max-w-2xl">
           <div className="flex items-center gap-2 rounded-full bg-white p-1.5 shadow-xl">
             <div className="flex flex-1 items-center px-4">
               <Search className="h-5 w-5 text-text-gray/40" />
               <Input 
                 placeholder="Qual loja você procura hoje?" 
-                className="h-12 border-none bg-transparent text-foreground focus-visible:ring-0 placeholder:text-text-gray/40 text-base"
+                className="h-12 border-0 bg-transparent shadow-none text-foreground focus-visible:ring-0 placeholder:text-text-gray/40 text-base"
               />
             </div>
             <Button className="h-12 rounded-full bg-[#1A1A1A] px-8 font-bold text-white hover:bg-black transition-all min-h-[48px]">

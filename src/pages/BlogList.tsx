@@ -63,7 +63,7 @@ export default function BlogList() {
               placeholder="Buscar no blog..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border-none bg-transparent text-[#1a1a1a] focus-visible:ring-0 placeholder:text-[#aaa]"
+              className="border-0 bg-transparent shadow-none text-[#1a1a1a] focus-visible:ring-0 placeholder:text-[#aaa]"
             />
             <Button className="rounded-full bg-[#FF4D00] px-8 font-bold text-white hover:bg-[#D83C00]">Buscar</Button>
           </div>

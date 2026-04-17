@@ -147,7 +147,7 @@ export function AdminCouponsTab() {
         <Search className="ml-2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por título, loja ou código..."
-          className="border-0 bg-transparent focus-within:ring-0 focus-visible:ring-0 h-10"
+          className="border-0 bg-transparent shadow-none focus-within:ring-0 focus-visible:ring-0 h-10"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
