@@ -8,14 +8,14 @@ interface Props {
 }
 
 const BlogCategoryFilter = ({ categories, selected, onSelect }: Props) => (
-  <div className="flex flex-wrap items-center justify-center gap-2">
+  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
     <button
       onClick={() => onSelect(null)}
       className={cn(
-        'rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-sm',
+        'shrink-0 rounded-full px-5 py-2 text-xs font-bold transition-all border',
         !selected
-          ? 'bg-primary text-primary-foreground shadow-md'
-          : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+          ? 'bg-[#FF4D00] border-[#FF4D00] text-white shadow-md'
+          : 'bg-white border-black/5 text-[#555] hover:bg-black/5'
       )}
     >
       Todos
@@ -25,10 +25,10 @@ const BlogCategoryFilter = ({ categories, selected, onSelect }: Props) => (
         key={cat.id}
         onClick={() => onSelect(cat.slug === selected ? null : cat.slug)}
         className={cn(
-          'rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-sm',
+          'shrink-0 rounded-full px-5 py-2 text-xs font-bold transition-all border',
           selected === cat.slug
-            ? 'text-white shadow-md'
-            : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+            ? 'text-white shadow-md border-transparent'
+            : 'bg-white border-black/5 text-[#555] hover:bg-black/5'
         )}
         style={selected === cat.slug ? { backgroundColor: cat.color_hex } : undefined}
       >

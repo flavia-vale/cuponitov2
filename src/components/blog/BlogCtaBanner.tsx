@@ -1,5 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { ExternalLink, ArrowRight } from 'lucide-react';
+import { ExternalLink, Copy } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export interface CtaConfig {
   title?: string;
@@ -8,6 +11,8 @@ export interface CtaConfig {
   url?: string;
   store_slug?: string;
   color?: string;
+  code?: string;
+  store_name?: string;
 }
 
 interface Props {
@@ -15,46 +20,57 @@ interface Props {
 }
 
 const BlogCtaBanner = ({ config }: Props) => {
+  const [copied, setCopied] = useState(false);
   const {
     title = 'Confira os melhores cupons!',
-    description,
-    button_text = 'Ver cupons',
+    description = 'Válido por tempo limitado.',
+    button_text = 'Copiar e ir',
     url,
     store_slug,
-    color = 'oklch(0.55 0.25 285)',
+    code = 'CUPONITO',
+    store_name = 'Loja Parceira'
   } = config;
 
-  const isExternal = !!url;
+  const handleAction = () => {
+    if (code) {
+      navigator.clipboard.writeText(code);
+      setCopied(true);
+      toast({ title: 'Código copiado!', description: 'Use no carrinho para economizar.' });
+      setTimeout(() => setCopied(false), 2000);
+    }
+    if (url) window.open(url, '_blank', 'nofollow sponsored noopener noreferrer');
+  };
 
-  const content = (
-    <div
-      className="my-6 flex flex-col items-center gap-3 rounded-2xl p-6 text-center text-white sm:flex-row sm:justify-between sm:text-left"
-      style={{ backgroundColor: color }}
-    >
-      <div>
-        <p className="text-base font-bold sm:text-lg">{title}</p>
-        {description && <p className="mt-1 text-sm text-white/80">{description}</p>}
+  return (
+    <div className="my-8 rounded-2xl border-2 border-[#FFCAB0] bg-[#FFF8F5] p-5 shadow-sm">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-black/5 font-black text-primary text-[10px] uppercase shadow-sm">
+          {store_name.slice(0, 3)}
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] font-bold uppercase text-[#888] tracking-wider">{store_name}</p>
+          <h4 className="text-sm font-black text-[#1a1a1a]">{title}</h4>
+        </div>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/20 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/30">
-        {button_text}
-        {isExternal ? <ExternalLink className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5" />}
-      </span>
+      
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="flex-1 w-full bg-white border-2 border-dashed border-primary rounded-xl py-3 px-4 text-center font-mono text-lg font-black text-primary tracking-widest uppercase">
+          {code}
+        </div>
+        <button 
+          onClick={handleAction}
+          className={cn(
+            "w-full sm:w-auto px-6 py-3.5 rounded-xl font-black text-xs uppercase transition-all active:scale-95 shadow-lg",
+            copied ? "bg-green-600 text-white" : "bg-primary text-white hover:bg-primary/90 shadow-primary/20"
+          )}
+        >
+          {copied ? 'Copiado!' : button_text}
+        </button>
+      </div>
+      
+      <p className="mt-3 text-center text-[10px] font-medium text-[#aaa]">{description}</p>
     </div>
   );
-
-  if (isExternal) {
-    return (
-      <a href={url} target="_blank" rel="nofollow sponsored noopener noreferrer">
-        {content}
-      </a>
-    );
-  }
-
-  if (store_slug) {
-    return <Link to="/desconto/$slug" params={{ slug: store_slug }}>{content}</Link>;
-  }
-
-  return <Link to="/">{content}</Link>;
 };
 
 export default BlogCtaBanner;
