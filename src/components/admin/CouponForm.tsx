@@ -205,10 +205,10 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase text-muted-foreground">Origem do Link</Label>
             <Select value={linkType} onValueChange={onLinkTypeChange}>
-              <SelectTrigger className="h-11 bg-background border-border focus:ring-2 focus:ring-primary/20">
+              <SelectTrigger className="h-11 bg-white border-border focus:ring-2 focus:ring-primary/20">
                 <SelectValue placeholder="Selecione a origem" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-border shadow-xl z-50">
                 <SelectItem value="manual">Digitar link manualmente</SelectItem>
                 {predefinedLinks.map(l => (
                   <SelectItem key={l.id} value={l.id}>{l.name} ({l.store})</SelectItem>
@@ -228,7 +228,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                     placeholder="https://..." 
                     {...field} 
                     readOnly={linkType !== 'manual'}
-                    className={`h-11 ${linkType !== 'manual' ? 'bg-muted/50 cursor-not-allowed' : ''}`}
+                    className={`h-11 ${linkType !== 'manual' ? 'bg-muted/50 cursor-not-allowed' : 'bg-white'}`}
                   />
                 </FormControl>
                 <FormMessage />
@@ -246,11 +246,11 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                 <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Loja</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="h-11 bg-background border-border focus:ring-2 focus:ring-primary/20">
+                    <SelectTrigger className="h-11 bg-white border-border focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Selecione a loja" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-border shadow-xl z-50">
                     {stores.map((store) => (
                       <SelectItem key={store.id} value={store.display_name}>
                         {store.display_name}
@@ -271,11 +271,11 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                 <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Categoria</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="h-11 bg-background border-border focus:ring-2 focus:ring-primary/20">
+                    <SelectTrigger className="h-11 bg-white border-border focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className="bg-white border-border shadow-xl z-50">
                     <SelectItem value="Moda">Moda</SelectItem>
                     <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
                     <SelectItem value="Casa">Casa</SelectItem>
