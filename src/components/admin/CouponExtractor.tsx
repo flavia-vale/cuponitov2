@@ -80,15 +80,16 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
           const codeMatch = line.match(codeRegex);
           
           if (discountMatch) {
+            const code = codeMatch ? codeMatch[1] : '';
             results.push({
               title: line.replace(/🎟/g, '').trim(),
-              code: codeMatch ? codeMatch[1] : (currentGlobalLink ? 'Oferta no link' : ''),
+              code: code,
               discount: discountMatch[0],
               description: line,
               expiry: '31/12/2025',
               link: currentGlobalLink,
               store: detectedStore,
-              category: defaultCategory,
+              category: code ? defaultCategory : 'Ofertas no link',
             });
           }
         }
@@ -110,15 +111,17 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
           title = lines[discountLineIndex];
         }
 
+        const code = codeMatch ? codeMatch[1] : '';
+
         results.push({
           title: title,
-          code: codeMatch ? codeMatch[1] : (linkMatch ? 'Oferta no link' : ''),
+          code: code,
           discount: mainDiscount,
           description: lines.slice(0, 4).join(' '),
           expiry: '31/12/2025',
           link: linkMatch ? linkMatch[0] : '',
           store: detectedStore,
-          category: defaultCategory,
+          category: code ? defaultCategory : 'Ofertas no link',
         });
       }
     }
@@ -165,7 +168,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
     try {
       const couponsToInsert = extracted.map(c => ({
         title: c.title || 'Oferta Especial',
-        code: c.code === 'Oferta no link' ? '' : c.code,
+        code: (c.code === 'Oferta no link' || !c.code) ? null : c.code,
         discount: c.discount,
         description: c.description,
         link: c.link,
@@ -175,7 +178,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
         is_flash: false,
         expiry: c.expiry,
         success_rate: 100
-      }));
+      })) as any[];
 
       const { error } = await supabase
         .from('coupons')
@@ -234,6 +237,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
                   <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
                   <SelectItem value="Casa">Casa</SelectItem>
                   <SelectItem value="Beleza">Beleza</SelectItem>
+                  <SelectItem value="Ofertas no link">Ofertas no link</SelectItem>
                 </SelectContent>
               </Select>
             </div>

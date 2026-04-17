@@ -104,7 +104,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
       const payload = {
         title: values.title || '',
         description: values.description || '',
-        code: values.code || undefined,
+        code: (values.code || null) as any,
         discount: values.discount || '',
         expiry: values.expiry || '',
         link: values.link || '',
@@ -257,6 +257,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                     <SelectItem value="Viagens">Viagens</SelectItem>
                     <SelectItem value="Geral">Geral</SelectItem>
                     <SelectItem value="Frete Grátis">Frete Grátis</SelectItem>
+                    <SelectItem value="Ofertas no link">Ofertas no link</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

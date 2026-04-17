@@ -210,11 +210,11 @@ export default function StorePage() {
               >
                 Códigos ({storeCoupons.filter(c => c.code).length})
               </button>
-              <button 
+              <button
                 onClick={() => setFilter('offer')}
                 className={cn("filter-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap", filter === 'offer' ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-[#f5f3ef] text-[#555] hover:bg-black/5")}
               >
-                Ofertas ({storeCoupons.filter(c => !c.code && c.category !== 'Frete Grátis').length})
+                Ofertas no link ({storeCoupons.filter(c => !c.code && c.category !== 'Frete Grátis').length})
               </button>
               <button 
                 onClick={() => setFilter('free')}
