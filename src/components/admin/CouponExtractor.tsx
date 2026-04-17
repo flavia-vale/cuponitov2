@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, Save, Trash2, PlusCircle } from 'lucide-react';
+import { Sparkles, Save, Trash2, PlusCircle, Wand2 } from 'lucide-react';
 
 interface CouponExtractorProps {
   stores: Tables<'stores'>[];
@@ -38,6 +38,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
   const [loading, setLoading] = useState(false);
   const [defaultStore, setDefaultStore] = useState('');
   const [defaultCategory, setDefaultCategory] = useState('Geral');
+  const [detectedLink, setDetectedLink] = useState('');
 
   const extractCoupons = () => {
     if (!rawText.trim()) {
@@ -45,42 +46,106 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
       return;
     }
     
-    const lines = rawText.split('\n').filter(line => line.trim().length > 1);
     const results: ExtractedCoupon[] = [];
+    
+    // 1. Identificar a loja no texto
+    let detectedStore = defaultStore;
+    const lowerText = rawText.toLowerCase();
+    
+    // Procura por nomes de lojas conhecidas
+    for (const store of stores) {
+      if (lowerText.includes(store.display_name.toLowerCase()) ||
+          lowerText.includes(store.slug.toLowerCase())) {
+        detectedStore = store.display_name;
+        break;
+      }
+    }
 
-    lines.forEach(line => {
-      const parts = line.split(/[|;]/).map(p => p.trim());
+    // 2. Definir Regex Úteis
+    const discountRegex = /(?:R\$\s*\d+(?:,\d+)?|\d+%\s*)\s*OFF/gi;
+    const codeRegex = /(?:cupom|🎟\s*cupom|⚠️\s*cupom):\s*([A-Z0-9]+)/i;
+    const linkRegex = /https?:\/\/[^\s]+/gi;
+    
+    // 3. Verificar se há múltiplos cupons (marcados por emojis ou linhas individuais)
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const hasMultipleTickets = (rawText.match(/🎟/g) || []).length > 1;
+    const currentGlobalLink = rawText.match(linkRegex)?.[0] || '';
+    setDetectedLink(currentGlobalLink);
+
+    if (hasMultipleTickets) {
+      // Caso 3: Múltiplos cupons listados
+      lines.forEach(line => {
+        if (line.includes('🎟') || line.includes('OFF')) {
+          const discountMatch = line.match(discountRegex);
+          const codeMatch = line.match(codeRegex);
+          
+          if (discountMatch) {
+            results.push({
+              title: line.replace(/🎟/g, '').trim(),
+              code: codeMatch ? codeMatch[1] : (currentGlobalLink ? 'Oferta no link' : ''),
+              discount: discountMatch[0],
+              description: line,
+              expiry: '31/12/2025',
+              link: currentGlobalLink,
+              store: detectedStore,
+              category: defaultCategory,
+            });
+          }
+        }
+      });
+    } else {
+      // Caso 1 e 2: Bloco único de cupom
+      const allDiscounts = [...rawText.matchAll(discountRegex)];
+      const codeMatch = rawText.match(codeRegex);
+      const linkMatch = rawText.match(linkRegex);
       
-      if (parts.length >= 2) {
-        results.push({
-          title: parts[0] || '',
-          code: parts[1] || '',
-          discount: parts[2] || '',
-          description: parts[3] || parts[0] || '',
-          expiry: '31/12/2024',
-          link: parts[4] || '',
-          store: defaultStore,
-          category: defaultCategory,
-        });
-      } else {
-        const codeMatch = line.match(/\b([A-Z0-0]{4,15})\b/);
-        const discountMatch = line.match(/(\d+%\s*OFF|\d+\s*REAIS|R\$\s*\d+)/i);
+      if (allDiscounts.length > 0) {
+        // Pega o primeiro desconto encontrado como principal
+        const mainDiscount = allDiscounts[0][0];
         
+        // Tenta achar um título legal (geralmente a linha do desconto ou a acima)
+        let title = mainDiscount;
+        const discountLineIndex = lines.findIndex(l => l.includes(mainDiscount));
+        if (discountLineIndex !== -1) {
+          title = lines[discountLineIndex];
+        }
+
         results.push({
-          title: line.substring(0, 50),
-          code: codeMatch ? codeMatch[1] : '',
-          discount: discountMatch ? discountMatch[1] : '',
-          description: line,
-          expiry: '31/12/2024',
-          link: '',
-          store: defaultStore,
+          title: title,
+          code: codeMatch ? codeMatch[1] : (linkMatch ? 'Oferta no link' : ''),
+          discount: mainDiscount,
+          description: lines.slice(0, 4).join(' '),
+          expiry: '31/12/2025',
+          link: linkMatch ? linkMatch[0] : '',
+          store: detectedStore,
           category: defaultCategory,
         });
       }
-    });
+    }
 
-    setExtracted(results);
-    toast.success(`Extraídos ${results.length} potenciais cupons!`);
+    if (results.length === 0) {
+      // Fallback para o método antigo se falhar
+      const codeMatch = rawText.match(/\b([A-Z0-9]{5,20})\b/);
+      if (codeMatch) {
+        results.push({
+          title: 'Cupom Extraído',
+          code: codeMatch[1],
+          discount: '',
+          description: rawText.substring(0, 100),
+          expiry: '31/12/2025',
+          link: currentGlobalLink,
+          store: detectedStore,
+          category: defaultCategory,
+        });
+      }
+    }
+
+    if (results.length === 0) {
+      toast.error('Não consegui identificar os dados. Tente colar um formato mais padrão.');
+    } else {
+      setExtracted(results);
+      toast.success(`${results.length} cupons identificados com sucesso! ✨`);
+    }
   };
 
   const updateItem = (index: number, field: keyof ExtractedCoupon, value: string) => {
@@ -98,20 +163,27 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
     
     setLoading(true);
     try {
+      const couponsToInsert = extracted.map(c => ({
+        title: c.title || 'Oferta Especial',
+        code: c.code === 'Oferta no link' ? '' : c.code,
+        discount: c.discount,
+        description: c.description,
+        link: c.link,
+        store: c.store || 'Geral',
+        category: c.category || 'Geral',
+        status: true,
+        is_flash: false,
+        expiry: c.expiry,
+        success_rate: 100
+      }));
+
       const { error } = await supabase
         .from('coupons')
-        .insert(extracted.map(c => ({
-          ...c,
-          title: c.title || 'Sem título',
-          store: c.store || 'Geral',
-          status: true,
-          is_flash: false,
-          success_rate: 100
-        })));
+        .insert(couponsToInsert);
 
       if (error) throw error;
       
-      toast.success(`${extracted.length} cupons salvos!`);
+      toast.success(`${extracted.length} cupons publicados com sucesso!`);
       onSuccess();
     } catch (error: any) {
       console.error('Error saving extracted coupons:', error);
@@ -125,11 +197,20 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
     <div className="space-y-6">
       {!extracted.length ? (
         <div className="space-y-4">
+          <div className="rounded-xl bg-primary/5 p-4 border border-primary/10">
+            <p className="text-xs text-primary font-medium flex items-center gap-2 mb-2">
+              <Wand2 className="h-3 w-3" /> Dica do Cuponito
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Cole textos do WhatsApp ou Telegram. O sistema identifica automaticamente a loja, o valor do desconto e o código do cupom.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Loja Padrão</label>
+              <label className="text-sm font-medium">Loja (Se não detectada)</label>
               <Select onValueChange={setDefaultStore} value={defaultStore}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl h-11">
                   <SelectValue placeholder="Opcional" />
                 </SelectTrigger>
                 <SelectContent>
@@ -142,9 +223,9 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Categoria Padrão</label>
+              <label className="text-sm font-medium">Categoria</label>
               <Select onValueChange={setDefaultCategory} value={defaultCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl h-11">
                   <SelectValue placeholder="Geral" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,67 +240,95 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
           </div>
 
           <Textarea
-            placeholder="Cole seu texto aqui..."
-            className="min-h-[200px]"
+            placeholder="Cole o texto aqui... Ex: 'CUPOM AMAZON 10% OFF: PAISDOFUT'"
+            className="min-h-[250px] rounded-2xl border-dashed border-2 focus-visible:ring-primary/20"
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
           />
 
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-            <Button onClick={extractCoupons} className="gap-2">
-              <Sparkles className="h-4 w-4" /> Extrair
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="ghost" onClick={onCancel} className="rounded-xl">Cancelar</Button>
+            <Button onClick={extractCoupons} className="gap-2 rounded-xl h-12 px-8 shadow-lg shadow-primary/20">
+              <Sparkles className="h-4 w-4" /> Inteligência Artificial: Extrair
             </Button>
           </div>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Revisar ({extracted.length})</h3>
+            <div>
+              <h3 className="text-lg font-bold">Cupons Identificados</h3>
+              <p className="text-xs text-muted-foreground">Revise os dados antes de publicar.</p>
+            </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setExtracted([])}>Voltar</Button>
-              <Button size="sm" onClick={saveAll} disabled={loading}>{loading ? 'Salvando...' : 'Salvar Todos'}</Button>
+              <Button variant="outline" size="sm" onClick={() => setExtracted([])} className="rounded-lg">Limpar</Button>
             </div>
           </div>
 
           <div className="max-h-[500px] overflow-auto space-y-4 pr-2">
             {extracted.map((item, index) => (
-              <Card key={index} className="overflow-hidden">
-                <CardContent className="p-4 space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input 
-                      value={item.title} 
-                      onChange={(e) => updateItem(index, 'title', e.target.value)}
-                      placeholder="Título"
-                    />
-                    <Select value={item.store} onValueChange={(val) => updateItem(index, 'store', val)}>
-                      <SelectTrigger><SelectValue placeholder="Loja" /></SelectTrigger>
-                      <SelectContent>
-                        {stores.map((store) => (
-                          <SelectItem key={store.id} value={store.display_name}>{store.display_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Input value={item.code} onChange={(e) => updateItem(index, 'code', e.target.value)} placeholder="Código" />
-                    <Input value={item.discount} onChange={(e) => updateItem(index, 'discount', e.target.value)} placeholder="Desconto" />
-                    <Input value={item.link} onChange={(e) => updateItem(index, 'link', e.target.value)} placeholder="Link" />
-                    <Button variant="ghost" size="icon" className="ml-auto text-destructive" onClick={() => removeItem(index)}><Trash2 className="h-4 w-4" /></Button>
+              <Card key={index} className="overflow-hidden border-2 border-primary/5 hover:border-primary/20 transition-all">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground">Título</label>
+                          <Input 
+                            value={item.title} 
+                            onChange={(e) => updateItem(index, 'title', e.target.value)}
+                            className="h-9 rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground">Loja</label>
+                          <Select value={item.store} onValueChange={(val) => updateItem(index, 'store', val)}>
+                            <SelectTrigger className="h-9 rounded-lg"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {stores.map((store) => (
+                                <SelectItem key={store.id} value={store.display_name}>{store.display_name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground">Código</label>
+                          <Input value={item.code} onChange={(e) => updateItem(index, 'code', e.target.value)} className="h-9 rounded-lg font-mono text-xs" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground">Desconto</label>
+                          <Input value={item.discount} onChange={(e) => updateItem(index, 'discount', e.target.value)} className="h-9 rounded-lg text-xs" />
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground">Link</label>
+                          <Input value={item.link} onChange={(e) => updateItem(index, 'link', e.target.value)} className="h-9 rounded-lg text-xs" />
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => removeItem(index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="flex justify-between items-center pt-4 border-t border-border">
-            <Button variant="ghost" className="gap-2" onClick={() => setExtracted([...extracted, {
-              title: '', code: '', discount: '', description: '', expiry: '31/12/2024', link: '', store: defaultStore, category: defaultCategory
+          <div className="flex justify-between items-center pt-6 border-t border-border">
+            <Button variant="outline" className="gap-2 rounded-xl" onClick={() => setExtracted([...extracted, {
+              title: '', code: '', discount: '', description: '', expiry: '31/12/2025', link: detectedLink, store: defaultStore, category: defaultCategory
             }])}>
-              <PlusCircle className="h-4 w-4" /> Adicionar Manualmente
+              <PlusCircle className="h-4 w-4" /> Adicionar Outro
             </Button>
-            <Button onClick={saveAll} disabled={loading} className="gap-2 min-w-[150px]">
-              <Save className="h-4 w-4" /> Salvar Todos
+            <Button onClick={saveAll} disabled={loading} className="gap-2 rounded-xl h-12 px-8 shadow-lg shadow-primary/20">
+              {loading ? 'Publicando...' : (
+                <>
+                  <Save className="h-4 w-4" /> Publicar {extracted.length} {extracted.length === 1 ? 'Cupom' : 'Cupons'}
+                </>
+              )}
             </Button>
           </div>
         </div>
