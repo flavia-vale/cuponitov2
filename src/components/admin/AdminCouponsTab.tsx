@@ -44,6 +44,7 @@ import { Badge } from '@/components/ui/badge';
 import { CouponForm } from './CouponForm';
 import { CouponExtractor } from './CouponExtractor';
 import { AdminLinksDialog } from './AdminLinksDialog';
+import { AwinTestPanel } from './AwinTestPanel';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -142,6 +143,8 @@ export function AdminCouponsTab() {
           </Button>
         </div>
       </div>
+
+      <AwinTestPanel />
 
       <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 shadow-sm">
         <Search className="ml-2 h-4 w-4 text-muted-foreground" />

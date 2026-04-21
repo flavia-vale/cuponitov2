@@ -13,22 +13,21 @@ serve(async (req) => {
 
   try {
     const AWIN_API_TOKEN = Deno.env.get('AWIN_API_TOKEN');
+    const PUBLISHER_ID = '2740940';
     
     if (!AWIN_API_TOKEN) {
       console.error("[awin-integration] AWIN_API_TOKEN not found in environment variables");
       return new Response(
-        JSON.stringify({ error: 'AWIN_API_TOKEN is not configured' }),
+        JSON.stringify({ error: 'AWIN_API_TOKEN is not configured in Supabase Secrets' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log("[awin-integration] Fetching coupons from Awin API...");
+    console.log(`[awin-integration] Fetching promotions for Publisher ${PUBLISHER_ID}...`);
 
-    // URL da API da Awin para cupons (Vouchers)
-    // Note: Geralmente a Awin usa GET para listar vouchers, mas o usuário mencionou POST.
-    // Vou preparar a estrutura base. Se for GET, mudamos facilmente.
-    const response = await fetch('https://api.awin.com/vouchers', {
-      method: 'GET', // Ajustaremos conforme a documentação/necessidade
+    // URL oficial da API de promoções/vouchers da Awin
+    const response = await fetch(`https://api.awin.com/promotion/publisher/${PUBLISHER_ID}`, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${AWIN_API_TOKEN}`,
         'Content-Type': 'application/json'
