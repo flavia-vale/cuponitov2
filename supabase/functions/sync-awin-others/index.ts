@@ -7,29 +7,40 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handler para preflight requests
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const token = Deno.env.get('AWIN_TOKEN_OTHERS')
+    
+    // Tenta pegar o token específico, se não houver, usa o global
+    const token = Deno.env.get('AWIN_TOKEN_OTHERS') || Deno.env.get('AWIN_API_TOKEN')
     
     const supabase = createClient(supabaseUrl, supabaseKey)
     const PUBLISHER_ID = '2701264'
     const STORE_NAME = 'Awin - Outras lojas'
 
-    if (!token) throw new Error("Secret AWIN_TOKEN_OTHERS não configurada.")
+    if (!token) {
+      console.error("[sync-awin-others] Erro: Nenhuma Secret de token Awin encontrada.");
+      throw new Error("Configuração de token Awin ausente nas Secrets.")
+    }
 
+    // Cálculo da data retroativa
     const date = new Date()
     date.setFullYear(date.getFullYear() - 2)
     const startDate = date.toISOString().split('T')[0]
 
-    console.log(`[sync-awin-others] Buscando ofertas desde ${startDate}`)
+    console.log(`[sync-awin-others] Iniciando busca desde ${startDate} usando ID ${PUBLISHER_ID}`)
 
     const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${token}&status=active&type=all&startDate=${startDate}`
     
     const response = await fetch(url)
-    if (!response.ok) throw new Error(`Erro API Awin: ${response.status}`)
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[sync-awin-others] Erro na API Awin: ${response.status}`, errorText);
+      throw new Error(`Erro na API Awin: ${response.status}`)
+    }
     
     const data = await response.json()
     const promotions = Array.isArray(data) ? data : (data ? [data] : [])
@@ -52,14 +63,19 @@ serve(async (req) => {
       if (error) throw error
     }
 
-    return new Response(JSON.stringify({ success: true, count: offers.length }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      store: STORE_NAME, 
+      count: offers.length 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
+
   } catch (err) {
-    console.error(`[sync-awin-others] Erro:`, err.message)
+    console.error(`[sync-awin-others] Erro crítico:`, err.message)
     return new Response(JSON.stringify({ error: err.message }), { 
       status: 500, 
-      headers: corsHeaders 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     })
   }
 })
