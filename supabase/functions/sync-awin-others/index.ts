@@ -17,11 +17,12 @@ serve(async (req) => {
   const TOKEN = Deno.env.get('AWIN_TOKEN_OTHERS');
 
   try {
-    console.log(`[sync-awin-others] Iniciando captura com secret dedicada...`);
+    console.log(`[sync-awin-others] Iniciando captura com parâmetros otimizados...`);
     
     if (!TOKEN) throw new Error("Secret AWIN_TOKEN_OTHERS não configurada.");
 
-    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}`;
+    // URL atualizada com status=active e type=all
+    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}&status=active&type=all`;
     const response = await fetch(url);
     const data = await response.json();
     

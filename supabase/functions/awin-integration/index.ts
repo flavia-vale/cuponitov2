@@ -17,7 +17,7 @@ serve(async (req) => {
   )
 
   try {
-    console.log("[awin-integration] Iniciando processamento de contas...");
+    console.log("[awin-integration] Iniciando processamento de contas com parâmetros otimizados...");
 
     // 1. Buscar contas ativas no banco
     const { data: accounts, error: accError } = await supabaseClient
@@ -46,7 +46,8 @@ serve(async (req) => {
           continue;
         }
 
-        const url = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${activeToken}`;
+        // URL atualizada com status=active e type=all
+        const url = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${activeToken}&status=active&type=all`;
         const response = await fetch(url);
 
         if (!response.ok) {
