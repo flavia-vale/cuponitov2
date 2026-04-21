@@ -1,6 +1,13 @@
 {
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/sync-lomadee.ts": {
+      "regions": ["gru1"],
+      "maxDuration": 300
+    }
+  }
 }
