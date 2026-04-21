@@ -9,7 +9,7 @@ const corsHeaders = {
 // Mapa de provedor → edge function responsável
 const PROVIDER_FUNCTION_MAP: Record<string, string> = {
   awin: 'sync-awin',
-  // lomadee: 'sync-lomadee',  ← adicionar novos provedores aqui
+  lomadee: 'sync-lomadee',
 }
 
 serve(async (req) => {
