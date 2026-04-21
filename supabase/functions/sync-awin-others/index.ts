@@ -12,12 +12,19 @@ serve(async (req) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
   const PUBLISHER_ID = '2701264';
   const STORE_NAME = 'Awin - Outras lojas';
-  const TOKEN = 'c9941ffb-6453-4637-bc63-d3946a5916cb';
+  
+  // Consumindo a secret específica
+  const TOKEN = Deno.env.get('AWIN_TOKEN_OTHERS');
 
   try {
-    console.log(`[sync-awin-others] Iniciando captura...`);
-    const response = await fetch(`https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}`);
+    console.log(`[sync-awin-others] Iniciando captura com secret dedicada...`);
+    
+    if (!TOKEN) throw new Error("Secret AWIN_TOKEN_OTHERS não configurada.");
+
+    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}`;
+    const response = await fetch(url);
     const data = await response.json();
+    
     const promotions = Array.isArray(data) ? data : [data];
 
     const offers = promotions.map((p: any) => ({
@@ -41,6 +48,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (err) {
+    console.error(`[sync-awin-others] Erro:`, err.message);
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
   }
 })
