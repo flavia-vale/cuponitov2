@@ -160,6 +160,10 @@ serve(async (req) => {
               } else {
                 store = newStore
                 stats.stores_created++
+                // Disparar enriquecimento de logo/cor em background (não bloqueia o sync)
+                supabase.functions.invoke('enrich-store', {
+                  body: { store_id: newStore!.id }
+                }).catch(() => {/* ignora falha de enriquecimento */})
               }
             }
 

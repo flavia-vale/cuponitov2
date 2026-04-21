@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import {
   Play, RefreshCcw, Plus, Pencil, Trash2, Clock,
-  CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp
+  CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp, Sparkles
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -60,6 +60,7 @@ export function AdminIntegrationsTab() {
   const [logs, setLogs] = useState<SyncLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
+  const [enriching, setEnriching] = useState(false);
   const [expandedLogs, setExpandedLogs] = useState<string | null>(null);
 
   const [accountDialog, setAccountDialog] = useState(false);
@@ -127,6 +128,25 @@ export function AdminIntegrationsTab() {
     if (!schedule) return;
     await supabase.from('sync_schedules').update({ enabled }).eq('id', schedule.id);
     setSchedules(prev => prev.map(s => s.account_id === accountId ? { ...s, enabled } : s));
+  };
+
+  // ── Enriquecimento de lojas ──────────────────────────────────────────────────
+
+  const enrichStores = async (force = false) => {
+    setEnriching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('enrich-store', {
+        body: { force }
+      });
+      if (error) throw error;
+      const updated = data?.results?.filter((r: any) => r.updated).length ?? 0;
+      const total = data?.results?.length ?? 0;
+      toast.success(`${updated} de ${total} lojas enriquecidas com logo e cor`);
+    } catch (err: any) {
+      toast.error(`Erro ao enriquecer lojas: ${err.message}`);
+    } finally {
+      setEnriching(false);
+    }
   };
 
   // ── CRUD de contas ────────────────────────────────────────────────────────────
@@ -216,6 +236,42 @@ export function AdminIntegrationsTab() {
           </Badge>
         ))}
       </div>
+
+      {/* ── Enriquecimento de lojas ── */}
+      <Card className="border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Logo & Cor das Lojas
+          </CardTitle>
+          <CardDescription>
+            Busca automaticamente logo oficial e cor da marca para lojas sem imagem.
+            Requer a secret <code className="text-xs bg-muted px-1 rounded">BRANDFETCH_API_KEY</code> configurada para obter cores.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="gap-2"
+            disabled={enriching}
+            onClick={() => enrichStores(false)}
+          >
+            {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            Enriquecer lojas sem logo
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            disabled={enriching}
+            onClick={() => enrichStores(true)}
+          >
+            {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCcw className="h-3.5 w-3.5" />}
+            Forçar todas as lojas
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* ── Contas ── */}
       <div className="space-y-4">
