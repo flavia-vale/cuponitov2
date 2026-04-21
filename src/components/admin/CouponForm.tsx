@@ -32,7 +32,7 @@ const couponSchema = z.object({
   description: z.string().optional().or(z.literal('')),
   code: z.string().optional().or(z.literal('')),
   discount: z.string().optional().or(z.literal('')),
-  expiry: z.string().optional().or(z.literal('')),
+  expiry_text: z.string().optional().or(z.literal('')),
   link: z.string().optional().or(z.literal('')),
   store: z.string().optional().or(z.literal('')),
   category: z.string().optional().or(z.literal('')),
@@ -61,7 +61,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
       description: initialData?.description || '',
       code: initialData?.code || '',
       discount: initialData?.discount || '',
-      expiry: initialData?.expiry || '',
+      expiry_text: initialData?.expiry_text || '',
       link: initialData?.link || '',
       store: initialData?.store || '',
       category: initialData?.category || '',
@@ -72,7 +72,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
 
   const selectedStore = form.watch('store');
 
-  // Filtra os links pré-definidos com base na loja selecionada
   const filteredLinks = useMemo(() => {
     if (!selectedStore) return [];
     return predefinedLinks.filter(l => l.store === selectedStore);
@@ -93,7 +92,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
       const selected = predefinedLinks.find(l => l.id === val);
       if (selected) {
         form.setValue('link', selected.url);
-        // Não alteramos a loja aqui pois o filtro já garante que é a mesma
       }
     }
   };
@@ -106,7 +104,7 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
         description: values.description || '',
         code: (values.code || null) as any,
         discount: values.discount || '',
-        expiry: values.expiry || '',
+        expiry_text: values.expiry_text || '',
         link: values.link || '',
         store: values.store || 'Geral',
         category: values.category || 'Geral',
@@ -196,10 +194,10 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
 
           <FormField
             control={form.control}
-            name="expiry"
+            name="expiry_text"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Validade</FormLabel>
+                <FormLabel className="text-xs font-bold uppercase text-muted-foreground">Validade (Texto)</FormLabel>
                 <FormControl>
                   <Input placeholder="Ex: 31/12/2024" {...field} className="h-11" />
                 </FormControl>
@@ -209,7 +207,6 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
           />
         </div>
 
-        {/* Loja e Categoria agora vêm antes dos links */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -225,8 +222,8 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                   </FormControl>
                   <SelectContent className="bg-white border-border shadow-xl z-50">
                     {stores.map((store) => (
-                      <SelectItem key={store.id} value={store.display_name}>
-                        {store.display_name}
+                      <SelectItem key={store.id} value={store.name}>
+                        {store.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -26,7 +26,7 @@ interface ExtractedCoupon {
   description: string;
   code: string;
   discount: string;
-  expiry: string;
+  expiry_text: string;
   link: string;
   store: string;
   category: string;
@@ -47,33 +47,27 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
     }
     
     const results: ExtractedCoupon[] = [];
-    
-    // 1. Identificar a loja no texto
     let detectedStore = defaultStore;
     const lowerText = rawText.toLowerCase();
     
-    // Procura por nomes de lojas conhecidas
     for (const store of stores) {
-      if (lowerText.includes(store.display_name.toLowerCase()) ||
+      if (lowerText.includes(store.name.toLowerCase()) ||
           lowerText.includes(store.slug.toLowerCase())) {
-        detectedStore = store.display_name;
+        detectedStore = store.name;
         break;
       }
     }
 
-    // 2. Definir Regex Úteis
     const discountRegex = /(?:R\$\s*\d+(?:,\d+)?|\d+%\s*)\s*OFF/gi;
     const codeRegex = /(?:cupom|🎟\s*cupom|⚠️\s*cupom):\s*([A-Z0-9]+)/i;
     const linkRegex = /https?:\/\/[^\s]+/gi;
     
-    // 3. Verificar se há múltiplos cupons (marcados por emojis ou linhas individuais)
     const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const hasMultipleTickets = (rawText.match(/🎟/g) || []).length > 1;
     const currentGlobalLink = rawText.match(linkRegex)?.[0] || '';
     setDetectedLink(currentGlobalLink);
 
     if (hasMultipleTickets) {
-      // Caso 3: Múltiplos cupons listados
       lines.forEach(line => {
         if (line.includes('🎟') || line.includes('OFF')) {
           const discountMatch = line.match(discountRegex);
@@ -86,7 +80,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
               code: code,
               discount: discountMatch[0],
               description: line,
-              expiry: '31/12/2025',
+              expiry_text: '31/12/2025',
               link: currentGlobalLink,
               store: detectedStore,
               category: code ? defaultCategory : 'Ofertas no link',
@@ -95,16 +89,12 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
         }
       });
     } else {
-      // Caso 1 e 2: Bloco único de cupom
       const allDiscounts = [...rawText.matchAll(discountRegex)];
       const codeMatch = rawText.match(codeRegex);
       const linkMatch = rawText.match(linkRegex);
       
       if (allDiscounts.length > 0) {
-        // Pega o primeiro desconto encontrado como principal
         const mainDiscount = allDiscounts[0][0];
-        
-        // Tenta achar um título legal (geralmente a linha do desconto ou a acima)
         let title = mainDiscount;
         const discountLineIndex = lines.findIndex(l => l.includes(mainDiscount));
         if (discountLineIndex !== -1) {
@@ -118,7 +108,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
           code: code,
           discount: mainDiscount,
           description: lines.slice(0, 4).join(' '),
-          expiry: '31/12/2025',
+          expiry_text: '31/12/2025',
           link: linkMatch ? linkMatch[0] : '',
           store: detectedStore,
           category: code ? defaultCategory : 'Ofertas no link',
@@ -127,7 +117,6 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
     }
 
     if (results.length === 0) {
-      // Fallback para o método antigo se falhar
       const codeMatch = rawText.match(/\b([A-Z0-9]{5,20})\b/);
       if (codeMatch) {
         results.push({
@@ -135,7 +124,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
           code: codeMatch[1],
           discount: '',
           description: rawText.substring(0, 100),
-          expiry: '31/12/2025',
+          expiry_text: '31/12/2025',
           link: currentGlobalLink,
           store: detectedStore,
           category: defaultCategory,
@@ -176,7 +165,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
         category: c.category || 'Geral',
         status: true,
         is_flash: false,
-        expiry: c.expiry,
+        expiry_text: c.expiry_text,
         success_rate: 100
       })) as any[];
 
@@ -218,8 +207,8 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
                 </SelectTrigger>
                 <SelectContent>
                   {stores.map((store) => (
-                    <SelectItem key={store.id} value={store.display_name}>
-                      {store.display_name}
+                    <SelectItem key={store.id} value={store.name}>
+                      {store.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -290,7 +279,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
                             <SelectTrigger className="h-9 rounded-lg"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {stores.map((store) => (
-                                <SelectItem key={store.id} value={store.display_name}>{store.display_name}</SelectItem>
+                                <SelectItem key={store.id} value={store.name}>{store.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -323,7 +312,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
 
           <div className="flex justify-between items-center pt-6 border-t border-border">
             <Button variant="outline" className="gap-2 rounded-xl" onClick={() => setExtracted([...extracted, {
-              title: '', code: '', discount: '', description: '', expiry: '31/12/2025', link: detectedLink, store: defaultStore, category: defaultCategory
+              title: '', code: '', discount: '', description: '', expiry_text: '31/12/2025', link: detectedLink, store: defaultStore, category: defaultCategory
             }])}>
               <PlusCircle className="h-4 w-4" /> Adicionar Outro
             </Button>

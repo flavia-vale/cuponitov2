@@ -94,7 +94,7 @@ export function AdminLinksDialog({ open, onOpenChange, stores }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   {stores.map(s => (
-                    <SelectItem key={s.id} value={s.display_name}>{s.display_name}</SelectItem>
+                    <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

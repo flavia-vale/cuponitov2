@@ -73,7 +73,7 @@ export function AdminCouponsTab() {
   const { data: stores = [] } = useQuery({
     queryKey: ['admin-stores'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('stores').select('*').order('display_name');
+      const { data, error } = await supabase.from('stores').select('*').order('name');
       if (error) throw error;
       return data || [];
     },
@@ -220,7 +220,7 @@ export function AdminCouponsTab() {
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {coupon.expiry}
+                    {coupon.expiry_text || 'Sem validade'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">

@@ -32,7 +32,10 @@ export default function Home() {
 
   const storeBrandMap = useMemo(() => {
     const map: Record<string, any> = {};
-    storeBrands?.forEach((b) => { map[b.display_name] = b; });
+    storeBrands?.forEach((b) => { 
+      // Agora usamos b.name em vez de b.display_name
+      map[b.name] = b; 
+    });
     return map;
   }, [storeBrands]);
 
@@ -106,7 +109,7 @@ export default function Home() {
                 <PartnerStoreCard 
                   key={s.id} 
                   store={s} 
-                  couponCount={coupons?.filter(c => c.store === s.display_name && c.status).length || 0} 
+                  couponCount={coupons?.filter(c => c.store === s.name && c.status).length || 0} 
                 />
               ))}
           </div>
