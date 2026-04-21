@@ -149,6 +149,7 @@ export type Database = {
           discount: string
           expiry: string
           id: string
+          is_featured: boolean
           is_flash: boolean
           link: string
           status: boolean
@@ -165,6 +166,7 @@ export type Database = {
           discount?: string
           expiry?: string
           id?: string
+          is_featured?: boolean
           is_flash?: boolean
           link?: string
           status?: boolean
@@ -181,6 +183,7 @@ export type Database = {
           discount?: string
           expiry?: string
           id?: string
+          is_featured?: boolean
           is_flash?: boolean
           link?: string
           status?: boolean
@@ -223,6 +226,7 @@ export type Database = {
           fallback_color: string
           icon_emoji: string
           id: string
+          is_featured: boolean
           logo_url: string | null
           slug: string
         }
@@ -233,6 +237,7 @@ export type Database = {
           fallback_color?: string
           icon_emoji?: string
           id?: string
+          is_featured?: boolean
           logo_url?: string | null
           slug: string
         }
@@ -243,6 +248,7 @@ export type Database = {
           fallback_color?: string
           icon_emoji?: string
           id?: string
+          is_featured?: boolean
           logo_url?: string | null
           slug?: string
         }

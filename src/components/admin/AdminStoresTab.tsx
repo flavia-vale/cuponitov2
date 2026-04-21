@@ -78,8 +78,8 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
   };
 
   const handleToggleFeatured = async (store: StoreBrand) => {
-    const newVal = !(store as any).is_featured;
-    const { error } = await supabase.from('stores').update({ is_featured: newVal } as any).eq('id', store.id);
+    const newVal = !store.is_featured;
+    const { error } = await supabase.from('stores').update({ is_featured: newVal }).eq('id', store.id);
     if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
     refetchStores();
     queryClient.invalidateQueries({ queryKey: ['store-brands'] });
@@ -145,12 +145,12 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
                     variant="ghost" size="icon"
                     onClick={() => handleToggleFeatured(store)}
                     className="h-8 w-8"
-                    title={(store as any).is_featured ? 'Remover destaque' : 'Marcar como destaque'}
+                    title={store.is_featured ? 'Remover destaque' : 'Marcar como destaque'}
                   >
                     <Star
                       className="h-3.5 w-3.5"
-                      fill={(store as any).is_featured ? '#f59e0b' : 'none'}
-                      stroke={(store as any).is_featured ? '#f59e0b' : 'currentColor'}
+                      fill={store.is_featured ? '#f59e0b' : 'none'}
+                      stroke={store.is_featured ? '#f59e0b' : 'currentColor'}
                     />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(store)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>

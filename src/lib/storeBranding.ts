@@ -9,6 +9,7 @@ export interface StoreBrand {
   icon_emoji: string;
   logo_url?: string | null;
   store_id: number;
+  is_featured: boolean;
 }
 
 const FALLBACK_COLOR = '#575ecf';

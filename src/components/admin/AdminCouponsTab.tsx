@@ -97,7 +97,7 @@ export function AdminCouponsTab() {
 
   const toggleFeaturedMutation = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
-      const { error } = await supabase.from('coupons').update({ is_featured: value } as any).eq('id', id);
+      const { error } = await supabase.from('coupons').update({ is_featured: value }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -186,11 +186,11 @@ export function AdminCouponsTab() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">Carregando...</TableCell>
+                <TableCell colSpan={8} className="h-24 text-center">Carregando...</TableCell>
               </TableRow>
             ) : filteredCoupons.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">Nenhum cupom encontrado.</TableCell>
+                <TableCell colSpan={8} className="h-24 text-center">Nenhum cupom encontrado.</TableCell>
               </TableRow>
             ) : (
               filteredCoupons.map((coupon) => (
@@ -235,14 +235,14 @@ export function AdminCouponsTab() {
                   </TableCell>
                   <TableCell className="text-center">
                     <button
-                      onClick={() => toggleFeaturedMutation.mutate({ id: coupon.id, value: !(coupon as any).is_featured })}
-                      title={(coupon as any).is_featured ? 'Remover destaque' : 'Marcar como destaque'}
+                      onClick={() => toggleFeaturedMutation.mutate({ id: coupon.id, value: !coupon.is_featured })}
+                      title={coupon.is_featured ? 'Remover destaque' : 'Marcar como destaque'}
                       className="inline-flex items-center justify-center rounded p-1 hover:bg-muted transition-colors"
                     >
                       <Star
                         className="h-4 w-4"
-                        fill={(coupon as any).is_featured ? '#f59e0b' : 'none'}
-                        stroke={(coupon as any).is_featured ? '#f59e0b' : 'currentColor'}
+                        fill={coupon.is_featured ? '#f59e0b' : 'none'}
+                        stroke={coupon.is_featured ? '#f59e0b' : 'currentColor'}
                       />
                     </button>
                   </TableCell>

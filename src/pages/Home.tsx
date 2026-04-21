@@ -29,21 +29,21 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const featuredCoupons = useMemo(() => {
-    const starred = (coupons ?? []).filter(c => (c as any).is_featured);
+    const starred = (coupons ?? []).filter(c => c.is_featured);
     const pool = starred.length >= 3 ? starred : (coupons ?? []);
     if (!activeCategory) return pool.slice(0, 3);
     return pool.filter(c => c.category === activeCategory).slice(0, 3);
   }, [coupons, activeCategory]);
 
   const popularCoupons = useMemo(() => {
-    const starred = (coupons ?? []).filter(c => (c as any).is_featured);
+    const starred = (coupons ?? []).filter(c => c.is_featured);
     const pool = starred.length >= 3 ? starred : (coupons ?? []);
     if (!activeCategory) return pool.slice(3, 8);
     return pool.filter(c => c.category === activeCategory).slice(3, 8);
   }, [coupons, activeCategory]);
 
   const featuredStores = useMemo(() => {
-    const starred = (storeBrands ?? []).filter(s => (s as any).is_featured);
+    const starred = (storeBrands ?? []).filter(s => s.is_featured);
     return starred.length > 0 ? starred.slice(0, 15) : (storeBrands ?? []).slice(0, 15);
   }, [storeBrands]);
 
