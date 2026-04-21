@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 export interface StoreBrand {
   id: string;
   slug: string;
-  display_name: string;
+  name: string;
   brand_color: string;
   fallback_color: string;
   icon_emoji: string;
   logo_url?: string | null;
+  store_id: number;
 }
 
 const FALLBACK_COLOR = '#575ecf';
@@ -16,7 +17,7 @@ export async function fetchStoreBrands(): Promise<StoreBrand[]> {
   const { data, error } = await supabase
     .from('stores')
     .select('*')
-    .order('display_name');
+    .order('name');
   if (error) throw error;
   return data as StoreBrand[];
 }

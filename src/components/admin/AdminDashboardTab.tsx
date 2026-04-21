@@ -38,8 +38,8 @@ export function AdminDashboardTab({ coupons, stores }: Props) {
         <CardContent>
           <div className="space-y-3">
             {stores?.map((store) => {
-              const count = coupons.filter((c) => c.store === store.display_name).length;
-              const activeCount = coupons.filter((c) => c.store === store.display_name && c.status).length;
+              const count = coupons.filter((c) => c.store === store.name).length;
+              const activeCount = coupons.filter((c) => c.store === store.name && c.status).length;
               return (
                 <div key={store.id} className="flex items-center justify-between rounded-lg border border-border p-3">
                   <div className="flex items-center gap-3">
@@ -50,7 +50,7 @@ export function AdminDashboardTab({ coupons, stores }: Props) {
                         <span className="text-lg">{store.icon_emoji}</span>
                       )}
                     </div>
-                    <span className="text-sm font-medium">{store.display_name}</span>
+                    <span className="text-sm font-medium">{store.name}</span>
                   </div>
                   <div className="text-sm text-muted-foreground">{activeCount} ativos / {count} total</div>
                 </div>

@@ -6,13 +6,7 @@ interface Props {
   couponCount: number;
 }
 
-function getInitials(name: string) {
-  return name.split(' ').map(n => n[0]).join('').slice(0, 3).toUpperCase();
-}
-
 const PartnerStoreCard = ({ store, couponCount }: Props) => {
-  const brandColor = store.brand_color || '#94a3b8';
-
   return (
     <Link
       to="/desconto/$slug"
@@ -25,7 +19,7 @@ const PartnerStoreCard = ({ store, couponCount }: Props) => {
         {store.logo_url ? (
           <img
             src={store.logo_url}
-            alt={`Logo oficial da loja ${store.display_name}`}
+            alt={`Logo oficial da loja ${store.name}`}
             className="h-full w-full object-contain"
           />
         ) : (
@@ -34,7 +28,7 @@ const PartnerStoreCard = ({ store, couponCount }: Props) => {
       </div>
 
       <p className="text-sm font-bold text-foreground text-center line-clamp-1 group-hover:text-[#ff5200] transition-colors">
-        {store.display_name}
+        {store.name}
       </p>
       <span className="mt-1 text-xs font-bold text-[#ff5200]/70">
         {couponCount} cupons

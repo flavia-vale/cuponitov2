@@ -26,7 +26,6 @@ serve(async (req) => {
   try {
     console.log("[awin-integrations] Iniciando sincronização horária...");
 
-    // 1. Buscar todas as contas ativas
     const { data: accounts, error: accError } = await supabase
       .from('affiliate_accounts')
       .select('*')
@@ -42,10 +41,7 @@ serve(async (req) => {
 
     for (const account of accounts) {
       const token = account.api_token || globalToken;
-      if (!token) {
-        console.warn(`[awin-integrations] Token ausente para conta ${account.publisher_id}`);
-        continue;
-      }
+      if (!token) continue;
 
       let page = 1;
       const pageSize = 200;
@@ -58,35 +54,20 @@ serve(async (req) => {
       };
 
       while (hasMore) {
-        console.log(`[awin-integrations] Buscando página ${page} para ${account.store_name}...`);
-        
-        // Chamada POST conforme solicitado
         const response = await fetch(`https://api.awin.com/publisher/${account.publisher_id}/promotions?accessToken=${token}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            filters: {
-              status: 'active',
-              type: 'all',
-              membership: 'joined'
-            },
-            pagination: {
-              page: page,
-              pageSize: pageSize
-            }
+            filters: { status: 'active', type: 'all', membership: 'joined' },
+            pagination: { page: page, pageSize: pageSize }
           })
         });
 
         let data;
         if (!response.ok) {
-          // Fallback para GET se o POST não for suportado pelo endpoint específico
-          console.warn(`[awin-integrations] POST falhou (Status ${response.status}). Tentando GET...`);
           const getUrl = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${token}&status=active&type=all&page=${page}&pageSize=${pageSize}`;
           const getResponse = await fetch(getUrl);
           if (!getResponse.ok) {
-            console.error(`[awin-integrations] Falha ao buscar dados para ${account.publisher_id}: ${getResponse.status}`);
             hasMore = false;
             break;
           }
@@ -105,30 +86,27 @@ serve(async (req) => {
           const advertiser = promo.advertiser;
           if (!advertiser) continue;
 
-          // a. Verificar/Criar Loja
-          let { data: store, error: storeError } = await supabase
+          // a. Verificar/Criar Loja usando o novo campo store_id
+          let { data: store } = await supabase
             .from('stores')
             .select('id')
-            .eq('awin_advertiser_id', advertiser.id)
+            .eq('store_id', advertiser.id)
             .maybeSingle();
 
           if (!store) {
-            // Criar loja
             const { data: newStore, error: createError } = await supabase
               .from('stores')
               .insert([{
-                display_name: advertiser.name,
+                name: advertiser.name,
                 slug: slugify(advertiser.name),
+                store_id: advertiser.id,
                 awin_advertiser_id: advertiser.id,
                 active: true
               }])
               .select('id')
               .single();
             
-            if (createError) {
-              console.error(`[awin-integrations] Erro ao criar loja ${advertiser.name}:`, createError);
-              continue;
-            }
+            if (createError) continue;
             store = newStore;
             accountStats.lojas_criadas++;
           }
@@ -137,9 +115,8 @@ serve(async (req) => {
           const couponData = {
             awin_promotion_id: String(promo.promotionId),
             store_id: store.id,
-            store: advertiser.name, // Mapeamento para a coluna 'store' existente
+            store: advertiser.name,
             publisher_id: account.publisher_id,
-            store_name: advertiser.name,
             title: promo.title,
             description: promo.description,
             terms: promo.terms,
@@ -150,7 +127,7 @@ serve(async (req) => {
             start_date: promo.startDate ? new Date(promo.startDate).toISOString() : null,
             status: promo.status === 'active',
             updated_at: new Date().toISOString(),
-            category: promo.voucher?.code ? 'Geral' : 'Ofertas no link' // Categoria padrão
+            category: promo.voucher?.code ? 'Geral' : 'Ofertas no link'
           };
 
           const { data: existingCoupon } = await supabase
@@ -160,18 +137,9 @@ serve(async (req) => {
             .maybeSingle();
 
           if (!existingCoupon) {
-            // Inserir novo
-            const { error: insertError } = await supabase
-              .from('coupons')
-              .insert([couponData]);
-            
-            if (insertError) {
-              console.error(`[awin-integrations] Erro ao inserir cupom ${promo.promotionId}:`, insertError);
-            } else {
-              accountStats.ofertas_novas++;
-            }
+            const { error: insertError } = await supabase.from('coupons').insert([couponData]);
+            if (!insertError) accountStats.ofertas_novas++;
           } else {
-            // Atualizar existente
             const { error: updateError } = await supabase
               .from('coupons')
               .update({
@@ -189,22 +157,13 @@ serve(async (req) => {
               })
               .eq('awin_promotion_id', couponData.awin_promotion_id);
 
-            if (updateError) {
-              console.error(`[awin-integrations] Erro ao atualizar cupom ${promo.promotionId}:`, updateError);
-            } else {
-              accountStats.ofertas_atualizadas++;
-            }
+            if (!updateError) accountStats.ofertas_atualizadas++;
           }
         }
 
-        if (promotions.length < pageSize) {
-          hasMore = false;
-        } else {
-          page++;
-        }
+        if (promotions.length < pageSize) hasMore = false;
+        else page++;
       }
-
-      console.log(`[awin-integrations] Finalizado para ${account.store_name}:`, accountStats);
       globalSummary.push(accountStats);
     }
 
@@ -213,7 +172,6 @@ serve(async (req) => {
     });
 
   } catch (err: any) {
-    console.error('[awin-integrations] Erro Fatal:', err.message);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
