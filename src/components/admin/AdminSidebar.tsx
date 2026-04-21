@@ -1,12 +1,13 @@
-import { LayoutDashboard, Ticket, Store, Settings, LogOut, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Ticket, Store, Settings, LogOut, BookOpen, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type AdminTab = 'dashboard' | 'cupons' | 'lojas' | 'blog' | 'seo';
+export type AdminTab = 'dashboard' | 'cupons' | 'lojas' | 'blog' | 'seo' | 'ofertas-api';
 
 const NAV_ITEMS: { id: AdminTab; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'cupons', label: 'Cupons', icon: Ticket },
+  { id: 'ofertas-api', label: 'Ofertas API', icon: Database },
   { id: 'lojas', label: 'Lojas', icon: Store },
   { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'seo', label: 'SEO & Config', icon: Settings },

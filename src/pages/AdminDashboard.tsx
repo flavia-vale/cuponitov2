@@ -11,6 +11,7 @@ import { AdminStoresTab } from '@/components/admin/AdminStoresTab';
 import { AdminSeoTab } from '@/components/admin/AdminSeoTab';
 import { AdminBlogTab } from '@/components/admin/AdminBlogTab';
 import { AdminCouponsTab } from '@/components/admin/AdminCouponsTab';
+import { AdminOffersTab } from '@/components/admin/AdminOffersTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -56,6 +57,7 @@ export default function AdminDashboard() {
           {activeTab === 'blog' && <AdminBlogTab />}
           {activeTab === 'seo' && <AdminSeoTab />}
           {activeTab === 'cupons' && <AdminCouponsTab />}
+          {activeTab === 'ofertas-api' && <AdminOffersTab />}
         </div>
 
       </main>
