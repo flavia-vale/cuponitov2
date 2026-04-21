@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,79 +7,99 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // 1. Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
+
+  const supabaseClient = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
 
   try {
-    console.log("[awin-integration] Início da execução da função");
+    console.log("[awin-integration] Iniciando sincronização multi-conta");
 
-    // 2. Verificação básica de cabeçalho (requerido pelo invoke do Supabase Client)
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      console.error("[awin-integration] Erro: Cabeçalho Authorization ausente");
-      return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // 1. Buscar todas as contas ativas
+    const { data: accounts, error: accError } = await supabaseClient
+      .from('affiliate_accounts')
+      .select('*')
+      .eq('status', true);
+
+    if (accError) throw accError;
+    if (!accounts || accounts.length === 0) {
+      return new Response(JSON.stringify({ message: 'Nenhuma conta ativa encontrada' }), { headers: corsHeaders });
     }
 
-    const AWIN_API_TOKEN = Deno.env.get('AWIN_API_TOKEN');
-    const PUBLISHER_ID = '2740940';
-    
-    if (!AWIN_API_TOKEN) {
-      console.error("[awin-integration] Erro: AWIN_API_TOKEN não configurada nos Secrets");
-      return new Response(
-        JSON.stringify({ error: 'Configuração ausente: AWIN_API_TOKEN' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const globalToken = Deno.env.get('AWIN_API_TOKEN');
+    const results = [];
 
-    // 3. Chamada API Awin - Ajustado para v2 com accessToken na URL
-    const awinUrl = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${AWIN_API_TOKEN}`;
-    console.log(`[awin-integration] Chamando Awin para Publisher: ${PUBLISHER_ID}`);
+    // 2. Loop pelas contas
+    for (const account of accounts) {
+      try {
+        const token = account.api_token || globalToken;
+        if (!token) {
+          console.error(`[awin-integration] Token ausente para conta ${account.publisher_id}`);
+          continue;
+        }
 
-    const response = await fetch(awinUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
+        console.log(`[awin-integration] Processando: ${account.store_name} (${account.publisher_id})`);
+        
+        const awinUrl = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${token}`;
+        const response = await fetch(awinUrl);
+
+        if (!response.ok) {
+          console.error(`[awin-integration] Erro na conta ${account.publisher_id}: ${response.status}`);
+          continue;
+        }
+
+        const rawData = await response.json();
+        const promotions = Array.isArray(rawData) ? rawData : [rawData];
+
+        // 3. Mapeamento e Upsert
+        const offersToUpsert = promotions.map((p: any) => ({
+          awin_promotion_id: String(p.promotionId || p.id),
+          publisher_id: account.publisher_id,
+          store_name: account.store_name,
+          title: p.title || p.name || 'Oferta Especial',
+          description: p.description || '',
+          code: p.voucherCode || null,
+          discount: p.campaignName || '', // Ou extrair do título se necessário
+          link: p.url || p.link || '',
+          expiry: p.endDate ? new Date(p.endDate).toISOString() : null,
+          status: true,
+          updated_at: new Date().toISOString()
+        })).filter(o => o.link);
+
+        if (offersToUpsert.length > 0) {
+          const { error: upsertError } = await supabaseClient
+            .from('offers')
+            .upsert(offersToUpsert, { onConflict: 'awin_promotion_id' });
+
+          if (upsertError) console.error(`[awin-integration] Erro no upsert para ${account.publisher_id}:`, upsertError);
+          
+          results.push({
+            publisher_id: account.publisher_id,
+            count: offersToUpsert.length,
+            status: 'success'
+          });
+        }
+      } catch (err) {
+        console.error(`[awin-integration] Falha catastrófica na conta ${account.publisher_id}:`, err.message);
       }
+    }
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      processed_accounts: results.length,
+      details: results 
+    }), { 
+      status: 200, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
 
-    console.log(`[awin-integration] Resposta da Awin: Status ${response.status}`);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[awin-integration] Erro retornado pela API Awin: ${errorText}`);
-      
-      return new Response(
-        JSON.stringify({ 
-          error: 'A API da Awin retornou um erro', 
-          awin_status: response.status,
-          details: errorText 
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const data = await response.json();
-    console.log(`[awin-integration] Sucesso: ${Array.isArray(data) ? data.length : 0} registros recebidos`);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        count: Array.isArray(data) ? data.length : 0,
-        sample: Array.isArray(data) ? data.slice(0, 1) : data
-      }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
   } catch (error) {
-    console.error(`[awin-integration] Erro inesperado: ${error.message}`);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error(`[awin-integration] Erro Geral:`, error.message);
+    return new Response(JSON.stringify({ error: error.message }), { 
+      status: 500, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    });
   }
 })
