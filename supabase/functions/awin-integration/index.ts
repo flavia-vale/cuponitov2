@@ -7,17 +7,19 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handler para CORS
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
+  // Cliente Supabase com Service Role para ignorar RLS no Insert/Upsert
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   )
 
   try {
-    console.log("[awin-integration] Iniciando sincronização multi-conta");
+    console.log("[awin-integration] Iniciando processamento de contas...");
 
-    // 1. Buscar todas as contas ativas
+    // 1. Buscar contas ativas no banco
     const { data: accounts, error: accError } = await supabaseClient
       .from('affiliate_accounts')
       .select('*')
@@ -25,78 +27,77 @@ serve(async (req) => {
 
     if (accError) throw accError;
     if (!accounts || accounts.length === 0) {
-      return new Response(JSON.stringify({ message: 'Nenhuma conta ativa encontrada' }), { headers: corsHeaders });
+      return new Response(JSON.stringify({ message: 'Nenhuma conta configurada.' }), { 
+        status: 200, 
+        headers: corsHeaders 
+      });
     }
 
     const globalToken = Deno.env.get('AWIN_API_TOKEN');
-    const results = [];
+    const summary = [];
 
-    // 2. Loop pelas contas
+    // 2. Iterar sobre cada conta
     for (const account of accounts) {
       try {
-        const token = account.api_token || globalToken;
-        if (!token) {
-          console.error(`[awin-integration] Token ausente para conta ${account.publisher_id}`);
+        const activeToken = account.api_token || globalToken;
+        
+        if (!activeToken) {
+          console.warn(`[awin-integration] Pulando ${account.store_name}: Token ausente.`);
           continue;
         }
 
-        console.log(`[awin-integration] Processando: ${account.store_name} (${account.publisher_id})`);
-        
-        const awinUrl = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${token}`;
-        const response = await fetch(awinUrl);
+        const url = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${activeToken}`;
+        const response = await fetch(url);
 
         if (!response.ok) {
-          console.error(`[awin-integration] Erro na conta ${account.publisher_id}: ${response.status}`);
+          console.error(`[awin-integration] Erro API Awin para ${account.store_name} (${account.publisher_id}): ${response.status}`);
           continue;
         }
 
-        const rawData = await response.json();
-        const promotions = Array.isArray(rawData) ? rawData : [rawData];
+        const data = await response.json();
+        const promotions = Array.isArray(data) ? data : (data ? [data] : []);
 
-        // 3. Mapeamento e Upsert
-        const offersToUpsert = promotions.map((p: any) => ({
+        // 3. Mapear e preparar para Upsert
+        const offersToSave = promotions.map((p: any) => ({
           awin_promotion_id: String(p.promotionId || p.id),
           publisher_id: account.publisher_id,
           store_name: account.store_name,
-          title: p.title || p.name || 'Oferta Especial',
+          title: p.title || p.name || 'Oferta',
           description: p.description || '',
           code: p.voucherCode || null,
-          discount: p.campaignName || '', // Ou extrair do título se necessário
+          discount: p.campaignName || '',
           link: p.url || p.link || '',
           expiry: p.endDate ? new Date(p.endDate).toISOString() : null,
           status: true,
           updated_at: new Date().toISOString()
         })).filter(o => o.link);
 
-        if (offersToUpsert.length > 0) {
+        if (offersToSave.length > 0) {
           const { error: upsertError } = await supabaseClient
             .from('offers')
-            .upsert(offersToUpsert, { onConflict: 'awin_promotion_id' });
+            .upsert(offersToSave, { onConflict: 'awin_promotion_id' });
 
-          if (upsertError) console.error(`[awin-integration] Erro no upsert para ${account.publisher_id}:`, upsertError);
-          
-          results.push({
-            publisher_id: account.publisher_id,
-            count: offersToUpsert.length,
-            status: 'success'
-          });
+          if (upsertError) throw upsertError;
         }
+
+        summary.push({ store: account.store_name, count: offersToSave.length });
+        console.log(`[awin-integration] Sucesso: ${account.store_name} - ${offersToSave.length} ofertas.`);
+
       } catch (err) {
-        console.error(`[awin-integration] Falha catastrófica na conta ${account.publisher_id}:`, err.message);
+        console.error(`[awin-integration] Falha na conta ${account.publisher_id}:`, err.message);
       }
     }
 
     return new Response(JSON.stringify({ 
       success: true, 
-      processed_accounts: results.length,
-      details: results 
+      processed: summary 
     }), { 
       status: 200, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
 
   } catch (error) {
-    console.error(`[awin-integration] Erro Geral:`, error.message);
+    console.error(`[awin-integration] Erro Fatal:`, error.message);
     return new Response(JSON.stringify({ error: error.message }), { 
       status: 500, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
