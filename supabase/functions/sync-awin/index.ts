@@ -46,7 +46,6 @@ serve(async (req) => {
       })
     }
 
-    const globalToken = Deno.env.get('AWIN_API_TOKEN')
     const summary = []
 
     for (const account of accounts) {
@@ -62,7 +61,12 @@ serve(async (req) => {
 
       logId = logRow?.id ?? null
 
-      const token = account.api_token || globalToken
+      // Prioridade: api_token do banco → secret específico da conta → secret global
+      const envSecret = account.extra_config?.env_secret
+      const token =
+        account.api_token ||
+        (envSecret ? Deno.env.get(envSecret) : null) ||
+        Deno.env.get('AWIN_API_TOKEN')
       if (!token) {
         await finishLog(supabase, logId, 'error', 0, 0, 0, 'Token não configurado')
         continue
@@ -75,39 +79,36 @@ serve(async (req) => {
       const errors: string[] = []
 
       while (hasMore) {
-        let promotions: any[] = []
-
-        // Tentar POST primeiro (paginação avançada), fallback para GET
-        try {
-          const postRes = await fetch(
-            `https://api.awin.com/publisher/${account.publisher_id}/promotions?accessToken=${token}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                filters: { status: 'active', type: 'all', membership: 'joined' },
-                pagination: { page, pageSize }
-              })
-            }
-          )
-
-          if (postRes.ok) {
-            const data = await postRes.json()
-            promotions = data.data ?? (Array.isArray(data) ? data : [])
-          } else {
-            throw new Error(`POST failed: ${postRes.status}`)
+        const res = await fetch(
+          `https://api.awin.com/publisher/${account.publisher_id}/promotions`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              page,
+              pageSize,
+              filters: { status: 'active', type: 'all', membership: 'joined' }
+            })
           }
-        } catch {
-          // Fallback GET
-          const date = new Date()
-          date.setFullYear(date.getFullYear() - 2)
-          const startDate = date.toISOString().split('T')[0]
-          const getRes = await fetch(
-            `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${token}&status=active&type=all&page=${page}&pageSize=${pageSize}&startDate=${startDate}`
-          )
-          if (!getRes.ok) { hasMore = false; break }
-          const data = await getRes.json()
-          promotions = Array.isArray(data) ? data : (data ? [data] : [])
+        )
+
+        const responseText = await res.text()
+        if (!res.ok) {
+          errors.push(`API error: ${res.status} ${res.statusText} — ${responseText.slice(0, 200)}`)
+          hasMore = false
+          break
+        }
+
+        let data: any
+        try { data = JSON.parse(responseText) } catch { data = {} }
+        const promotions: any[] = data.data ?? (Array.isArray(data) ? data : [])
+
+        // Captura diagnóstico na primeira página
+        if (page === 1 && promotions.length === 0) {
+          errors.push(`debug: status=${res.status} total=${data.pagination?.total ?? '?'} body_preview=${responseText.slice(0, 300)}`)
         }
 
         if (promotions.length === 0) { hasMore = false; break }
@@ -134,7 +135,6 @@ serve(async (req) => {
                 .from('stores')
                 .insert({
                   name: storeName,
-                  display_name: storeName,
                   slug: slugify(storeName),
                   store_id: String(advertiser.id),
                   awin_advertiser_id: String(advertiser.id),
@@ -149,7 +149,6 @@ serve(async (req) => {
                   .from('stores')
                   .insert({
                     name: storeName,
-                    display_name: storeName,
                     slug: `${slugify(storeName)}-${advertiser.id}`,
                     store_id: String(advertiser.id),
                     awin_advertiser_id: String(advertiser.id),
