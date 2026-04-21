@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
-  ExternalLink, 
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  ExternalLink,
   Sparkles,
   Clock,
   CheckCircle2,
   XCircle,
-  Zap
+  Zap,
+  Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -94,6 +95,18 @@ export function AdminCouponsTab() {
     }
   });
 
+  const toggleFeaturedMutation = useMutation({
+    mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
+      const { error } = await supabase.from('coupons').update({ is_featured: value } as any).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-coupons'] });
+      queryClient.invalidateQueries({ queryKey: ['coupons'] });
+    },
+    onError: (error) => toast.error('Erro: ' + error.message),
+  });
+
   const filteredCoupons = coupons.filter(coupon => 
     coupon.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     coupon.store.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -165,6 +178,7 @@ export function AdminCouponsTab() {
               <TableHead>Código</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Relâmpago</TableHead>
+              <TableHead className="text-center">Destaque</TableHead>
               <TableHead>Validade</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -218,6 +232,19 @@ export function AdminCouponsTab() {
                     ) : (
                       <span className="text-xs text-muted-foreground">Não</span>
                     )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <button
+                      onClick={() => toggleFeaturedMutation.mutate({ id: coupon.id, value: !(coupon as any).is_featured })}
+                      title={(coupon as any).is_featured ? 'Remover destaque' : 'Marcar como destaque'}
+                      className="inline-flex items-center justify-center rounded p-1 hover:bg-muted transition-colors"
+                    >
+                      <Star
+                        className="h-4 w-4"
+                        fill={(coupon as any).is_featured ? '#f59e0b' : 'none'}
+                        stroke={(coupon as any).is_featured ? '#f59e0b' : 'currentColor'}
+                      />
+                    </button>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {coupon.expiry_text || 'Sem validade'}

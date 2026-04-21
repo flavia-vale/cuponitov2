@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LojasRouteImport } from './routes/lojas'
+import { Route as CuponsRouteImport } from './routes/cupons'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +20,16 @@ import { Route as DescontoSlugRouteImport } from './routes/desconto.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 
+const LojasRoute = LojasRouteImport.update({
+  id: '/lojas',
+  path: '/lojas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuponsRoute = CuponsRouteImport.update({
+  id: '/cupons',
+  path: '/cupons',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -63,6 +75,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
+  '/cupons': typeof CuponsRoute
+  '/lojas': typeof LojasRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cupons': typeof CuponsRoute
+  '/lojas': typeof LojasRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
@@ -82,6 +98,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRouteWithChildren
+  '/cupons': typeof CuponsRoute
+  '/lojas': typeof LojasRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
@@ -94,6 +112,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/blog'
+    | '/cupons'
+    | '/lojas'
     | '/admin/login'
     | '/blog/$slug'
     | '/desconto/$slug'
@@ -102,6 +122,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cupons'
+    | '/lojas'
     | '/admin/login'
     | '/blog/$slug'
     | '/desconto/$slug'
@@ -112,6 +134,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/blog'
+    | '/cupons'
+    | '/lojas'
     | '/admin/login'
     | '/blog/$slug'
     | '/desconto/$slug'
@@ -123,11 +147,27 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   BlogRoute: typeof BlogRouteWithChildren
+  CuponsRoute: typeof CuponsRoute
+  LojasRoute: typeof LojasRoute
   DescontoSlugRoute: typeof DescontoSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/lojas': {
+      id: '/lojas'
+      path: '/lojas'
+      fullPath: '/lojas'
+      preLoaderRoute: typeof LojasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cupons': {
+      id: '/cupons'
+      path: '/cupons'
+      fullPath: '/cupons'
+      preLoaderRoute: typeof CuponsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -215,6 +255,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   BlogRoute: BlogRouteWithChildren,
+  CuponsRoute: CuponsRoute,
+  LojasRoute: LojasRoute,
   DescontoSlugRoute: DescontoSlugRoute,
 }
 export const routeTree = rootRouteImport

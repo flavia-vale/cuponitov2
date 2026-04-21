@@ -15,6 +15,17 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+function determineCategory(promo: any, storeName: string): string {
+  const text = `${promo.title ?? ''} ${promo.description ?? ''} ${storeName}`.toLowerCase()
+  if (/frete gr[aá]ti|envio gr[aá]ti|frete grat/.test(text)) return 'Frete Grátis'
+  if (/moda|roupa|vest[iu]|c&a|zara|renner|fashion/.test(text)) return 'Moda'
+  if (/tech|eletr[ôo]|notebook|celular|smartphone|kabum|tv |ssd|gpu/.test(text)) return 'Tech'
+  if (/delivery|comida|restaurante|ifood|pizza|lanche/.test(text)) return 'Delivery'
+  if (/viagem|hotel|passagem|hospedagem|a[eé]reo|turismo/.test(text)) return 'Viagens'
+  if (/beleza|cosm[eé]t|maquiagem|perfume|skincare|cabelo/.test(text)) return 'Beleza'
+  return (promo.voucher?.code ?? promo.voucherCode) ? 'Geral' : 'Ofertas no link'
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
@@ -135,7 +146,7 @@ serve(async (req) => {
                 .from('stores')
                 .insert({
                   name: storeName,
-                  slug: slugify(storeName),
+                  slug: `cupom-desconto-${slugify(storeName)}`,
                   store_id: String(advertiser.id),
                   awin_advertiser_id: String(advertiser.id),
                   active: true
@@ -149,7 +160,7 @@ serve(async (req) => {
                   .from('stores')
                   .insert({
                     name: storeName,
-                    slug: `${slugify(storeName)}-${advertiser.id}`,
+                    slug: `cupom-desconto-${slugify(storeName)}-${advertiser.id}`,
                     store_id: String(advertiser.id),
                     awin_advertiser_id: String(advertiser.id),
                     active: true
@@ -187,7 +198,7 @@ serve(async (req) => {
               start_date: promo.startDate ? new Date(promo.startDate).toISOString() : null,
               status: true,
               updated_at: new Date().toISOString(),
-              category: (promo.voucher?.code ?? promo.voucherCode) ? 'Geral' : 'Ofertas no link'
+              category: determineCategory(promo, advertiser.name ?? account.name)
             }
 
             if (!couponData.link) { stats.skipped++; continue }

@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Save, Trash2, Pencil, X, Upload } from 'lucide-react';
+import { Plus, Save, Trash2, Pencil, X, Upload, Star } from 'lucide-react';
 import type { StoreBrand } from '@/lib/storeBranding';
 
 interface Props { stores: StoreBrand[] | undefined; refetchStores: () => void; }
@@ -68,13 +68,21 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
     }); 
   };
 
-  const handleDelete = async (id: string) => { 
+  const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja remover esta loja?')) return;
-    const { error } = await supabase.from('stores').delete().eq('id', id); 
-    if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; } 
-    toast({ title: 'Loja removida!' }); 
-    refetchStores(); 
-    queryClient.invalidateQueries({ queryKey: ['store-brands'] }); 
+    const { error } = await supabase.from('stores').delete().eq('id', id);
+    if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Loja removida!' });
+    refetchStores();
+    queryClient.invalidateQueries({ queryKey: ['store-brands'] });
+  };
+
+  const handleToggleFeatured = async (store: StoreBrand) => {
+    const newVal = !(store as any).is_featured;
+    const { error } = await supabase.from('stores').update({ is_featured: newVal } as any).eq('id', store.id);
+    if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
+    refetchStores();
+    queryClient.invalidateQueries({ queryKey: ['store-brands'] });
   };
 
   return (
@@ -133,6 +141,18 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
                   </div>
                 </div>
                 <div className="flex gap-1">
+                  <Button
+                    variant="ghost" size="icon"
+                    onClick={() => handleToggleFeatured(store)}
+                    className="h-8 w-8"
+                    title={(store as any).is_featured ? 'Remover destaque' : 'Marcar como destaque'}
+                  >
+                    <Star
+                      className="h-3.5 w-3.5"
+                      fill={(store as any).is_featured ? '#f59e0b' : 'none'}
+                      stroke={(store as any).is_featured ? '#f59e0b' : 'currentColor'}
+                    />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(store)} className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDelete(store.id)} className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
