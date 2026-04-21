@@ -177,6 +177,9 @@ serve(async (req) => {
               type: promo.type ?? 'voucher',
               link: promo.urlTracking ?? promo.url ?? '',
               expiry: promo.endDate ? new Date(promo.endDate).toISOString() : null,
+              expiry_text: promo.endDate
+                ? new Date(promo.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+                : '',
               start_date: promo.startDate ? new Date(promo.startDate).toISOString() : null,
               status: true,
               updated_at: new Date().toISOString(),
@@ -205,6 +208,7 @@ serve(async (req) => {
                   code: couponData.code,
                   link: couponData.link,
                   expiry: couponData.expiry,
+                  expiry_text: couponData.expiry_text,
                   start_date: couponData.start_date,
                   status: couponData.status,
                   updated_at: couponData.updated_at,
