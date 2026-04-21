@@ -14,7 +14,7 @@ serve(async (req) => {
   try {
     console.log("[awin-integration] Início da execução da função");
 
-    // 2. Verificação de Autenticação (Requisito Supabase)
+    // 2. Verificação básica de cabeçalho (requerido pelo invoke do Supabase Client)
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error("[awin-integration] Erro: Cabeçalho Authorization ausente");
@@ -35,14 +35,13 @@ serve(async (req) => {
       );
     }
 
-    // URL fornecida pelo usuário
-    const awinUrl = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}`;
-    console.log(`[awin-integration] Chamando API Awin: ${awinUrl}`);
+    // 3. Chamada API Awin - Ajustado para v2 com accessToken na URL
+    const awinUrl = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${AWIN_API_TOKEN}`;
+    console.log(`[awin-integration] Chamando Awin para Publisher: ${PUBLISHER_ID}`);
 
     const response = await fetch(awinUrl, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${AWIN_API_TOKEN}`,
         'Content-Type': 'application/json'
       }
     });
@@ -51,28 +50,20 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[awin-integration] Erro na API Awin: ${errorText}`);
+      console.error(`[awin-integration] Erro retornado pela API Awin: ${errorText}`);
       
-      // Se a Awin retornar 404, vamos retornar um erro amigável
-      if (response.status === 404) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Endpoint da Awin não encontrado', 
-            details: 'Verifique se a URL da promoção para este Publisher ID está correta na documentação da Awin.',
-            awin_status: 404 
-          }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
       return new Response(
-        JSON.stringify({ error: 'Erro ao consultar Awin', details: errorText, status: response.status }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: 'A API da Awin retornou um erro', 
+          awin_status: response.status,
+          details: errorText 
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const data = await response.json();
-    console.log(`[awin-integration] Sucesso: ${data.length} registros recebidos`);
+    console.log(`[awin-integration] Sucesso: ${Array.isArray(data) ? data.length : 0} registros recebidos`);
 
     return new Response(
       JSON.stringify({ 
