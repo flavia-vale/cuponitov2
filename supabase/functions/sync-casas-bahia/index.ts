@@ -13,16 +13,21 @@ serve(async (req) => {
   const PUBLISHER_ID = '2740940';
   const STORE_NAME = 'Casas Bahia';
   
-  // Consumindo a secret específica
   const TOKEN = Deno.env.get('AWIN_TOKEN_CASAS_BAHIA');
 
   try {
-    console.log(`[sync-casas-bahia] Iniciando captura com parâmetros otimizados...`);
-    
     if (!TOKEN) throw new Error("Secret AWIN_TOKEN_CASAS_BAHIA não configurada.");
 
-    // URL atualizada com status=active e type=all
-    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}&status=active&type=all`;
+    // Define uma data de início de 2 anos atrás para garantir que pegamos TUDO que está ativo
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 2);
+    const startDate = date.toISOString().split('T')[0];
+
+    console.log(`[sync-casas-bahia] Buscando ofertas desde ${startDate} para o ID ${PUBLISHER_ID}`);
+
+    // URL com status=active, type=all e startDate retroativo
+    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}&status=active&type=all&startDate=${startDate}`;
+    
     const response = await fetch(url);
     const data = await response.json();
     

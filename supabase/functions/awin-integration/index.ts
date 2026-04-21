@@ -7,19 +7,14 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handler para CORS
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
-  // Cliente Supabase com Service Role para ignorar RLS no Insert/Upsert
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   )
 
   try {
-    console.log("[awin-integration] Iniciando processamento de contas com parâmetros otimizados...");
-
-    // 1. Buscar contas ativas no banco
     const { data: accounts, error: accError } = await supabaseClient
       .from('affiliate_accounts')
       .select('*')
@@ -33,32 +28,31 @@ serve(async (req) => {
       });
     }
 
+    // Define uma data de início de 2 anos atrás
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 2);
+    const startDate = date.toISOString().split('T')[0];
+
     const globalToken = Deno.env.get('AWIN_API_TOKEN');
     const summary = [];
 
-    // 2. Iterar sobre cada conta
     for (const account of accounts) {
       try {
         const activeToken = account.api_token || globalToken;
         
-        if (!activeToken) {
-          console.warn(`[awin-integration] Pulando ${account.store_name}: Token ausente.`);
-          continue;
-        }
+        if (!activeToken) continue;
 
-        // URL atualizada com status=active e type=all
-        const url = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${activeToken}&status=active&type=all`;
+        console.log(`[awin-integration] Buscando ofertas desde ${startDate} para o ID ${account.publisher_id}`);
+
+        // URL com status=active, type=all e startDate retroativo
+        const url = `https://api.awin.com/promotion/publisher/${account.publisher_id}?accessToken=${activeToken}&status=active&type=all&startDate=${startDate}`;
         const response = await fetch(url);
 
-        if (!response.ok) {
-          console.error(`[awin-integration] Erro API Awin para ${account.store_name} (${account.publisher_id}): ${response.status}`);
-          continue;
-        }
+        if (!response.ok) continue;
 
         const data = await response.json();
         const promotions = Array.isArray(data) ? data : (data ? [data] : []);
 
-        // 3. Mapear e preparar para Upsert
         const offersToSave = promotions.map((p: any) => ({
           awin_promotion_id: String(p.promotionId || p.id),
           publisher_id: account.publisher_id,
@@ -74,31 +68,22 @@ serve(async (req) => {
         })).filter(o => o.link);
 
         if (offersToSave.length > 0) {
-          const { error: upsertError } = await supabaseClient
+          await supabaseClient
             .from('offers')
             .upsert(offersToSave, { onConflict: 'awin_promotion_id' });
-
-          if (upsertError) throw upsertError;
         }
 
         summary.push({ store: account.store_name, count: offersToSave.length });
-        console.log(`[awin-integration] Sucesso: ${account.store_name} - ${offersToSave.length} ofertas.`);
-
       } catch (err) {
         console.error(`[awin-integration] Falha na conta ${account.publisher_id}:`, err.message);
       }
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      processed: summary 
-    }), { 
+    return new Response(JSON.stringify({ success: true, processed: summary }), { 
       status: 200, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
-
   } catch (error) {
-    console.error(`[awin-integration] Erro Fatal:`, error.message);
     return new Response(JSON.stringify({ error: error.message }), { 
       status: 500, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

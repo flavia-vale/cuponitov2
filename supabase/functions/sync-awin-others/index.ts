@@ -13,16 +13,21 @@ serve(async (req) => {
   const PUBLISHER_ID = '2701264';
   const STORE_NAME = 'Awin - Outras lojas';
   
-  // Consumindo a secret específica
   const TOKEN = Deno.env.get('AWIN_TOKEN_OTHERS');
 
   try {
-    console.log(`[sync-awin-others] Iniciando captura com parâmetros otimizados...`);
-    
     if (!TOKEN) throw new Error("Secret AWIN_TOKEN_OTHERS não configurada.");
 
-    // URL atualizada com status=active e type=all
-    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}&status=active&type=all`;
+    // Define uma data de início de 2 anos atrás para garantir que pegamos TUDO que está ativo
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 2);
+    const startDate = date.toISOString().split('T')[0];
+
+    console.log(`[sync-awin-others] Buscando ofertas desde ${startDate} para o ID ${PUBLISHER_ID}`);
+
+    // URL com status=active, type=all e startDate retroativo
+    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}&status=active&type=all&startDate=${startDate}`;
+    
     const response = await fetch(url);
     const data = await response.json();
     
