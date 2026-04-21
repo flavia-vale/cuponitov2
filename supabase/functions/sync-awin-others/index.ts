@@ -9,29 +9,30 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
-  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-  const PUBLISHER_ID = '2701264';
-  const STORE_NAME = 'Awin - Outras lojas';
-  
-  const TOKEN = Deno.env.get('AWIN_TOKEN_OTHERS');
-
   try {
-    if (!TOKEN) throw new Error("Secret AWIN_TOKEN_OTHERS não configurada.");
-
-    // Define uma data de início de 2 anos atrás para garantir que pegamos TUDO que está ativo
-    const date = new Date();
-    date.setFullYear(date.getFullYear() - 2);
-    const startDate = date.toISOString().split('T')[0];
-
-    console.log(`[sync-awin-others] Buscando ofertas desde ${startDate} para o ID ${PUBLISHER_ID}`);
-
-    // URL com status=active, type=all e startDate retroativo
-    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${TOKEN}&status=active&type=all&startDate=${startDate}`;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const token = Deno.env.get('AWIN_TOKEN_OTHERS')
     
-    const response = await fetch(url);
-    const data = await response.json();
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    const PUBLISHER_ID = '2701264'
+    const STORE_NAME = 'Awin - Outras lojas'
+
+    if (!token) throw new Error("Secret AWIN_TOKEN_OTHERS não configurada.")
+
+    const date = new Date()
+    date.setFullYear(date.getFullYear() - 2)
+    const startDate = date.toISOString().split('T')[0]
+
+    console.log(`[sync-awin-others] Buscando ofertas desde ${startDate}`)
+
+    const url = `https://api.awin.com/promotion/publisher/${PUBLISHER_ID}?accessToken=${token}&status=active&type=all&startDate=${startDate}`
     
-    const promotions = Array.isArray(data) ? data : [data];
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`Erro API Awin: ${response.status}`)
+    
+    const data = await response.json()
+    const promotions = Array.isArray(data) ? data : (data ? [data] : [])
 
     const offers = promotions.map((p: any) => ({
       awin_promotion_id: String(p.promotionId || p.id),
@@ -44,17 +45,21 @@ serve(async (req) => {
       link: p.url || '',
       expiry: p.endDate ? new Date(p.endDate).toISOString() : null,
       updated_at: new Date().toISOString()
-    })).filter(o => o.link);
+    })).filter(o => o.link)
 
     if (offers.length > 0) {
-      await supabase.from('offers').upsert(offers, { onConflict: 'awin_promotion_id' });
+      const { error } = await supabase.from('offers').upsert(offers, { onConflict: 'awin_promotion_id' })
+      if (error) throw error
     }
 
-    return new Response(JSON.stringify({ success: true, store: STORE_NAME, count: offers.length }), {
+    return new Response(JSON.stringify({ success: true, count: offers.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    })
   } catch (err) {
-    console.error(`[sync-awin-others] Erro:`, err.message);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+    console.error(`[sync-awin-others] Erro:`, err.message)
+    return new Response(JSON.stringify({ error: err.message }), { 
+      status: 500, 
+      headers: corsHeaders 
+    })
   }
 })
