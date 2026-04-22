@@ -14,7 +14,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
  */
 async function getStoreSlugs() {
   try {
-    // Buscamos todas as lojas ativas sem limite restritivo (limit=1000)
+    // Buscamos todas as lojas ativas com limite de 1000 para garantir que pegamos tudo
     const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?select=slug&active=eq.true&limit=1000`, {
       headers: {
         'apikey': SUPABASE_KEY,
@@ -27,12 +27,7 @@ async function getStoreSlugs() {
     const data = await response.json();
     const slugs = data.map((s: { slug: string }) => `/desconto/${s.slug}`);
     
-    // 1. Mostra quantas lojas estão sendo passadas para o plugin
     console.log(`\n[Sitemap Build] Total de lojas encontradas: ${slugs.length}`);
-    if (slugs.length < 20) {
-      console.warn(`[Sitemap Build] ALERTA: Menos de 20 lojas encontradas (${slugs.length}). Verifique a fonte de dados.`);
-    }
-    
     return slugs;
   } catch (e) {
     console.error("Erro ao buscar slugs para o sitemap:", e);
@@ -56,7 +51,7 @@ export default defineConfig(async () => {
       sitemap({
         hostname: 'https://cuponito.com.br',
         exclude: ['/404', '/admin', '/admin/login'],
-        // 4. Rotas estáticas base
+        // Rotas estáticas base
         routes: [
           '/',
           '/lojas',
@@ -65,23 +60,24 @@ export default defineConfig(async () => {
         ],
         dynamicRoutes: storeRoutes,
         modifyRouteData: (data) => {
-          const url = data.url;
-          
-          // Configuração de Prioridades e Frequências
-          if (url === '/') {
+          // Extrai o caminho da URL (ex: /desconto/loja) independente do domínio
+          const urlObj = new URL(data.url);
+          const path = urlObj.pathname;
+
+          // Regras de Prioridade e Frequência
+          if (path === '/' || path === '/index.html') {
             data.priority = 1.0;
             data.changefreq = 'daily';
-          } else if (url === '/lojas' || url === '/cupons') {
-            // 4. Prioridade 0.8 e changefreq weekly
+          } 
+          else if (path === '/lojas' || path === '/cupons') {
             data.priority = 0.8;
             data.changefreq = 'weekly';
-          } else if (url.startsWith('/desconto/')) {
-            // 2. Prioridade 0.7 para lojas
-            // 3. Changefreq weekly para lojas
+          } 
+          else if (path.includes('/desconto/')) {
             data.priority = 0.7;
             data.changefreq = 'weekly';
-          } else if (url === '/blog') {
-            // 4. Prioridade 0.5 e changefreq monthly
+          } 
+          else if (path === '/blog' || path.includes('/blog')) {
             data.priority = 0.5;
             data.changefreq = 'monthly';
           }
