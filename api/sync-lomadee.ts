@@ -53,7 +53,7 @@ class DB {
     const prefer = ignoreDuplicates
       ? 'resolution=ignore-duplicates,return=minimal'
       : 'resolution=merge-duplicates,return=minimal';
-    const res = await fetch(`${this.base}/${table}`, {
+    const res = await fetch(`${this.base}/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
       method: 'POST',
       headers: { ...this.headers, Prefer: prefer },
       body: JSON.stringify(data),
