@@ -103,8 +103,9 @@ export default function StorePage() {
       {storeName && (
         <SEOHead
           title={`Cupom de Desconto ${storeName} | Até 80% OFF – ${monthYear} | Cuponito`}
-          description={`Cupom de desconto ${storeName} válido hoje: até 80% OFF. Códigos verificados e atualizados diariamente pelo Cuponito.`}
-          canonical={`https://cuponito.com.br/desconto/${slug}`}
+          description={storeBrand?.meta_description || `Cupom de desconto ${storeName} válido hoje: até 80% OFF. Códigos verificados e atualizados diariamente pelo Cuponito.`}
+          canonical={`https://www.cuponito.com.br/desconto/${slug}`}
+          ogImage={storeBrand?.logo_url || undefined}
           jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filteredCoupons }}
         />
       )}

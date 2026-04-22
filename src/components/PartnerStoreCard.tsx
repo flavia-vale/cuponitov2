@@ -20,6 +20,7 @@ const PartnerStoreCard = ({ store, couponCount }: Props) => {
           <img
             src={store.logo_url}
             alt={`Logo oficial da loja ${store.name}`}
+            loading="lazy"
             className="h-full w-full object-contain"
           />
         ) : (

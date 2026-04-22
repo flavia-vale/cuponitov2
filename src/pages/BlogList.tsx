@@ -43,10 +43,11 @@ export default function BlogList() {
 
   return (
     <div className="min-h-screen bg-[#f5f3ef]">
-      <SEOHead 
-        title="Blog do Cuponito — Guias e Dicas para Economizar" 
-        description="Aprenda a economizar nas suas compras online com nossos guias, comparativos e dicas exclusivas." 
-        jsonLdRoute={{ type: 'generic' }}
+      <SEOHead
+        title="Blog do Cuponito — Guias e Dicas para Economizar"
+        description="Aprenda a economizar nas suas compras online com nossos guias, comparativos e dicas exclusivas."
+        canonical="https://www.cuponito.com.br/blog"
+        jsonLdRoute={{ type: 'blog-list' }}
       />
       <Header />
       

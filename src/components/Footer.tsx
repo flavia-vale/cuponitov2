@@ -11,7 +11,7 @@ const Footer = () => (
       </div>
       
       <div className="footer-col">
-        <h5 className="text-xs font-bold text-white mb-3">Cuponito</h5>
+        <h3 className="text-xs font-bold text-white mb-3">Cuponito</h3>
         <div className="flex flex-col gap-1.5">
           <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Sobre nós</Link>
           <Link to="/blog" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Blog</Link>
@@ -21,7 +21,7 @@ const Footer = () => (
       </div>
 
       <div className="footer-col">
-        <h5 className="text-xs font-bold text-white mb-3">Lojas populares</h5>
+        <h3 className="text-xs font-bold text-white mb-3">Lojas populares</h3>
         <div className="flex flex-col gap-1.5">
           <Link to="/desconto/$slug" params={{ slug: 'amazon' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Amazon</Link>
           <Link to="/desconto/$slug" params={{ slug: 'shopee' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Shopee</Link>
@@ -31,7 +31,7 @@ const Footer = () => (
       </div>
 
       <div className="footer-col">
-        <h5 className="text-xs font-bold text-white mb-3">Ajuda</h5>
+        <h3 className="text-xs font-bold text-white mb-3">Ajuda</h3>
         <div className="flex flex-col gap-1.5">
           <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">FAQ</Link>
           <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Como usar cupons</Link>

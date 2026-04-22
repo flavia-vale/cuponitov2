@@ -31,7 +31,12 @@ export default function LojasPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
-      <SEOHead title="Todas as lojas parceiras" description="Encontre cupons das melhores lojas do Brasil." />
+      <SEOHead
+        title="Lojas com Cupom de Desconto — {month_year} | Cuponito"
+        description="Encontre cupons de desconto das melhores lojas do Brasil. Amazon, Shopee, Mercado Livre e centenas de outras lojas verificadas."
+        canonical="https://www.cuponito.com.br/lojas"
+        jsonLdRoute={{ type: 'lojas' }}
+      />
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-6">
