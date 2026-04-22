@@ -14,7 +14,8 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
  */
 async function getStoreSlugs() {
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?select=slug&active=eq.true`, {
+    // Adicionamos limit=1000 para garantir que pegamos todas as lojas cadastradas
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?select=slug&active=eq.true&limit=1000`, {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -44,20 +45,37 @@ export default defineConfig(async () => {
       tsconfigPaths(),
       sitemap({
         hostname: 'https://cuponito.com.br',
-        // Removemos a duplicata da home e a página de erro
+        // Excluímos rotas administrativas e de erro
         exclude: ['/404', '/admin', '/admin/login'],
-        // Rotas base do site
+        // Rotas estáticas base
         routes: [
           '/',
           '/lojas',
           '/cupons',
           '/blog',
         ],
-        // Adicionamos as rotas dinâmicas das lojas buscadas no banco
-        dynamicRoutes: [
-          ...storeRoutes
-        ],
-        // Configurações de robôs e sitemap
+        // Rotas dinâmicas das lojas
+        dynamicRoutes: storeRoutes,
+        // Injeção de metadados (Priority e Changefreq) por rota
+        modifyRouteData: (data) => {
+          const url = data.url;
+          
+          if (url === '/') {
+            data.priority = 1.0;
+            data.changefreq = 'daily';
+          } else if (url === '/lojas' || url === '/cupons') {
+            data.priority = 0.8;
+            data.changefreq = 'weekly';
+          } else if (url.startsWith('/desconto/')) {
+            data.priority = 0.7;
+            data.changefreq = 'weekly';
+          } else if (url === '/blog') {
+            data.priority = 0.5;
+            data.changefreq = 'monthly';
+          }
+          
+          return data;
+        },
         generateRobotsTxt: true,
         robots: [{
           userAgent: '*',
