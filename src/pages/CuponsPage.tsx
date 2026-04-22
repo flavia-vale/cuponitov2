@@ -8,8 +8,15 @@ import { useStoreBrands } from '@/hooks/useStoreBrands';
 import CouponCard from '@/components/CouponCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { Search, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft, ChevronDown, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import { isExpired, isStale, sortCoupons, cn } from '@/lib/utils';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const Footer = lazy(() => import('@/components/Footer'));
 
@@ -29,9 +36,10 @@ export default function CuponsPage() {
     return map;
   }, [storeBrands]);
 
-  const filtered = useMemo(() => {
+  // Lógica de filtragem e separação de cupons
+  const { active, potentiallyExpired } = useMemo(() => {
     const term = search.toLowerCase().trim();
-    return (coupons ?? []).filter(c => {
+    const all = (coupons ?? []).filter(c => {
       const matchesSearch = !term
         || c.title.toLowerCase().includes(term)
         || c.store.toLowerCase().includes(term)
@@ -39,11 +47,22 @@ export default function CuponsPage() {
       const matchesCategory = activeCategory === 'Todos' || c.category === activeCategory;
       return matchesSearch && matchesCategory;
     });
+
+    const activeList = all.filter(c => !isExpired(c.expiry) && !isStale(c.updated_at, c.success_rate));
+    const expiredList = all.filter(c => isExpired(c.expiry) || isStale(c.updated_at, c.success_rate));
+
+    return {
+      active: sortCoupons(activeList),
+      potentiallyExpired: sortCoupons(expiredList)
+    };
   }, [coupons, search, activeCategory]);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
-      <SEOHead title="Todos os cupons de desconto" description="Encontre cupons e ofertas verificados das melhores lojas." />
+      <SEOHead 
+        title="Todos os cupons de desconto verificados | Cuponito" 
+        description="Encontre cupons e ofertas verificados das melhores lojas. Economize agora com códigos atualizados hoje." 
+      />
       <Header />
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-6">
@@ -69,11 +88,12 @@ export default function CuponsPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+              className={cn(
+                "shrink-0 rounded-full px-4 py-1.5 text-xs font-bold transition-all",
                 activeCategory === cat
                   ? 'bg-[#ff5200] text-white'
                   : 'bg-white border border-border text-muted-foreground hover:bg-muted/50'
-              }`}
+              )}
             >
               {cat}
             </button>
@@ -84,16 +104,40 @@ export default function CuponsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-52 rounded-2xl" />)}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : active.length === 0 && potentiallyExpired.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
             <p className="text-lg font-bold">Nenhum cupom encontrado</p>
             <p className="text-sm mt-1">Tente outro termo ou categoria</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map(c => (
-              <CouponCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />
-            ))}
+          <div className="space-y-10">
+            {/* Listagem Ativa */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {active.map(c => (
+                <CouponCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />
+              ))}
+            </div>
+
+            {/* Seção de Expirados/Duvidosos */}
+            {potentiallyExpired.length > 0 && (
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="expired" className="border-none">
+                  <AccordionTrigger className="flex items-center gap-2 rounded-xl bg-white border border-border px-4 py-3 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+                      <AlertCircle size={16} />
+                      Ofertas que podem ter expirado ({potentiallyExpired.length})
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-70 grayscale-[0.3]">
+                      {potentiallyExpired.map(c => (
+                        <CouponCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
           </div>
         )}
       </main>

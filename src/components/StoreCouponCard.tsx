@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Check, Eye, Clock, Users, ShieldCheck } from 'lucide-react';
+import { Check, Eye, Clock, ShieldCheck } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, isExpired } from '@/lib/utils';
 import type { Tables } from '@/integrations/supabase/types';
 import {
   Dialog,
@@ -17,11 +17,16 @@ interface Props {
   isExpired?: boolean;
 }
 
-export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
+export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = false }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const isCode = !!coupon.code;
-  const isExpiring = coupon.expiry && new Date(coupon.expiry).getTime() - new Date().getTime() < 48 * 60 * 60 * 1000;
+  const expired = isExpiredProp || isExpired(coupon.expiry);
+  
+  // Um cupom é considerado verificado se tem validade futura confirmada
+  const isVerified = !expired && !!coupon.expiry;
+  
+  const isExpiring = coupon.expiry && !expired && (new Date(coupon.expiry).getTime() - new Date().getTime() < 48 * 60 * 60 * 1000);
   const usageCount = Math.floor(Math.random() * 2000) + 100;
 
   const maskCode = (code: string | null) => {
@@ -48,22 +53,21 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
     <>
       <div className={cn(
         "coupon-card group bg-white border border-[#e8e5e0] rounded-[14px] overflow-hidden transition-all hover:shadow-[0_4px_16px_rgba(255,77,0,0.08)] hover:border-[#FFB090]",
-        isExpired && "opacity-55 grayscale-[0.5]"
+        expired && "opacity-55 grayscale-[0.5]"
       )}>
         <div className="coupon-card-inner flex flex-col sm:flex-row">
-          {/* Faixa lateral colorida */}
           <div className={cn(
             "coupon-accent w-full h-1.5 sm:w-[6px] sm:h-auto shrink-0",
             !isCode ? "bg-[#2E7D32]" : "bg-[#FF4D00]",
             coupon.category === 'Frete Grátis' && "bg-[#1565C0]",
-            isExpired && "bg-gray-400"
+            expired && "bg-gray-400"
           )} />
 
           <div className="coupon-body flex-1 p-4 sm:p-[14px_16px]">
             <div className="coupon-top flex flex-col sm:flex-row items-start justify-between gap-3 mb-2">
               <div className="flex-1">
                 <div className="coupon-badges flex flex-wrap gap-[5px] mb-1.5">
-                  {isExpired ? (
+                  {expired ? (
                     <span className="coupon-type-badge bg-[#f0f0f0] text-[#999] py-0.5 px-2 rounded-lg text-[10px] font-bold">Expirado</span>
                   ) : (
                     <>
@@ -73,14 +77,14 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
                       )}>
                         {isCode ? 'Código' : 'Oferta'}
                       </span>
+                      {isVerified && (
+                        <span className="coupon-type-badge bg-green-100 text-green-700 py-0.5 px-2 rounded-lg text-[10px] font-bold flex items-center gap-1">
+                          <ShieldCheck size={10} /> Verificado
+                        </span>
+                      )}
                       {coupon.category === 'Frete Grátis' && (
                         <span className="coupon-type-badge badge-free bg-[#E3F2FD] text-[#1565C0] py-0.5 px-2 rounded-lg text-[10px] font-bold">
                           Frete grátis
-                        </span>
-                      )}
-                      {coupon.is_featured && (
-                        <span className="coupon-type-badge badge-exclusive bg-[#FFF8E1] text-[#F57F17] py-0.5 px-2 rounded-lg text-[10px] font-bold">
-                          Exclusivo
                         </span>
                       )}
                     </>
@@ -98,7 +102,7 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
                 "coupon-discount text-[22px] font-black shrink-0 leading-none",
                 !isCode ? "text-[#2E7D32]" : "text-[#FF4D00]",
                 coupon.category === 'Frete Grátis' && "text-[#1565C0]",
-                isExpired && "text-gray-400"
+                expired && "text-gray-400"
               )}>
                 {coupon.discount}
               </div>
@@ -108,7 +112,7 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
               <span className="coupon-meta-item flex items-center gap-1 valid text-[#2E7D32] font-semibold">
                 ✓ Verificado hoje
               </span>
-              {isExpiring && !isExpired && (
+              {isExpiring && (
                 <span className="coupon-meta-item flex items-center gap-1 text-[#E65100] font-bold">
                   ⏰ Vence em breve
                 </span>
@@ -119,7 +123,6 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
             </div>
           </div>
 
-          {/* Área de ação lateral */}
           <div className="coupon-action p-4 sm:p-[12px_16px_12px_0] flex flex-col items-center sm:items-end justify-center gap-2 sm:min-w-[190px]">
             {isCode ? (
               <div className="w-full space-y-2">
@@ -151,17 +154,7 @@ export default function StoreCouponCard({ coupon, isExpired = false }: Props) {
                 </button>
               </div>
             )}
-            <div className="uses-count text-[10px] text-[#aaa] text-center w-full">
-              {usageCount} pessoas {isCode ? 'usaram' : 'acessaram'}
-            </div>
           </div>
-        </div>
-        
-        {/* Como funciona (expansível no hover em desktop) */}
-        <div className="coupon-how bg-[#f9f7f4] border-t border-[#e8e5e0] p-[10px_16px] hidden sm:group-hover:block transition-all animate-in slide-in-from-top-1 duration-200">
-          <p className="text-[11px] text-[#888] leading-relaxed">
-            {isCode ? "Clique em 'Copiar' para revelar o código e ser redirecionado para a loja. Cole o código no carrinho para aplicar o desconto." : "Clique no botão para ativar a oferta e ser redirecionado para a página com o desconto já aplicado."}
-          </p>
         </div>
       </div>
 

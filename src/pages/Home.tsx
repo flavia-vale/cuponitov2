@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useSettings } from '@/hooks/useSettings';
-import { getMonthYear } from '@/lib/utils';
+import { getMonthYear, isExpired, isStale, sortCoupons } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import HowItWorks from '@/components/HowItWorks';
 
@@ -28,24 +28,30 @@ export default function Home() {
   const monthYear = getMonthYear();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
+  // Filtramos cupons inválidos/obsoletos da Home para manter a credibilidade
+  const validCoupons = useMemo(() => {
+    if (!coupons) return [];
+    const filtered = coupons.filter(c => !isExpired(c.expiry) && !isStale(c.updated_at, c.success_rate));
+    return sortCoupons(filtered);
+  }, [coupons]);
+
   const featuredCoupons = useMemo(() => {
-    const starred = (coupons ?? []).filter(c => c.is_featured);
-    const pool = starred.length >= 3 ? starred : (coupons ?? []);
+    const starred = validCoupons.filter(c => c.is_featured);
+    const pool = starred.length >= 3 ? starred : validCoupons;
     if (!activeCategory) return pool.slice(0, 3);
     return pool.filter(c => c.category === activeCategory).slice(0, 3);
-  }, [coupons, activeCategory]);
+  }, [validCoupons, activeCategory]);
 
   const popularCoupons = useMemo(() => {
-    const starred = (coupons ?? []).filter(c => c.is_featured);
-    const pool = starred.length >= 3 ? starred : (coupons ?? []);
+    const starred = validCoupons.filter(c => c.is_featured);
+    const pool = starred.length >= 3 ? starred : validCoupons;
     if (!activeCategory) return pool.slice(3, 8);
     return pool.filter(c => c.category === activeCategory).slice(3, 8);
-  }, [coupons, activeCategory]);
+  }, [validCoupons, activeCategory]);
 
   const featuredStores = useMemo(() => {
     const starred = (storeBrands ?? []).filter(s => s.is_featured);
     const pool = starred.length > 0 ? starred : (storeBrands ?? []);
-    // Limitamos a 6 lojas para manter 3 colunas e 2 linhas
     return pool.slice(0, 6);
   }, [storeBrands]);
 
@@ -57,9 +63,9 @@ export default function Home() {
 
   const couponCountMap = useMemo(() => {
     const map: Record<string, number> = {};
-    (coupons ?? []).forEach(c => { if (c.status) map[c.store] = (map[c.store] ?? 0) + 1; });
+    validCoupons.forEach(c => { if (c.status) map[c.store] = (map[c.store] ?? 0) + 1; });
     return map;
-  }, [coupons]);
+  }, [validCoupons]);
 
   const seo = useMemo(() => {
     if (!settings) return { title: `Cupom de Desconto ${monthYear}`, description: 'Economize agora.' };
@@ -68,9 +74,6 @@ export default function Home() {
       description: settings.seo_defaults.home_description.replace('{month_year}', monthYear)
     };
   }, [settings, monthYear]);
-
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => { setIsMounted(true); }, []);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">

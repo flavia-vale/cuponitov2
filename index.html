@@ -5,10 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="lomadee" content="2324685" />
-    <title>Cuponito - Cupons de Desconto</title>
+    <title>Cuponito - Cupons de Desconto Verificados</title>
     <meta
       name="description"
-      content="Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre."
+      content="Encontre cupons de desconto atualizados diariamente para Amazon, Shopee, Mercado Livre e centenas de outras lojas. Economia real e verificada."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,7 +18,27 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Conteúdo de fallback para SEO e usuários sem JS -->
+      <div style="padding: 20px; font-family: sans-serif; max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1 style="color: #FF4D00;">Cuponito - Cupons de Desconto</h1>
+        <p>Carregando os melhores cupons de desconto para você...</p>
+        <div style="margin-top: 40px; text-align: left; border-top: 1px solid #eee; padding-top: 20px;">
+          <h2>Economize na Amazon, Shopee e Mercado Livre</h2>
+          <p>O Cuponito é o seu agregador de ofertas verificado. Nossa equipe testa diariamente centenas de códigos para garantir que você pague menos em suas compras online.</p>
+          <ul>
+            <li>Cupons de Frete Grátis</li>
+            <li>Ofertas Relâmpago</li>
+            <li>Descontos Exclusivos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background: #FFF0EB; color: #FF4D00;">
+        <strong>Atenção:</strong> Você precisa habilitar o JavaScript para usar o Cuponito e visualizar os cupons.
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
