@@ -113,7 +113,7 @@ export function AdminIntegrationsTab() {
     setSyncing(account.id);
     try {
       const providerSlug = account.integration_providers?.slug;
-      const fnMap: Record<string, string> = { awin: 'sync-awin', lomadee: 'sync-lomadee' };
+      const fnMap: Record<string, string> = { awin: 'sync-awin', lomadee: 'sync-lomadee', rakuten: 'sync-rakuten' };
       const fn = fnMap[providerSlug];
       if (!fn) throw new Error(`Sem função para provedor "${providerSlug}"`);
 
