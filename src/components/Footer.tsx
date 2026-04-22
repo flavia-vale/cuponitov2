@@ -1,61 +1,48 @@
-import { Heart, Lock, Instagram, Mail } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 const Footer = () => (
-  <footer className="bg-[#121212] py-12 md:py-16 text-white/50">
-    <div className="mx-auto max-w-6xl px-4">
-      <div className="grid gap-10 md:grid-cols-4">
-        <div className="space-y-4">
-          <Link to="/" className="font-lexend text-2xl font-bold text-white">
-            cuponito<span className="text-[#ff5200]">.</span>
-          </Link>
-          <p className="text-sm leading-relaxed">
-            Economize em todas as suas compras online com cupons verificados diariamente.
-          </p>
-          <div className="flex gap-4">
-            <a href="#" className="text-white/40 hover:text-[#ff5200] transition-colors"><Instagram size={20} /></a>
-            <a href="mailto:contato@cuponito.com.br" className="text-white/40 hover:text-[#ff5200] transition-colors"><Mail size={20} /></a>
-          </div>
-        </div>
-
-        <div>
-          <h4 className="mb-5 text-sm font-black uppercase tracking-widest text-white/90">Sobre</h4>
-          <ul className="space-y-3 text-sm">
-            <li><Link to="/" className="hover:text-white transition-colors">Quem somos</Link></li>
-            <li><Link to="/blog" className="hover:text-white transition-colors">Blog de Dicas</Link></li>
-            <li><Link to="/" className="hover:text-white transition-colors">Privacidade</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="mb-5 text-sm font-black uppercase tracking-widest text-white/90">Contato</h4>
-          <ul className="space-y-3 text-sm">
-            <li><a href="#" className="hover:text-white transition-colors">Suporte</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Trabalhe conosco</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Fale com o time</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="mb-5 text-sm font-black uppercase tracking-widest text-white/90">Para Lojas</h4>
-          <ul className="space-y-3 text-sm">
-            <li><a href="#" className="hover:text-white transition-colors">Anunciar loja</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Afiliados</a></li>
-            <li><Link to="/admin" className="inline-flex items-center gap-2 hover:text-white transition-colors">
-              <Lock size={12} /> Painel Admin
-            </Link></li>
-          </ul>
+  <footer className="bg-[#1a1a1a] py-[30px] px-5 mt-10">
+    <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[30px]">
+      <div>
+        <div className="text-xl font-bold text-[#FF6B35] mb-2">cuponito.</div>
+        <p className="text-xs text-[#666] leading-relaxed">
+          O site de cupons de desconto mais confiável do Brasil. Todos os cupons são verificados diariamente pela nossa equipe.
+        </p>
+      </div>
+      
+      <div className="footer-col">
+        <h5 className="text-xs font-bold text-white mb-3">Cuponito</h5>
+        <div className="flex flex-col gap-1.5">
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Sobre nós</Link>
+          <Link to="/blog" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Blog</Link>
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Contato</Link>
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Para lojas</Link>
         </div>
       </div>
 
-      <div className="mt-16 border-t border-white/5 pt-8 flex flex-col items-center gap-4 text-center">
-        <p className="flex items-center gap-1.5 text-xs">
-          Feito com <Heart size={14} className="fill-[#ff5200] text-[#ff5200]" /> no Brasil — Todos os direitos reservados.
-        </p>
-        <p className="text-[10px] text-white/20 max-w-md">
-          Links de afiliado podem gerar comissões. Isso não altera o preço para você e ajuda a manter o cuponito 100% gratuito.
-        </p>
+      <div className="footer-col">
+        <h5 className="text-xs font-bold text-white mb-3">Lojas populares</h5>
+        <div className="flex flex-col gap-1.5">
+          <Link to="/desconto/$slug" params={{ slug: 'amazon' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Amazon</Link>
+          <Link to="/desconto/$slug" params={{ slug: 'shopee' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Shopee</Link>
+          <Link to="/desconto/$slug" params={{ slug: 'shein' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">SHEIN</Link>
+          <Link to="/desconto/$slug" params={{ slug: 'ifood' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">iFood</Link>
+        </div>
       </div>
+
+      <div className="footer-col">
+        <h5 className="text-xs font-bold text-white mb-3">Ajuda</h5>
+        <div className="flex flex-col gap-1.5">
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">FAQ</Link>
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Como usar cupons</Link>
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Privacidade</Link>
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Termos de uso</Link>
+        </div>
+      </div>
+    </div>
+    
+    <div className="border-t border-[#333] mt-6 pt-4 text-center text-[11px] text-[#555]">
+      © {new Date().getFullYear()} Cuponito · Todos os direitos reservados · Os preços e condições podem variar sem aviso prévio
     </div>
   </footer>
 );

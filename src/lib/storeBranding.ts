@@ -10,6 +10,8 @@ export interface StoreBrand {
   logo_url?: string | null;
   store_id: number;
   is_featured: boolean;
+  description: string;
+  meta_description: string;
 }
 
 const FALLBACK_COLOR = '#575ecf';

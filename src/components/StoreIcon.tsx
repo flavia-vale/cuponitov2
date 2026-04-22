@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 interface StoreIconProps {
   name: string;
   brandColor?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   logoUrl?: string | null;
 }
@@ -28,6 +28,7 @@ const StoreIcon = ({ name, brandColor = '#94a3b8', size = 'md', className, logoU
     sm: 'h-8 w-10 text-[10px]',
     md: 'h-10 w-14 text-xs',
     lg: 'h-14 w-20 text-base',
+    xl: 'h-20 w-20 text-lg rounded-2xl', // Added for store hero
   };
 
   return (
