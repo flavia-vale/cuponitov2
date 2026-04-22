@@ -48,7 +48,7 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
       <button
         onClick={handleAction}
         className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all active:scale-95 whitespace-nowrap",
+          "flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl w-14 h-14 sm:w-16 sm:h-16 text-[10px] font-black uppercase transition-all active:scale-95",
           copied
             ? "bg-green-50 text-green-600 border border-green-300"
             : "bg-[#ff5200] text-white hover:bg-[#e04a00]"
@@ -56,13 +56,13 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
       >
         {copied ? (
           <>
-            <Check size={13} />
-            Copiado!
+            <Check size={16} />
+            <span>OK!</span>
           </>
         ) : (
           <>
-            {hasCode ? 'Copiar e ir para a loja' : 'Ir para a loja'}
-            <ArrowRight size={13} />
+            <ArrowRight size={16} />
+            <span>{hasCode ? 'Copiar' : 'Ir'}</span>
           </>
         )}
       </button>

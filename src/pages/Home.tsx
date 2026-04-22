@@ -44,7 +44,9 @@ export default function Home() {
 
   const featuredStores = useMemo(() => {
     const starred = (storeBrands ?? []).filter(s => s.is_featured);
-    return starred.length > 0 ? starred.slice(0, 15) : (storeBrands ?? []).slice(0, 15);
+    const pool = starred.length > 0 ? starred : (storeBrands ?? []);
+    // Limitamos a 6 lojas para manter 3 colunas e 2 linhas
+    return pool.slice(0, 6);
   }, [storeBrands]);
 
   const storeBrandMap = useMemo(() => {
@@ -123,8 +125,8 @@ export default function Home() {
               Ver todas <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-            {storesLoading ? [1,2,3,4,5,6,7,8,9,10].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />) :
+          <div className="grid grid-cols-3 gap-3">
+            {storesLoading ? [1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />) :
               featuredStores.map(s => (
                 <PartnerStoreCard
                   key={s.id}
