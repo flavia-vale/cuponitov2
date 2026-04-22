@@ -1,38 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Home -->
+<!--
+  Este arquivo é usado apenas em desenvolvimento local (npm run dev).
+  Em produção, o Vercel serve o sitemap dinâmico via /api/sitemap
+  que inclui todas as lojas e posts do banco de dados.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://cuponito.com.br/</loc>
-    <lastmod>2025-05-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- Blog -->
   <url>
-    <loc>https://cuponito.com.br/blog</loc>
-    <lastmod>2025-05-20</lastmod>
+    <loc>https://cuponito.com.br/cupons</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://cuponito.com.br/lojas</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-
-  <!-- Lojas Principais -->
   <url>
-    <loc>https://cuponito.com.br/desconto/cupom-desconto-amazon</loc>
-    <lastmod>2025-05-20</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://cuponito.com.br/desconto/cupom-desconto-shopee</loc>
-    <lastmod>2025-05-20</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://cuponito.com.br/desconto/cupom-desconto-mercado-livre</loc>
-    <lastmod>2025-05-20</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
+    <loc>https://cuponito.com.br/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
