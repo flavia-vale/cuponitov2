@@ -1,12 +1,16 @@
 {
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/sync-lomadee.ts": {
       "maxDuration": 300
+    },
+    "api/sitemap.ts": {
+      "maxDuration": 10
     }
   }
 }
