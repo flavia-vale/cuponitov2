@@ -2,11 +2,6 @@
 // Usa REST API do Supabase diretamente (sem @supabase/supabase-js) pois o pacote ws
 // (dependência do realtime-js) falha na inicialização em funções serverless em gru1.
 
-export const config = {
-  regions: ['gru1'],
-  maxDuration: 300,
-};
-
 // ── Supabase REST helper ───────────────────────────────────────────────────────
 
 class DB {
@@ -94,29 +89,29 @@ function determineCategory(title: string, description: string, categoryName: str
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: any, res: any): Promise<void> {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204 });
+    res.status(204).end();
+    return;
   }
 
   const syncSecret = process.env.SYNC_SECRET ?? '';
-  const authHeader = req.headers.get('authorization') ?? '';
+  const authHeader = (req.headers['authorization'] ?? '') as string;
   if (syncSecret && authHeader !== `Bearer ${syncSecret}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
   }
 
-  let body: any = {};
-  try { body = await req.json(); } catch {}
+  // Vercel auto-parseia application/json para req.body
+  const body: any = req.body ?? {};
 
   const supabaseUrl: string = process.env.SUPABASE_URL || body.supabase_url || '';
   const serviceRoleKey: string = process.env.SUPABASE_SERVICE_ROLE_KEY || body.service_role_key || '';
   const lomadeeToken: string = process.env.LOMADEE_APP_TOKEN || body.lomadee_token || '';
 
   if (!supabaseUrl || !serviceRoleKey || !lomadeeToken) {
-    return new Response(
-      JSON.stringify({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMADEE_APP_TOKEN' }),
-      { status: 500 }
-    );
+    res.status(500).json({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMADEE_APP_TOKEN' });
+    return;
   }
 
   const db = new DB(supabaseUrl, serviceRoleKey);
@@ -130,15 +125,17 @@ export default async function handler(req: Request): Promise<Response> {
     } else {
       const providers = await db.select('integration_providers', 'slug=eq.lomadee&select=id');
       const providerId = providers[0]?.id;
-      if (!providerId) return new Response(JSON.stringify({ message: 'Provider Lomadee não encontrado' }), { status: 200 });
+      if (!providerId) { res.status(200).json({ message: 'Provider Lomadee não encontrado' }); return; }
       accounts = await db.select('affiliate_accounts', `provider_id=eq.${providerId}&active=eq.true&select=*,integration_providers(slug,base_url)`);
     }
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    res.status(500).json({ error: e.message });
+    return;
   }
 
   if (!accounts || accounts.length === 0) {
-    return new Response(JSON.stringify({ message: 'Nenhuma conta Lomadee ativa' }), { status: 200 });
+    res.status(200).json({ message: 'Nenhuma conta Lomadee ativa' });
+    return;
   }
 
   const summary = [];
@@ -325,8 +322,5 @@ export default async function handler(req: Request): Promise<Response> {
     summary.push({ account: account.name, ...stats, status: finalStatus });
   }
 
-  return new Response(JSON.stringify({ success: true, summary }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+  res.status(200).json({ success: true, summary });
 }
