@@ -84,6 +84,48 @@ function orgSchema(name = 'Cuponito', url = SITE_URL) {
     url,
     description: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre.",
     logo: `${SITE_URL}/og-image.png`,
+    sameAs: [
+      "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      availableLanguage: "Portuguese",
+    },
+  };
+}
+
+function howToSchema(storeName: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: `Como usar cupom ${storeName}`,
+    step: [
+      {
+        "@type": "HowToStep",
+        position: 1,
+        name: "Escolha seu cupom",
+        text: `Navegue pelos cupons disponíveis e clique em "Copiar" no código que quiser usar.`,
+      },
+      {
+        "@type": "HowToStep",
+        position: 2,
+        name: `Vá para a ${storeName}`,
+        text: `Clique em "Copiar e ir à loja" — você será redirecionado direto para a ${storeName} com o código já copiado.`,
+      },
+      {
+        "@type": "HowToStep",
+        position: 3,
+        name: "Adicione ao carrinho",
+        text: "Escolha o produto desejado e adicione ao carrinho de compras normalmente.",
+      },
+      {
+        "@type": "HowToStep",
+        position: 4,
+        name: "Cole o código e economize",
+        text: "No carrinho, procure o campo de cupom de desconto, cole o código copiado e clique em Aplicar.",
+      },
+    ],
   };
 }
 
@@ -202,6 +244,7 @@ type BlogRoute = { type: 'blog'; article: BlogArticle };
 type LojasRoute = { type: 'lojas' };
 type CuponsRoute = { type: 'cupons' };
 type BlogListRoute = { type: 'blog-list' };
+type CategoriaRoute = { type: 'categoria'; categoryName: string; slug: string; coupons: Coupon[] };
 type GenericRoute = { type: 'generic' };
 
 export type JsonLdRoute =
@@ -211,6 +254,7 @@ export type JsonLdRoute =
   | LojasRoute
   | CuponsRoute
   | BlogListRoute
+  | CategoriaRoute
   | GenericRoute;
 
 export function useJsonLd(route: JsonLdRoute): object[] {
@@ -230,6 +274,7 @@ export function useJsonLd(route: JsonLdRoute): object[] {
           { ...orgSchema(route.storeName, `${SITE_URL}/desconto/${route.slug}`) },
           breadcrumbStore(route.storeName, route.slug),
           faqPageSchema(route.storeName),
+          howToSchema(route.storeName),
           ...(route.coupons.length > 0
             ? [couponItemList(`Cupons de Desconto ${route.storeName}`, route.coupons)]
             : []),
@@ -246,6 +291,22 @@ export function useJsonLd(route: JsonLdRoute): object[] {
         return [orgSchema(), breadcrumbCupons()];
       case 'blog-list':
         return [orgSchema(), breadcrumbBlogList()];
+      case 'categoria':
+        return [
+          orgSchema(),
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Página Inicial", item: `${SITE_URL}/` },
+              { "@type": "ListItem", position: 2, name: "Cupons", item: `${SITE_URL}/cupons` },
+              { "@type": "ListItem", position: 3, name: route.categoryName, item: `${SITE_URL}/categoria/${route.slug}` },
+            ],
+          },
+          ...(route.coupons.length > 0
+            ? [couponItemList(`Cupons de ${route.categoryName}`, route.coupons)]
+            : []),
+        ];
       case 'generic':
       default:
         return [orgSchema()];

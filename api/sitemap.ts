@@ -41,12 +41,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const stores = storesResult.data ?? []
   const posts = postsResult.data ?? []
 
+  const CATEGORY_SLUGS = ['moda', 'tech', 'delivery', 'frete-gratis', 'beleza', 'viagens', 'geral'];
+
   // Páginas estáticas — ordem reflete importância para crawlers
   const staticUrls = [
     urlEntry(`${BASE_URL}/`, today, 'daily', 1.0),
     urlEntry(`${BASE_URL}/cupons`, today, 'daily', 0.9),
     urlEntry(`${BASE_URL}/lojas`, today, 'weekly', 0.8),
     urlEntry(`${BASE_URL}/blog`, today, 'weekly', 0.7),
+    ...CATEGORY_SLUGS.map(slug => urlEntry(`${BASE_URL}/categoria/${slug}`, today, 'daily', 0.7)),
   ].join('\n')
 
   // Páginas de loja — core do site, atualizam com frequência
