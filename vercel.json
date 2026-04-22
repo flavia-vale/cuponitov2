@@ -6,7 +6,6 @@
   ],
   "functions": {
     "api/sync-lomadee.ts": {
-      "regions": ["gru1"],
       "maxDuration": 300
     }
   }
