@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
-import { Calendar, Clock, Tag } from 'lucide-react';
+import { Tag } from 'lucide-react';
 import type { BlogPost } from '@/hooks/useBlog';
+import { calcReadingTime } from '@/lib/blog';
 
 interface Props {
   post: BlogPost;
@@ -12,6 +13,8 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
   const publishedDate = post.published_at
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
     : 'Recente';
+
+  const readingTime = post.content ? calcReadingTime(post.content) : 1;
 
   if (variant === 'featured') {
     return (
@@ -35,10 +38,10 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
         <div className="p-6">
           <p className="mb-4 text-sm text-[#666] line-clamp-2 leading-relaxed">{post.excerpt}</p>
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-[#aaa]">{publishedDate} • 5 min de leitura</span>
-            <div className="flex gap-2">
-              <span className="rounded-md border-2 border-dashed border-primary bg-[#FFF0EB] px-2 py-1 font-mono text-[10px] font-black text-primary">CUPOM10</span>
-            </div>
+            <span className="text-[11px] font-medium text-[#aaa]">{publishedDate} · {readingTime} min de leitura</span>
+            <span className="rounded-md border-2 border-dashed border-primary bg-[#FFF0EB] px-2 py-1 font-mono text-[10px] font-black text-primary">
+              CUPOM
+            </span>
           </div>
         </div>
       </Link>
@@ -57,7 +60,7 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="truncate text-sm font-bold text-[#1a1a1a] group-hover:text-primary transition-colors">{post.title}</h4>
-          <p className="text-[10px] font-medium text-[#aaa] mt-0.5">{publishedDate} • {post.views_count} leituras</p>
+          <p className="text-[10px] font-medium text-[#aaa] mt-0.5">{publishedDate} · {readingTime} min · {post.views_count} leituras</p>
         </div>
       </Link>
     );
@@ -78,8 +81,9 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
         <h3 className="mb-2 line-clamp-2 text-sm font-bold leading-snug text-[#1a1a1a] group-hover:text-primary transition-colors">
           {post.title}
         </h3>
+        <p className="mb-3 line-clamp-2 text-[11px] text-[#888] leading-relaxed">{post.excerpt}</p>
         <div className="mt-auto flex items-center justify-between text-[10px] font-medium text-[#aaa]">
-          <span>{publishedDate}</span>
+          <span>{publishedDate} · {readingTime} min de leitura</span>
           <span className="flex items-center gap-1 rounded-md bg-[#FFF0EB] border-2 border-dashed border-primary px-2 py-0.5 font-black text-primary">
             <Tag size={10} /> Cupons
           </span>

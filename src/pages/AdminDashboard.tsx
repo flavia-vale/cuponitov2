@@ -9,7 +9,6 @@ import { AdminSidebar, type AdminTab } from '@/components/admin/AdminSidebar';
 import { AdminDashboardTab } from '@/components/admin/AdminDashboardTab';
 import { AdminStoresTab } from '@/components/admin/AdminStoresTab';
 import { AdminSeoTab } from '@/components/admin/AdminSeoTab';
-import { AdminBlogTab } from '@/components/admin/AdminBlogTab';
 import { AdminCouponsTab } from '@/components/admin/AdminCouponsTab';
 import { AdminIntegrationsTab } from '@/components/admin/AdminIntegrationsTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -54,7 +53,6 @@ export default function AdminDashboard() {
           
           {activeTab === 'dashboard' && <AdminDashboardTab coupons={coupons} stores={stores} />}
           {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
-          {activeTab === 'blog' && <AdminBlogTab />}
           {activeTab === 'seo' && <AdminSeoTab />}
           {activeTab === 'cupons' && <AdminCouponsTab />}
           {activeTab === 'integracoes' && <AdminIntegrationsTab />}

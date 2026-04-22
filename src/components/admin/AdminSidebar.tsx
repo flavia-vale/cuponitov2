@@ -1,15 +1,14 @@
-import { LayoutDashboard, Ticket, Store, Settings, LogOut, BookOpen, Plug } from 'lucide-react';
+import { LayoutDashboard, Ticket, Store, Settings, LogOut, BookOpen, Plug, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type AdminTab = 'dashboard' | 'cupons' | 'lojas' | 'blog' | 'seo' | 'integracoes';
+export type AdminTab = 'dashboard' | 'cupons' | 'lojas' | 'seo' | 'integracoes';
 
 const NAV_ITEMS: { id: AdminTab; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'cupons', label: 'Cupons', icon: Ticket },
   { id: 'integracoes', label: 'Integrações', icon: Plug },
   { id: 'lojas', label: 'Lojas', icon: Store },
-  { id: 'blog', label: 'Blog', icon: BookOpen },
   { id: 'seo', label: 'SEO & Config', icon: Settings },
 ];
 
@@ -33,6 +32,9 @@ export function AdminSidebar({ activeTab, onTabChange, onLogout, variant = 'desk
             <Icon className="h-4 w-4" />{label}
           </button>
         ))}
+        <a href="/adminblog" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+          <BookOpen className="h-4 w-4" /> Blog <ExternalLink className="ml-auto h-3 w-3 opacity-50" />
+        </a>
       </nav>
       <div className="border-t border-border p-3">
         <Button variant="ghost" size="sm" onClick={onLogout} className="w-full justify-start gap-2 text-muted-foreground"><LogOut className="h-4 w-4" /> Sair</Button>
