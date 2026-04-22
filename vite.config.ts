@@ -10,9 +10,9 @@ const SUPABASE_URL = "https://jyvmrkykukialdbcebei.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dm1ya3lrdWtpYWxkYmNlYmVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMTAwOTgsImV4cCI6MjA5MTY4NjA5OH0.F7cTOv6Z5cEEPWzQT9gSb2drsZksdY6Xc7erAyXB_K8";
 
 /**
- * Busca as lojas do banco de dados e já as formata com prioridade 0.7
+ * Busca apenas os slugs (strings) das lojas
  */
-async function getSitemapRoutes() {
+async function getStoreSlugs() {
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?select=slug&active=eq.true&limit=1000`, {
       headers: {
@@ -24,24 +24,18 @@ async function getSitemapRoutes() {
     if (!response.ok) return [];
     
     const data = await response.json();
+    const slugs = data.map((s: { slug: string }) => `/desconto/${s.slug}`);
     
-    // Mapeia as lojas para o formato de objeto que o plugin de sitemap exige
-    const storeRoutes = data.map((s: { slug: string }) => ({
-      url: `/desconto/${s.slug}`,
-      changefreq: 'weekly',
-      priority: 0.7
-    }));
-
-    console.log(`\n[Sitemap Build] ${storeRoutes.length} lojas carregadas com prioridade 0.7`);
-    return storeRoutes;
+    console.log(`\n[Sitemap] ${slugs.length} lojas encontradas.`);
+    return slugs;
   } catch (e) {
-    console.error("Erro ao buscar lojas para o sitemap:", e);
+    console.error("Erro ao buscar lojas:", e);
     return [];
   }
 }
 
 export default defineConfig(async () => {
-  const dynamicStoreRoutes = await getSitemapRoutes();
+  const storeSlugs = await getStoreSlugs();
 
   return {
     base: '/',
@@ -58,14 +52,36 @@ export default defineConfig(async () => {
         exclude: ['/404', '/admin', '/admin/login'],
         readable: true,
         generateRobotsTxt: true,
-        // Injetamos todas as rotas (estáticas + dinâmicas) com suas configurações explícitas
+        // Voltamos para array de STRINGS simples
         routes: [
-          { url: '/', changefreq: 'daily', priority: 1.0 },
-          { url: '/lojas', changefreq: 'weekly', priority: 0.8 },
-          { url: '/cupons', changefreq: 'weekly', priority: 0.8 },
-          { url: '/blog', changefreq: 'monthly', priority: 0.5 },
-          ...dynamicStoreRoutes // Aqui entram as lojas com prioridade 0.7
+          '/lojas',
+          '/cupons',
+          '/blog',
         ],
+        dynamicRoutes: storeSlugs,
+        // Agora aplicamos a prioridade baseada no texto da URL final
+        modifyRouteData: (data) => {
+          const url = data.url;
+
+          if (url.endsWith('.com.br/')) {
+            data.priority = 1.0;
+            data.changefreq = 'daily';
+          } 
+          else if (url.includes('/lojas') || url.includes('/cupons')) {
+            data.priority = 0.8;
+            data.changefreq = 'weekly';
+          } 
+          else if (url.includes('/desconto/')) {
+            data.priority = 0.7;
+            data.changefreq = 'weekly';
+          } 
+          else if (url.includes('/blog')) {
+            data.priority = 0.5;
+            data.changefreq = 'monthly';
+          }
+
+          return data;
+        },
         robots: [{
           userAgent: '*',
           allow: '/',
