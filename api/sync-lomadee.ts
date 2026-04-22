@@ -2,6 +2,26 @@
 // Usa REST API do Supabase diretamente (sem @supabase/supabase-js) pois o pacote ws
 // (dependência do realtime-js) falha na inicialização em funções serverless em gru1.
 
+import https from 'https';
+
+// Usa https nativo (não undici/fetch) para evitar problemas de TLS com api.lomadee.com
+function httpsGetJson(url: string): Promise<{ ok: boolean; status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
+      },
+    }, (res) => {
+      let body = '';
+      res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
+    });
+    req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
+    req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
+  });
+}
+
 // ── Supabase REST helper ───────────────────────────────────────────────────────
 
 class DB {
@@ -167,17 +187,21 @@ export default async function handler(req: any, res: any): Promise<void> {
 
     while (page <= totalPages) {
       const url = `${baseUrl}/${sourceId}/coupon/_all?token=${token}&sourceId=${sourceId}&page=${page}&pageSize=${pageSize}`;
-      let res: globalThis.Response;
+      let responseText: string;
+      let responseOk: boolean;
+      let responseStatus: number;
       try {
-        res = await fetch(url, { headers: { Accept: 'application/json' } });
+        const r = await httpsGetJson(url);
+        responseText = r.text;
+        responseOk = r.ok;
+        responseStatus = r.status;
       } catch (e: any) {
         errors.push(`Fetch error p${page}: ${e.message}`);
         break;
       }
 
-      const responseText = await res.text();
-      if (!res.ok) {
-        errors.push(`API error p${page}: ${res.status} ${responseText.slice(0, 200)}`);
+      if (!responseOk) {
+        errors.push(`API error p${page}: ${responseStatus} ${responseText.slice(0, 200)}`);
         break;
       }
 
