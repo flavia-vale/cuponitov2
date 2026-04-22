@@ -10,6 +10,7 @@ const corsHeaders = {
 const PROVIDER_FUNCTION_MAP: Record<string, string> = {
   awin: 'sync-awin',
   lomadee: 'sync-lomadee',
+  rakuten: 'sync-rakuten',
 }
 
 serve(async (req) => {
