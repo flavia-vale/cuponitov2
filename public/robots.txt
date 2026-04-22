@@ -17,4 +17,4 @@ Disallow: /
 User-agent: DotBot
 Disallow: /
 
-Sitemap: https://cuponito.com.br/sitemap.xml
+Sitemap: https://www.cuponito.com.br/sitemap.xml

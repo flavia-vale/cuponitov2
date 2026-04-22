@@ -6,7 +6,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const BASE_URL = 'https://cuponito.com.br'
+const BASE_URL = 'https://www.cuponito.com.br'
 
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return new Date().toISOString().split('T')[0]
