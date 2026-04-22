@@ -5,16 +5,15 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import sitemap from 'vite-plugin-sitemap';
 
-// Configurações do Supabase para busca em tempo de build
+// Configurações do Supabase
 const SUPABASE_URL = "https://jyvmrkykukialdbcebei.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dm1ya3lrdWtpYWxkYmNlYmVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMTAwOTgsImV4cCI6MjA5MTY4NjA5OH0.F7cTOv6Z5cEEPWzQT9gSb2drsZksdY6Xc7erAyXB_K8";
 
 /**
- * Busca os slugs das lojas diretamente da API do Supabase
+ * Busca as lojas do banco de dados e já as formata com prioridade 0.7
  */
-async function getStoreSlugs() {
+async function getSitemapRoutes() {
   try {
-    // Buscamos todas as lojas ativas com limite de 1000 para garantir que pegamos tudo
     const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?select=slug&active=eq.true&limit=1000`, {
       headers: {
         'apikey': SUPABASE_KEY,
@@ -25,18 +24,24 @@ async function getStoreSlugs() {
     if (!response.ok) return [];
     
     const data = await response.json();
-    const slugs = data.map((s: { slug: string }) => `/desconto/${s.slug}`);
     
-    console.log(`\n[Sitemap Build] Total de lojas encontradas: ${slugs.length}`);
-    return slugs;
+    // Mapeia as lojas para o formato de objeto que o plugin de sitemap exige
+    const storeRoutes = data.map((s: { slug: string }) => ({
+      url: `/desconto/${s.slug}`,
+      changefreq: 'weekly',
+      priority: 0.7
+    }));
+
+    console.log(`\n[Sitemap Build] ${storeRoutes.length} lojas carregadas com prioridade 0.7`);
+    return storeRoutes;
   } catch (e) {
-    console.error("Erro ao buscar slugs para o sitemap:", e);
+    console.error("Erro ao buscar lojas para o sitemap:", e);
     return [];
   }
 }
 
 export default defineConfig(async () => {
-  const storeRoutes = await getStoreSlugs();
+  const dynamicStoreRoutes = await getSitemapRoutes();
 
   return {
     base: '/',
@@ -51,40 +56,16 @@ export default defineConfig(async () => {
       sitemap({
         hostname: 'https://cuponito.com.br',
         exclude: ['/404', '/admin', '/admin/login'],
-        // Rotas estáticas base
-        routes: [
-          '/',
-          '/lojas',
-          '/cupons',
-          '/blog',
-        ],
-        dynamicRoutes: storeRoutes,
-        modifyRouteData: (data) => {
-          // Extrai o caminho da URL (ex: /desconto/loja) independente do domínio
-          const urlObj = new URL(data.url);
-          const path = urlObj.pathname;
-
-          // Regras de Prioridade e Frequência
-          if (path === '/' || path === '/index.html') {
-            data.priority = 1.0;
-            data.changefreq = 'daily';
-          } 
-          else if (path === '/lojas' || path === '/cupons') {
-            data.priority = 0.8;
-            data.changefreq = 'weekly';
-          } 
-          else if (path.includes('/desconto/')) {
-            data.priority = 0.7;
-            data.changefreq = 'weekly';
-          } 
-          else if (path === '/blog' || path.includes('/blog')) {
-            data.priority = 0.5;
-            data.changefreq = 'monthly';
-          }
-          
-          return data;
-        },
+        readable: true,
         generateRobotsTxt: true,
+        // Injetamos todas as rotas (estáticas + dinâmicas) com suas configurações explícitas
+        routes: [
+          { url: '/', changefreq: 'daily', priority: 1.0 },
+          { url: '/lojas', changefreq: 'weekly', priority: 0.8 },
+          { url: '/cupons', changefreq: 'weekly', priority: 0.8 },
+          { url: '/blog', changefreq: 'monthly', priority: 0.5 },
+          ...dynamicStoreRoutes // Aqui entram as lojas com prioridade 0.7
+        ],
         robots: [{
           userAgent: '*',
           allow: '/',
