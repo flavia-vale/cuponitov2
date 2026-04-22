@@ -4,64 +4,20 @@
 
 import https from 'https';
 
-// Resolve hostname via Google DNS-over-HTTPS, bypassando o resolver da Vercel que não resolve api.lomadee.com
-function resolveViaDoh(hostname: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const req = https.get(
-      `https://dns.google/resolve?name=${encodeURIComponent(hostname)}&type=A`,
-      { headers: { Accept: 'application/dns-json' } },
-      (res) => {
-        let body = '';
-        res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
-        res.on('end', () => {
-          try {
-            const data = JSON.parse(body);
-            const ip: string | undefined = data.Answer?.find((a: any) => a.type === 1)?.data;
-            if (ip) resolve(ip);
-            else reject(new Error(`DoH: sem registro A para ${hostname} (status ${data.Status})`));
-          } catch (e) { reject(e); }
-        });
-      }
-    );
-    req.setTimeout(10_000, () => { req.destroy(new Error('DoH timeout')); });
-    req.on('error', reject);
-  });
-}
-
-// Faz GET HTTPS conectando ao IP resolvido via DoH, usando SNI/Host corretos para TLS
 function httpsGetJson(url: string): Promise<{ ok: boolean; status: number; text: string }> {
   return new Promise((resolve, reject) => {
-    (async () => {
-      const urlObj = new URL(url);
-      const hostname = urlObj.hostname;
-
-      let connectIp: string;
-      try {
-        connectIp = await resolveViaDoh(hostname);
-      } catch (e: any) {
-        reject(new Error(`DoH failed: ${e.message}`));
-        return;
-      }
-
-      const req = https.request({
-        hostname: connectIp,        // conecta ao IP diretamente
-        path: urlObj.pathname + urlObj.search,
-        method: 'GET',
-        servername: hostname,       // SNI correto para validação do certificado TLS
-        headers: {
-          Host: hostname,
-          Accept: 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
-        },
-      }, (res) => {
-        let body = '';
-        res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
-        res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
-      });
-      req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
-      req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
-      req.end();
-    })();
+    const req = https.get(url, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
+      },
+    }, (res) => {
+      let body = '';
+      res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
+    });
+    req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
+    req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
   });
 }
 
@@ -221,7 +177,7 @@ export default async function handler(req: any, res: any): Promise<void> {
 
     const token = lomadeeToken;
     const sourceId = account.publisher_id;
-    const baseUrl = account.integration_providers?.base_url || 'https://api.lomadee.com/v3';
+    const baseUrl = account.integration_providers?.base_url || 'https://api.lomadee.com.br/v3';
     const pageSize = 100;
     const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0 };
     const errors: string[] = [];

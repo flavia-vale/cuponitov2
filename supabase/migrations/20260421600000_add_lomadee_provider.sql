@@ -3,7 +3,7 @@ INSERT INTO public.integration_providers (name, slug, base_url, auth_type, notes
 VALUES (
   'Lomadee',
   'lomadee',
-  'https://api.lomadee.com/v3',
+  'https://api.lomadee.com.br/v3',
   'token',
   'Rede de afiliados Lomadee — usa sourceId (publisher_id) + appToken'
 )
