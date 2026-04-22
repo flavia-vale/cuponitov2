@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_accounts: {
+        Row: {
+          active: boolean | null
+          api_token: string | null
+          created_at: string | null
+          extra_config: Json
+          id: string
+          name: string
+          provider_id: string | null
+          publisher_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          api_token?: string | null
+          created_at?: string | null
+          extra_config?: Json
+          id?: string
+          name: string
+          provider_id?: string | null
+          publisher_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          api_token?: string | null
+          created_at?: string | null
+          extra_config?: Json
+          id?: string
+          name?: string
+          provider_id?: string | null
+          publisher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_accounts_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "integration_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_authors: {
         Row: {
           avatar_url: string
@@ -142,55 +186,209 @@ export type Database = {
       }
       coupons: {
         Row: {
+          awin_promotion_id: string | null
           category: string
           code: string | null
           created_at: string
           description: string
           discount: string
-          expiry: string
+          expiry: string | null
+          expiry_text: string
           id: string
           is_featured: boolean
           is_flash: boolean
           link: string
+          publisher_id: string | null
+          start_date: string | null
           status: boolean
           store: string
+          store_id: string | null
           success_rate: number
+          terms: string | null
           title: string
+          type: string | null
           updated_at: string
         }
         Insert: {
+          awin_promotion_id?: string | null
           category?: string
           code?: string | null
           created_at?: string
           description?: string
           discount?: string
-          expiry?: string
+          expiry?: string | null
+          expiry_text?: string
           id?: string
           is_featured?: boolean
           is_flash?: boolean
           link?: string
+          publisher_id?: string | null
+          start_date?: string | null
           status?: boolean
           store: string
+          store_id?: string | null
           success_rate?: number
+          terms?: string | null
           title?: string
+          type?: string | null
           updated_at?: string
         }
         Update: {
+          awin_promotion_id?: string | null
           category?: string
           code?: string | null
           created_at?: string
           description?: string
           discount?: string
-          expiry?: string
+          expiry?: string | null
+          expiry_text?: string
           id?: string
           is_featured?: boolean
           is_flash?: boolean
           link?: string
+          publisher_id?: string | null
+          start_date?: string | null
           status?: boolean
           store?: string
+          store_id?: string | null
           success_rate?: number
+          terms?: string | null
           title?: string
+          type?: string | null
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupons_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_providers: {
+        Row: {
+          active: boolean
+          auth_type: string
+          base_url: string
+          created_at: string
+          id: string
+          name: string
+          notes: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          auth_type?: string
+          base_url?: string
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          auth_type?: string
+          base_url?: string
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lomadee_store_filters: {
+        Row: {
+          account_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          lomadee_store_id: string
+          store_logo: string
+          store_name: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          lomadee_store_id: string
+          store_logo?: string
+          store_name?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          lomadee_store_id?: string
+          store_logo?: string
+          store_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lomadee_store_filters_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          awin_promotion_id: string
+          code: string | null
+          created_at: string | null
+          description: string | null
+          discount: string | null
+          expiry: string | null
+          id: string
+          link: string
+          publisher_id: string
+          status: boolean | null
+          store_name: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          awin_promotion_id: string
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount?: string | null
+          expiry?: string | null
+          id?: string
+          link: string
+          publisher_id: string
+          status?: boolean | null
+          store_name?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          awin_promotion_id?: string
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          discount?: string | null
+          expiry?: string | null
+          id?: string
+          link?: string
+          publisher_id?: string
+          status?: boolean | null
+          store_name?: string | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -220,39 +418,148 @@ export type Database = {
       }
       stores: {
         Row: {
+          active: boolean | null
+          awin_advertiser_id: number | null
           brand_color: string
           created_at: string
-          display_name: string
+          description: string
           fallback_color: string
           icon_emoji: string
           id: string
           is_featured: boolean
           logo_url: string | null
+          meta_description: string
+          name: string
           slug: string
+          store_id: number
+          updated_at: string
         }
         Insert: {
+          active?: boolean | null
+          awin_advertiser_id?: number | null
           brand_color?: string
           created_at?: string
-          display_name: string
+          description?: string
           fallback_color?: string
           icon_emoji?: string
           id?: string
           is_featured?: boolean
           logo_url?: string | null
+          meta_description?: string
+          name: string
           slug: string
+          store_id: number
+          updated_at?: string
         }
         Update: {
+          active?: boolean | null
+          awin_advertiser_id?: number | null
           brand_color?: string
           created_at?: string
-          display_name?: string
+          description?: string
           fallback_color?: string
           icon_emoji?: string
           id?: string
           is_featured?: boolean
           logo_url?: string | null
+          meta_description?: string
+          name?: string
           slug?: string
+          store_id?: number
+          updated_at?: string
         }
         Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          account_id: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          meta: Json
+          records_inserted: number
+          records_skipped: number
+          records_updated: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          account_id: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          meta?: Json
+          records_inserted?: number
+          records_skipped?: number
+          records_updated?: number
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          account_id?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          meta?: Json
+          records_inserted?: number
+          records_skipped?: number
+          records_updated?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_logs_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_schedules: {
+        Row: {
+          account_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          interval_hours: number
+          last_run_at: string | null
+          next_run_at: string
+          state: Json
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interval_hours?: number
+          last_run_at?: string | null
+          next_run_at?: string
+          state?: Json
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interval_hours?: number
+          last_run_at?: string | null
+          next_run_at?: string
+          state?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_schedules_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
