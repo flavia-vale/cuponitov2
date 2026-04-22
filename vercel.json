@@ -7,8 +7,7 @@
   ],
   "functions": {
     "api/sync-lomadee.ts": { "maxDuration": 300 },
-    "api/sitemap.ts": { "maxDuration": 10 },
-    "api/admin-setup.ts": { "maxDuration": 60 }
+    "api/sitemap.ts": { "maxDuration": 10 }
   },
   "headers": [
     {
