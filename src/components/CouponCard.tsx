@@ -50,7 +50,7 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background border border-black/5 p-2">
                 {storeBrand?.logo_url ? (
-                  <img src={storeBrand.logo_url} alt={coupon.store} className="h-full w-full object-contain" />
+                  <img src={storeBrand.logo_url} alt={`Logo da loja ${coupon.store}`} loading="lazy" className="h-full w-full object-contain" />
                 ) : (
                   <span className="text-2xl">{storeBrand?.icon_emoji || '🏷️'}</span>
                 )}
@@ -111,7 +111,7 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
           <DialogHeader className="flex flex-col items-center">
             <div className="h-16 w-16 mb-4 flex items-center justify-center rounded-2xl bg-primary/10 text-primary">
               {storeBrand?.logo_url ? (
-                <img src={storeBrand.logo_url} alt={coupon.store} className="h-10 w-10 object-contain" />
+                <img src={storeBrand.logo_url} alt={`Logo da loja ${coupon.store}`} loading="lazy" className="h-10 w-10 object-contain" />
               ) : (
                 <span className="text-3xl">{storeBrand?.icon_emoji || '🏷️'}</span>
               )}

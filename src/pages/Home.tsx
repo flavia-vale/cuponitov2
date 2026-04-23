@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, lazy, Suspense, useState, useEffect } from 'react';
+import { useMemo, lazy, Suspense, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import HeroBanner from '@/components/HeroBanner';
@@ -28,12 +28,19 @@ export default function Home() {
   const monthYear = getMonthYear();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  // Filtramos cupons inválidos/obsoletos da Home para manter a credibilidade
   const validCoupons = useMemo(() => {
     if (!coupons) return [];
     const filtered = coupons.filter(c => !isExpired(c.expiry) && !isStale(c.updated_at, c.success_rate));
     return sortCoupons(filtered);
   }, [coupons]);
+
+  const availableCategories = useMemo(() => {
+    const counts: Record<string, number> = {};
+    validCoupons.forEach(c => {
+      if (c.category) counts[c.category] = (counts[c.category] || 0) + 1;
+    });
+    return Object.keys(counts).filter(cat => counts[cat] > 0 && cat !== 'Geral' && cat !== 'Ofertas no link');
+  }, [validCoupons]);
 
   const featuredCoupons = useMemo(() => {
     const starred = validCoupons.filter(c => c.is_featured);
@@ -88,7 +95,7 @@ export default function Home() {
       <UrgencyBanner />
 
       <main className="relative z-10 space-y-2 pb-12">
-        <CategoryScroll onSelect={setActiveCategory} />
+        <CategoryScroll onSelect={setActiveCategory} availableCategories={availableCategories} />
 
         <section className="mx-auto max-w-6xl overflow-hidden px-4">
           <div className="mb-4 flex items-center justify-between">

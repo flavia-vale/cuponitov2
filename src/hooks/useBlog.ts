@@ -111,3 +111,42 @@ export function useIncrementBlogViews() {
     },
   });
 }
+
+export interface BannerClickRow {
+  id: string;
+  post_id: string;
+  banner_url: string;
+  link_url: string;
+  created_at: string;
+}
+
+export interface BannerItem {
+  banner_url: string;
+  link_url: string;
+}
+
+export function useLogBannerClick() {
+  return useMutation({
+    mutationFn: async ({ postId, bannerUrl, linkUrl }: { postId: string; bannerUrl: string; linkUrl: string }) => {
+      const { error } = await supabase
+        .from('banner_clicks')
+        .insert({ post_id: postId, banner_url: bannerUrl, link_url: linkUrl });
+      if (error) throw error;
+    },
+  });
+}
+
+export function useBannerStats() {
+  return useQuery<BannerClickRow[]>({
+    queryKey: ['banner-clicks-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('banner_clicks')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []) as BannerClickRow[];
+    },
+    staleTime: 60 * 1000,
+  });
+}

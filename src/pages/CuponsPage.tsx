@@ -59,9 +59,11 @@ export default function CuponsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
-      <SEOHead 
-        title="Todos os cupons de desconto verificados | Cuponito" 
-        description="Encontre cupons e ofertas verificados das melhores lojas. Economize agora com códigos atualizados hoje." 
+      <SEOHead
+        title="Cupons de Desconto Verificados {month_year} | Cuponito"
+        description="Encontre cupons e ofertas verificados das melhores lojas. Códigos atualizados hoje — Amazon, Shopee, Mercado Livre e muito mais."
+        canonical="https://www.cuponito.com.br/cupons"
+        jsonLdRoute={{ type: 'cupons' }}
       />
       <Header />
 

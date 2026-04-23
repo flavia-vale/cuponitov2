@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Search, User } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const Header = () => (
   <header className="w-full bg-[#FF4D00] sticky top-0 z-50 shadow-md h-[54px]">
@@ -8,19 +8,19 @@ const Header = () => (
         <span className="text-xl tracking-tight">cuponito<span className="text-[#FFD166]">.</span></span>
       </Link>
 
-      <nav className="hidden md:flex items-center gap-5 ml-8 text-xs text-white/85">
-        <Link to="/lojas" className="hover:text-white transition-colors">Lojas</Link>
-        <Link to="/" hash="categorias" className="hover:text-white transition-colors">Categorias</Link>
+      <nav className="flex items-center gap-3 sm:gap-5 ml-4 sm:ml-8 text-[10px] sm:text-xs text-white/85">
+        <Link to="/lojas" className="hover:text-white transition-colors font-medium">Lojas</Link>
+        <Link to="/" hash="categorias" className="hover:text-white transition-colors font-medium">Categorias</Link>
         <Link
           to="/blog"
-          className="bg-white/15 border border-white/30 rounded-[14px] px-[11px] py-1 text-[#FFD166] font-semibold hover:text-white transition-colors"
+          className="bg-[#FFD166] text-[#1a1a1a] border-none rounded-[14px] px-[10px] py-1 font-black hover:bg-white transition-colors shadow-sm"
         >
           ✍ Blog
         </Link>
       </nav>
 
       <div className="flex items-center gap-2.5 ml-auto">
-        <div className="relative hidden sm:block">
+        <div className="relative hidden lg:block">
           <input 
             type="text" 
             placeholder="Buscar loja ou cupom..." 
@@ -28,9 +28,6 @@ const Header = () => (
           />
           <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60" />
         </div>
-        <button className="bg-white/20 border border-white/35 text-white text-[11px] px-[13px] py-1.5 rounded-[20px] font-medium hover:bg-white/30 transition-all flex items-center gap-1.5">
-          <User size={12} /> Entrar
-        </button>
       </div>
     </div>
   </header>

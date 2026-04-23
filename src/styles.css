@@ -33,6 +33,30 @@
     font-weight: 400;
   }
 
+  /* Ensure all interactive elements show the pointer cursor */
+  a, 
+  button, 
+  [role="button"],
+  [role="link"],
+  [role="checkbox"],
+  [role="menuitem"],
+  [role="tab"],
+  [role="switch"],
+  [role="radio"],
+  [role="slider"],
+  [role="combobox"],
+  [role="listbox"],
+  [role="option"],
+  .cursor-pointer {
+    cursor: pointer !important;
+  }
+
+  button:disabled,
+  [disabled],
+  [aria-disabled="true"] {
+    cursor: not-allowed !important;
+  }
+
   h1 { @apply text-foreground font-semibold; font-size: var(--font-size-h1); }
   h2 { @apply text-foreground font-semibold; font-size: var(--font-size-h2); }
   h3 { @apply font-semibold text-primary; font-size: var(--font-size-h3); }

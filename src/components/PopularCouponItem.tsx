@@ -15,7 +15,8 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
   const [copied, setCopied] = useState(false);
   const brandColor = storeBrand?.brand_color || '#94a3b8';
 
-  const handleAction = () => {
+  const handleAction = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (coupon.code) {
       navigator.clipboard.writeText(coupon.code);
       setCopied(true);
@@ -28,7 +29,10 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
   const hasCode = Boolean(coupon.code);
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border bg-white p-3 sm:p-4 transition-all hover:shadow-md">
+    <div 
+      onClick={() => handleAction()}
+      className="flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-white p-3 sm:p-4 transition-all hover:shadow-md hover:border-primary/20"
+    >
       <StoreIcon
         name={coupon.store}
         brandColor={brandColor}
