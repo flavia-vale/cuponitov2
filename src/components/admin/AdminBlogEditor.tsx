@@ -178,6 +178,17 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
             />
           </div>
 
+          {/* Keywords */}
+          <div>
+            <label className="mb-1 block text-xs font-bold uppercase text-muted-foreground">Palavras-chave</label>
+            <Input
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+              placeholder="palavra1, palavra2, palavra3"
+              className="h-10 text-sm"
+            />
+          </div>
+
           {/* Content */}
           <div>
             <label className="mb-1 block text-xs font-bold uppercase text-muted-foreground">Conteúdo</label>
@@ -318,15 +329,6 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                   placeholder="Descrição para mecanismos de busca"
                   maxLength={170}
                   className="min-h-[72px] text-xs resize-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Palavras-chave</label>
-                <Input
-                  value={keywords}
-                  onChange={(e) => setKeywords(e.target.value)}
-                  placeholder="palavra1, palavra2, palavra3"
-                  className="h-9 text-xs"
                 />
               </div>
             </CardContent>
