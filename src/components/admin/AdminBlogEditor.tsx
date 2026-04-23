@@ -1,132 +1,72 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, Upload, X, Plus, Link as LinkIcon, ExternalLink, Check } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Link as LinkIcon, ExternalLink, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TipTapEditor } from './TipTapEditor';
-import { useAdminPosts, type Post } from '@/hooks/usePosts';
+import { useAdminBlogPosts, useBlogCategories, useBlogAuthors, type BlogPost } from '@/hooks/useBlog';
 import { cn } from '@/lib/utils';
 
-interface BannerItem { url: string; link: string }
-
 interface Props {
-  post?: Post | null;
+  post?: BlogPost | null;
   onSave: () => void;
   onCancel: () => void;
 }
 
 function slugify(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
-async function uploadToBlog(file: File, folder: 'covers' | 'banners'): Promise<string> {
-  const ext = file.name.split('.').pop();
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase.storage.from('blog').upload(path, file, { cacheControl: '3600', upsert: false });
-  if (error) throw error;
-  return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl;
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
-  const { data: allPosts = [] } = useAdminPosts();
+  const { data: allPosts = [] } = useAdminBlogPosts();
+  const { data: categories = [] } = useBlogCategories();
+  const { data: authors = [] } = useBlogAuthors();
 
   const [title, setTitle] = useState(post?.title ?? '');
   const [slug, setSlug] = useState(post?.slug ?? '');
   const [slugManual, setSlugManual] = useState(!!post);
-  const [metaDescription, setMetaDescription] = useState(post?.meta_description ?? '');
-  const [keywords, setKeywords] = useState(post?.keywords ?? '');
+  const [summary, setSummary] = useState(post?.meta_description ?? post?.excerpt ?? '');
   const [content, setContent] = useState(post?.content ?? '');
-  const [coverUrl, setCoverUrl] = useState(post?.cover_url ?? '');
-  const [category, setCategory] = useState(post?.category ?? '');
-  const [author, setAuthor] = useState(post?.author ?? '');
-  const [status, setStatus] = useState(post?.status ?? false);
-  const [banners, setBanners] = useState<BannerItem[]>(() => {
-    const raw = post?.images_json;
-    if (Array.isArray(raw)) return raw as BannerItem[];
-    return [];
-  });
-  const [relatedIds, setRelatedIds] = useState<string[]>(post?.related_post_ids ?? []);
-  const [relatedSearch, setRelatedSearch] = useState('');
-
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingBannerIdx, setUploadingBannerIdx] = useState<number | null>(null);
+  const [coverUrl, setCoverUrl] = useState(post?.cover_image ?? '');
+  const [categoryId, setCategoryId] = useState(post?.category_id ?? '');
+  const [authorId, setAuthorId] = useState(post?.author_id ?? '');
+  const [isPublished, setIsPublished] = useState(post?.status === 'published');
   const [saving, setSaving] = useState(false);
-
-  const coverInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!slugManual && title) setSlug(slugify(title));
   }, [title, slugManual]);
 
-  const handleCoverUpload = async (file: File) => {
-    setUploadingCover(true);
-    try {
-      const url = await uploadToBlog(file, 'covers');
-      setCoverUrl(url);
-      toast({ title: 'Capa enviada!' });
-    } catch (e: any) {
-      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
-    } finally {
-      setUploadingCover(false);
-    }
-  };
-
-  const addBanner = () => setBanners((prev) => [...prev, { url: '', link: '' }]);
-  const removeBanner = (idx: number) => setBanners((prev) => prev.filter((_, i) => i !== idx));
-  const updateBanner = (idx: number, field: keyof BannerItem, value: string) =>
-    setBanners((prev) => prev.map((b, i) => (i === idx ? { ...b, [field]: value } : b)));
-
-  const handleBannerUpload = async (idx: number, file: File) => {
-    setUploadingBannerIdx(idx);
-    try {
-      const url = await uploadToBlog(file, 'banners');
-      updateBanner(idx, 'url', url);
-      toast({ title: 'Banner enviado!' });
-    } catch (e: any) {
-      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
-    } finally {
-      setUploadingBannerIdx(null);
-    }
-  };
-
-  const toggleRelated = (id: string) =>
-    setRelatedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
-  const filteredPosts = allPosts.filter(
-    (p) => p.id !== post?.id && p.title.toLowerCase().includes(relatedSearch.toLowerCase()),
-  );
-
   const handleSave = async () => {
-    if (!slug) {
-      toast({ title: 'Slug é obrigatório', variant: 'destructive' });
+    if (!title || !slug) {
+      toast({ title: 'Título e Slug são obrigatórios', variant: 'destructive' });
       return;
     }
     setSaving(true);
+    
     const payload = {
       title,
       slug,
-      meta_description: metaDescription,
-      keywords,
+      meta_title: title,
+      meta_description: summary,
+      excerpt: summary,
       content,
-      cover_url: coverUrl,
-      category,
-      author,
-      status,
-      images_json: banners,
-      related_post_ids: relatedIds,
+      cover_image: coverUrl,
+      category_id: categoryId || null,
+      author_id: authorId || null,
+      status: isPublished ? 'published' : 'draft',
+      updated_at: new Date().toISOString(),
     };
+
     const { error } = post
-      ? await supabase.from('posts').update(payload).eq('id', post.id)
-      : await supabase.from('posts').insert(payload);
+      ? await supabase.from('blog_posts').update(payload).eq('id', post.id)
+      : await supabase.from('blog_posts').insert([payload]);
+
     setSaving(false);
     if (error) {
       toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
@@ -138,14 +78,14 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
 
   return (
     <div className="space-y-6 pb-20">
-      {/* Header Fixo */}
-      <div className="sticky top-0 z-50 -mx-4 bg-background/95 px-4 py-3 backdrop-blur-sm border-b border-border flex items-center gap-3">
+      {/* BARRA FIXA SUPERIOR */}
+      <div className="sticky top-0 z-50 -mx-4 bg-background/95 px-4 py-3 backdrop-blur-md border-b border-border flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onCancel}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1 min-w-0">
           <h1 className="truncate text-sm font-bold text-foreground">
-            {post ? `Editando: ${title}` : 'Novo Post'}
+            {post ? `Editando: ${title}` : 'Novo Artigo'}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -167,11 +107,9 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row">
-        {/* Coluna Principal */}
         <div className="flex-1 space-y-6 min-w-0">
           <Card>
             <CardContent className="pt-6 space-y-4">
-              {/* Título Único */}
               <div>
                 <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-muted-foreground">Título do Artigo</label>
                 <Input
@@ -182,14 +120,13 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                 />
               </div>
 
-              {/* Resumo / Meta Description Único */}
               <div>
                 <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                  Resumo / Meta Description ({metaDescription.length}/160)
+                  Resumo / Meta Description ({summary.length}/160)
                 </label>
                 <Textarea
-                  value={metaDescription}
-                  onChange={(e) => setMetaDescription(e.target.value)}
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
                   placeholder="Breve resumo para o Google e listagens..."
                   maxLength={170}
                   className="min-h-[80px] resize-none border-none bg-muted/30 focus-visible:ring-primary/20 text-sm"
@@ -198,85 +135,46 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
             </CardContent>
           </Card>
 
-          {/* Editor de Conteúdo */}
           <div className="space-y-2">
             <label className="block text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">Conteúdo do Post</label>
             <TipTapEditor content={content} onChange={setContent} />
           </div>
-
-          {/* Seletor Visual de Relacionados */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground">Posts Relacionados</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="relative">
-                <Input
-                  value={relatedSearch}
-                  onChange={(e) => setRelatedSearch(e.target.value)}
-                  placeholder="Buscar posts para relacionar..."
-                  className="h-10 pl-9 text-sm bg-muted/20"
-                />
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
-                {filteredPosts.map((p) => {
-                  const isSelected = relatedIds.includes(p.id);
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => toggleRelated(p.id)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-xl border p-3 text-left transition-all hover:border-primary/40",
-                        isSelected ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20" : "bg-card border-border"
-                      )}
-                    >
-                      <div className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors",
-                        isSelected ? "bg-primary border-primary text-white" : "border-muted-foreground/30"
-                      )}>
-                        {isSelected && <Check className="h-3 w-3" />}
-                      </div>
-                      <span className={cn("truncate text-xs font-medium", isSelected ? "text-primary" : "text-foreground")}>
-                        {p.title || 'Sem título'}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Sidebar */}
         <div className="w-full shrink-0 space-y-6 lg:w-80">
-          {/* Configurações Rápidas */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-foreground">Status do Post</span>
-                  <p className="text-[10px] text-muted-foreground">{status ? 'Publicado e visível' : 'Salvo como rascunho'}</p>
+                  <span className="text-xs font-bold text-foreground">Publicar Post</span>
+                  <p className="text-[10px] text-muted-foreground">{isPublished ? 'Visível no site' : 'Salvo como rascunho'}</p>
                 </div>
-                <Switch checked={status} onCheckedChange={setStatus} />
+                <Switch checked={isPublished} onCheckedChange={setIsPublished} />
               </div>
               
               <div className="pt-4 border-t border-border space-y-3">
                 <div>
                   <label className="mb-1 block text-[10px] font-black uppercase text-muted-foreground">Categoria</label>
-                  <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Ex: Tecnologia" className="h-9 text-xs" />
+                  <Select value={categoryId} onValueChange={setCategoryId}>
+                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="mb-1 block text-[10px] font-black uppercase text-muted-foreground">Autor</label>
-                  <Input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Nome do autor" className="h-9 text-xs" />
+                  <Select value={authorId} onValueChange={setAuthorId}>
+                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {authors.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Imagem de Capa */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Imagem de Destaque</CardTitle>
@@ -292,52 +190,29 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                   </div>
                 </div>
               ) : (
-                <label className="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/20 transition hover:border-primary/40 hover:bg-primary/5">
+                <div className="flex aspect-video w-full items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/20">
                   <Upload className="h-6 w-6 text-muted-foreground" />
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {uploadingCover ? 'Enviando...' : 'Upload da Capa'}
-                  </span>
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
-                  />
-                </label>
+                </div>
               )}
               <Input
                 value={coverUrl}
                 onChange={(e) => setCoverUrl(e.target.value)}
-                placeholder="Ou cole a URL da imagem"
+                placeholder="URL da imagem..."
                 className="h-8 text-[10px] font-mono"
               />
             </CardContent>
           </Card>
 
-          {/* Slug e SEO */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">URL e SEO</CardTitle>
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">URL (Slug)</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="mb-1 block text-[10px] font-bold text-muted-foreground">Slug (URL)</label>
-                <Input
-                  value={slug}
-                  onChange={(e) => { setSlugManual(true); setSlug(e.target.value); }}
-                  className="h-8 font-mono text-[10px] bg-muted/30"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[10px] font-bold text-muted-foreground">Palavras-chave</label>
-                <Input
-                  value={keywords}
-                  onChange={(e) => setKeywords(e.target.value)}
-                  placeholder="separadas por vírgula"
-                  className="h-8 text-[10px]"
-                />
-              </div>
+            <CardContent>
+              <Input
+                value={slug}
+                onChange={(e) => { setSlugManual(true); setSlug(e.target.value); }}
+                className="h-8 font-mono text-[10px] bg-muted/30"
+              />
             </CardContent>
           </Card>
         </div>
