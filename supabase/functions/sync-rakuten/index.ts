@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
 const RESULTS_PER_PAGE = 500
-const HARDCODED_TOKEN = 'fPR2Y2X5tYkYoiJ7EIwOwjPiPJNIkGGx'
+const HARDCODED_TOKEN = 'MuUtdYgwGUo7tPsA7UGVEVrume8GXRwh'
 
 function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -112,20 +112,22 @@ serve(async (req) => {
     // Prioridade: Token vindo da Vercel (body) -> Token no Banco -> Secret do Supabase -> Hardcoded
     const token = body.rakuten_token || account.api_token || Deno.env.get('RAKUTEN_TOKEN') || HARDCODED_TOKEN
 
+    // Log de depuração mascarado
+    console.log("[sync-rakuten] Token status:", token ? `Presente (inicia com ${token.substring(0, 4)})` : "Ausente");
+
     const stats = { inserted: 0, updated: 0, skipped: 0 }
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
     
-    // Para a API de Cupons (1.0), o token deve ir APENAS na URL.
-    // O Header Authorization Bearer causa erro 401 se o token for do tipo Web Service.
+    // Parâmetros da URL (token também é aceito aqui em algumas versões da API)
     const params = new URLSearchParams({ 
-      token: token, 
       resultsperpage: String(RESULTS_PER_PAGE), 
       pagenumber: '1' 
     })
     
     const res = await fetch(`${baseUrl}?${params}`, {
       headers: { 
-        'Accept': 'application/xml'
+        'Accept': 'application/xml',
+        'Authorization': `Bearer ${token}`
       }
     })
 
