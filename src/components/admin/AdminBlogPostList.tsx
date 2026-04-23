@@ -1,4 +1,4 @@
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -21,7 +21,7 @@ export function AdminBlogPostList({ posts, onEdit, onNew, onDelete }: Props) {
         {posts.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Nenhum post criado ainda.</p> : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Status</TableHead><TableHead>Views</TableHead><TableHead>Data</TableHead><TableHead className="w-24" /></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Status</TableHead><TableHead>Views</TableHead><TableHead>Data</TableHead><TableHead className="w-32" /></TableRow></TableHeader>
               <TableBody>
                 {posts.map((post) => {
                   const st = statusLabels[post.status] || statusLabels.draft;
@@ -31,7 +31,17 @@ export function AdminBlogPostList({ posts, onEdit, onNew, onDelete }: Props) {
                       <TableCell><Badge variant={st.variant} className="text-xs">{st.label}</Badge></TableCell>
                       <TableCell className="text-sm">{post.views_count}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{post.published_at ? new Date(post.published_at).toLocaleDateString('pt-BR') : new Date(post.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell><div className="flex gap-1"><Button variant="ghost" size="icon" onClick={() => onEdit(post)}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive" onClick={() => onDelete(post.id)}><Trash2 className="h-4 w-4" /></Button></div></TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" asChild title="Ver post publicado">
+                            <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => onEdit(post)} title="Editar post"><Pencil className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => onDelete(post.id)} title="Excluir post"><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
