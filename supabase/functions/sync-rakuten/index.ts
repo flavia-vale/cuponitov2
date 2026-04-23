@@ -321,18 +321,29 @@ serve(async (req) => {
                 .single()
 
               if (storeErr) {
-                // Slug duplicado: fallback com ID do anunciante
-                const { data: retryStore } = await supabase
+                // Conflito de slug ou store_id — busca a loja já existente antes de tentar outro slug
+                const { data: existingStore } = await supabase
                   .from('stores')
-                  .insert({
-                    name: storeName,
-                    slug: `cupom-desconto-${slugify(storeName)}-${offer.advertiserId}`,
-                    store_id: offer.advertiserId,
-                    active: true,
-                  })
                   .select('id')
-                  .single()
-                store = retryStore
+                  .eq('store_id', offer.advertiserId)
+                  .maybeSingle()
+
+                if (existingStore) {
+                  store = existingStore
+                } else {
+                  // Slug duplicado com store_id diferente: fallback com ID do anunciante
+                  const { data: retryStore } = await supabase
+                    .from('stores')
+                    .insert({
+                      name: storeName,
+                      slug: `cupom-desconto-${slugify(storeName)}-${offer.advertiserId}`,
+                      store_id: offer.advertiserId,
+                      active: true,
+                    })
+                    .select('id')
+                    .single()
+                  store = retryStore
+                }
               } else {
                 store = newStore
                 stats.stores_created++
@@ -395,6 +406,7 @@ serve(async (req) => {
                   title: couponData.title,
                   description: couponData.description,
                   code: couponData.code,
+                  type: couponData.type,
                   link: couponData.link,
                   discount: couponData.discount,
                   expiry: couponData.expiry,
@@ -404,6 +416,7 @@ serve(async (req) => {
                   updated_at: couponData.updated_at,
                   store: couponData.store,
                   store_id: couponData.store_id,
+                  category: couponData.category,
                 })
                 .eq('awin_promotion_id', couponData.awin_promotion_id)
               if (!error) stats.updated++; else stats.skipped++

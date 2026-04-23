@@ -260,8 +260,14 @@ export default async function handler(req: any, res: any): Promise<void> {
                   db.invokeFunction(supabaseUrl, 'enrich-store', { store_id: storeDbId });
                 }
               } catch {
-                const retry = await db.insert<{ id: string }>('stores', { name: storeName, slug: `${slug}-${storeExtId}`, store_id: storeExtId, active: true }).catch(() => null);
-                storeDbId = retry?.id ?? null;
+                // Conflito de slug ou store_id — busca a loja já existente antes de tentar outro slug
+                const existing = await db.select<{ id: string }>('stores', `store_id=eq.${storeExtId}&select=id`).catch(() => []);
+                if (existing.length > 0) {
+                  storeDbId = existing[0].id;
+                } else {
+                  const retry = await db.insert<{ id: string }>('stores', { name: storeName, slug: `${slug}-${storeExtId}`, store_id: storeExtId, active: true }).catch(() => null);
+                  storeDbId = retry?.id ?? null;
+                }
               }
             }
           } catch { /* ignora erro de loja */ }
@@ -279,9 +285,11 @@ export default async function handler(req: any, res: any): Promise<void> {
           const couponData = {
             store_id: storeDbId,
             store: storeName,
+            publisher_id: account.publisher_id,
             title: coupon.description ?? coupon.title ?? 'Oferta Especial',
             description: coupon.description ?? '',
             code,
+            type: code ? 'voucher' : 'deal',
             discount: coupon.discount ?? '',
             link,
             expiry: expiryDate ? expiryDate.toISOString() : null,
@@ -303,11 +311,12 @@ export default async function handler(req: any, res: any): Promise<void> {
             } else {
               await db.update('coupons', {
                 title: couponData.title, description: couponData.description,
-                code: couponData.code, discount: couponData.discount,
+                code: couponData.code, type: couponData.type,
+                discount: couponData.discount,
                 link: couponData.link, expiry: couponData.expiry,
                 expiry_text: couponData.expiry_text, status: couponData.status,
                 updated_at: couponData.updated_at, store: couponData.store,
-                store_id: couponData.store_id,
+                store_id: couponData.store_id, category: couponData.category,
               }, `awin_promotion_id=eq.${promotionId}`);
               stats.updated++;
             }
