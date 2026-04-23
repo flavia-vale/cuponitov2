@@ -115,16 +115,22 @@ serve(async (req) => {
     const stats = { inserted: 0, updated: 0, skipped: 0 }
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
     
-    const params = new URLSearchParams({ token, resultsperpage: String(RESULTS_PER_PAGE), pagenumber: '1' })
+    // Para a API de Cupons (1.0), o token deve ir APENAS na URL.
+    // O Header Authorization Bearer causa erro 401 se o token for do tipo Web Service.
+    const params = new URLSearchParams({ 
+      token: token, 
+      resultsperpage: String(RESULTS_PER_PAGE), 
+      pagenumber: '1' 
+    })
+    
     const res = await fetch(`${baseUrl}?${params}`, {
       headers: { 
-        'Accept': 'application/xml',
-        'Authorization': `Bearer ${token}`
+        'Accept': 'application/xml'
       }
     })
 
     const responseText = await res.text()
-    if (!res.ok) throw new Error(`Erro API Rakuten: ${res.status} - ${responseText.slice(0, 100)}`)
+    if (!res.ok) throw new Error(`Erro API Rakuten: ${res.status} - ${responseText.slice(0, 150)}`)
 
     const { offers } = parseRakutenResponse(responseText)
 
