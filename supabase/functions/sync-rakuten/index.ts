@@ -275,6 +275,15 @@ serve(async (req) => {
           break
         }
 
+        // Detecta erro retornado como JSON (ex: {"code":"UNAUTHORIZED_...","message":"..."})
+        if (responseText.trimStart().startsWith('{') || responseText.trimStart().startsWith('[')) {
+          let jsonErr: Record<string, string> = {}
+          try { jsonErr = JSON.parse(responseText) } catch { /* noop */ }
+          const msg = jsonErr.message || jsonErr.error || responseText.slice(0, 200)
+          errors.push(`API error: ${jsonErr.code ? `[${jsonErr.code}] ` : ''}${msg}`)
+          break
+        }
+
         // Detecta erro retornado como XML (ex: <error>Invalid token</error>)
         if (/<error[^>]*>/i.test(responseText) && !/<link>/i.test(responseText)) {
           const errMsg = xmlText(responseText, 'error') || xmlText(responseText, 'message')

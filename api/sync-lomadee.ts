@@ -175,7 +175,8 @@ export default async function handler(req: any, res: any): Promise<void> {
       for (const f of filters) disabledStoreIds.add(f.lomadee_store_id);
     } catch { /* sem filtros = permite tudo */ }
 
-    const token = lomadeeToken;
+    // api_token no banco tem prioridade; fallback para LOMADEE_APP_TOKEN global
+    const token = account.api_token || lomadeeToken;
     const sourceId = account.publisher_id;
     const baseUrl = account.integration_providers?.base_url || 'https://api.lomadee.com.br/v3';
     const pageSize = 100;
