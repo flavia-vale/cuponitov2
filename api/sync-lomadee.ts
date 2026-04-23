@@ -4,17 +4,49 @@
 
 import https from 'https';
 
-function httpsGetJson(url: string): Promise<{ ok: boolean; status: number; text: string }> {
+// StoreIDs específicos a sincronizar via endpoint _store
+const STORE_IDS: number[] = [
+  7712, // Shein
+  6117, // Xiaomi
+  5936, // Drog. SP
+  5935, // Pacheco
+  5766, // Lenovo
+  5657, // Mobly
+  5779, // Disney
+  5684, // Mondial
+  6260, // Oceane
+  5884, // Dako
+  5885, // Continental
+  5945, // Lojas Rede
+  6100, // ChinainBox
+  6223, // Descomplica
+  7964, // AmoKarite
+  6321, // Funko
+];
+
+interface HttpResult {
+  ok: boolean;
+  status: number;
+  text: string;
+  location: string | undefined;
+}
+
+// Não segue redirects automaticamente — captura Location para debug de 307/302
+function httpsGetJson(url: string, extraHeaders?: Record<string, string>): Promise<HttpResult> {
   return new Promise((resolve, reject) => {
     const req = https.get(url, {
       headers: {
         Accept: 'application/json',
         'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
+        ...extraHeaders,
       },
     }, (res) => {
+      const status = res.statusCode ?? 0;
+      const location = res.headers['location'] as string | undefined;
       let body = '';
       res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
-      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
+      // Apenas 2xx é considerado ok; 3xx é redirect (não dados), 4xx/5xx é erro
+      res.on('end', () => resolve({ ok: status >= 200 && status < 300, status, text: body, location }));
     });
     req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
     req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
@@ -126,9 +158,9 @@ export default async function handler(req: any, res: any): Promise<void> {
 
   const supabaseUrl: string = process.env.SUPABASE_URL || body.supabase_url || '';
   const serviceRoleKey: string = process.env.SUPABASE_SERVICE_ROLE_KEY || body.service_role_key || '';
-  const lomadeeToken: string = process.env.LOMADEE_APP_TOKEN || body.lomadee_token || '';
+  const appToken: string = process.env.LOMADEE_APP_TOKEN || body.lomadee_token || '';
 
-  if (!supabaseUrl || !serviceRoleKey || !lomadeeToken) {
+  if (!supabaseUrl || !serviceRoleKey || !appToken) {
     res.status(500).json({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMADEE_APP_TOKEN' });
     return;
   }
@@ -168,159 +200,198 @@ export default async function handler(req: any, res: any): Promise<void> {
     } catch { /* ignora erro de log */ }
 
     // Lojas explicitamente desabilitadas pelo admin são ignoradas
-    // Novas lojas (não cadastradas ainda) são sempre sincronizadas e auto-registradas
     const disabledStoreIds = new Set<string>();
     try {
       const filters = await db.select('lomadee_store_filters', `account_id=eq.${account.id}&enabled=eq.false&select=lomadee_store_id`);
       for (const f of filters) disabledStoreIds.add(f.lomadee_store_id);
     } catch { /* sem filtros = permite tudo */ }
 
-    const token = lomadeeToken;
     const sourceId = account.publisher_id;
     const baseUrl = account.integration_providers?.base_url || 'https://api.lomadee.com.br/v3';
     const pageSize = 100;
     const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0 };
     const errors: string[] = [];
-    let page = 1;
-    let totalPages = 1;
 
-    while (page <= totalPages) {
-      const url = `${baseUrl}/${sourceId}/coupon/_all?token=${token}&sourceId=${sourceId}&page=${page}&pageSize=${pageSize}`;
-      let responseText: string;
-      let responseOk: boolean;
-      let responseStatus: number;
-      try {
-        const r = await httpsGetJson(url);
-        responseText = r.text;
-        responseOk = r.ok;
-        responseStatus = r.status;
-      } catch (e: any) {
-        errors.push(`Fetch error p${page}: ${e.message}`);
-        break;
+    // Itera sobre cada StoreID específico usando o endpoint _store
+    for (const storeId of STORE_IDS) {
+      const storeIdStr = String(storeId);
+
+      // Pular loja desabilitada pelo admin antes de fazer qualquer requisição
+      if (disabledStoreIds.has(storeIdStr)) {
+        console.log(`[sync-lomadee] StoreID ${storeId}: desabilitado, pulando.`);
+        continue;
       }
 
-      if (!responseOk) {
-        errors.push(`API error p${page}: ${responseStatus} ${responseText.slice(0, 200)}`);
-        break;
-      }
+      let page = 1;
+      let totalPages = 1;
+      const storeErrors: string[] = [];
 
-      let data: any;
-      try { data = JSON.parse(responseText); } catch {
-        errors.push(`JSON parse error: ${responseText.slice(0, 200)}`);
-        break;
-      }
+      while (page <= totalPages) {
+        // Lomadee v3: appToken no path + token= no query param + sourceId= no query param
+        // Passar token nos dois lugares evita o redirect 307 para página de login
+        const url = `${baseUrl}/${appToken}/coupon/_store/${storeId}?token=${appToken}&sourceId=${sourceId}&page=${page}&pageSize=${pageSize}`;
+        let responseText: string;
+        let responseOk: boolean;
+        let responseStatus: number;
+        let responseLocation: string | undefined;
 
-      if (page === 1 && !data.coupons) {
-        errors.push(`debug: keys=${Object.keys(data).join(',')} preview=${responseText.slice(0, 300)}`);
-        break;
-      }
-
-      const coupons: any[] = data.coupons ?? [];
-      const pagination = data.pagination ?? {};
-      totalPages = pagination.totalPage ?? pagination.total_page ?? 1;
-      if (coupons.length === 0) break;
-
-      for (const coupon of coupons) {
         try {
-          const store = coupon.store ?? {};
-          const storeExtId = String(store.id ?? '');
-          const storeName: string = store.name ?? 'Loja Lomadee';
-          if (!storeExtId) { stats.skipped++; continue; }
-
-          // Auto-registra loja nova com enabled=true; pula se já existe (ignoreDuplicates)
-          try {
-            await db.upsert('lomadee_store_filters', {
-              account_id: account.id,
-              lomadee_store_id: storeExtId,
-              store_name: storeName,
-              store_logo: store.thumbnail ?? store.image ?? '',
-              enabled: true,
-            }, 'account_id,lomadee_store_id', true);
-          } catch { /* ignora */ }
-
-          // Pular lojas desabilitadas pelo admin
-          if (disabledStoreIds.has(storeExtId)) {
-            stats.skipped++;
-            continue;
-          }
-
-          // Buscar ou criar loja
-          let storeDbId: string | null = null;
-          try {
-            const storeRows = await db.select<{ id: string }>('stores', `store_id=eq.${storeExtId}&select=id`);
-            if (storeRows.length > 0) {
-              storeDbId = storeRows[0].id;
-            } else {
-              const slug = `cupom-desconto-${slugify(storeName)}`;
-              try {
-                const newStore = await db.insert<{ id: string }>('stores', { name: storeName, slug, store_id: storeExtId, active: true });
-                storeDbId = newStore?.id ?? null;
-                if (storeDbId) {
-                  stats.stores_created++;
-                  db.invokeFunction(supabaseUrl, 'enrich-store', { store_id: storeDbId });
-                }
-              } catch {
-                const retry = await db.insert<{ id: string }>('stores', { name: storeName, slug: `${slug}-${storeExtId}`, store_id: storeExtId, active: true }).catch(() => null);
-                storeDbId = retry?.id ?? null;
-              }
-            }
-          } catch { /* ignora erro de loja */ }
-
-          if (!storeDbId) { stats.skipped++; continue; }
-
-          const code: string | null = coupon.code ?? coupon.couponCode ?? null;
-          const link: string = coupon.link ?? store.link ?? '';
-          if (!link) { stats.skipped++; continue; }
-
-          const expiryDate = coupon.finalDate ? new Date(coupon.finalDate) : null;
-          const categoryName: string = coupon.category?.name ?? '';
-          const promotionId = `lomadee_${coupon.id}`;
-
-          const couponData = {
-            store_id: storeDbId,
-            store: storeName,
-            title: coupon.description ?? coupon.title ?? 'Oferta Especial',
-            description: coupon.description ?? '',
-            code,
-            discount: coupon.discount ?? '',
-            link,
-            expiry: expiryDate ? expiryDate.toISOString() : null,
-            expiry_text: expiryDate
-              ? expiryDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-              : '',
-            start_date: coupon.initialDate ? new Date(coupon.initialDate).toISOString() : null,
-            status: true,
-            category: determineCategory(coupon.description ?? '', '', categoryName),
-            updated_at: new Date().toISOString(),
-            awin_promotion_id: promotionId,
-          };
-
-          try {
-            const existing = await db.select<{ id: string }>('coupons', `awin_promotion_id=eq.${promotionId}&select=id`);
-            if (existing.length === 0) {
-              await db.insert('coupons', couponData, false);
-              stats.inserted++;
-            } else {
-              await db.update('coupons', {
-                title: couponData.title, description: couponData.description,
-                code: couponData.code, discount: couponData.discount,
-                link: couponData.link, expiry: couponData.expiry,
-                expiry_text: couponData.expiry_text, status: couponData.status,
-                updated_at: couponData.updated_at, store: couponData.store,
-                store_id: couponData.store_id,
-              }, `awin_promotion_id=eq.${promotionId}`);
-              stats.updated++;
-            }
-          } catch { stats.skipped++; }
-
+          const r = await httpsGetJson(url);
+          responseText = r.text;
+          responseOk = r.ok;
+          responseStatus = r.status;
+          responseLocation = r.location;
         } catch (e: any) {
-          errors.push(e.message);
-          stats.skipped++;
+          storeErrors.push(`fetch p${page}: ${e.message}`);
+          break;
         }
+
+        if (!responseOk) {
+          if (responseStatus === 307 || responseStatus === 302) {
+            // Redirect indica autenticação rejeitada — loga destino para debug
+            storeErrors.push(
+              `Redirect ${responseStatus} p${page} → ${responseLocation ?? 'sem Location'} ` +
+              `(verifique LOMADEE_APP_TOKEN e publisher_id)`
+            );
+          } else {
+            storeErrors.push(`HTTP ${responseStatus} p${page}: ${responseText.slice(0, 200)}`);
+          }
+          break;
+        }
+
+        let data: any;
+        try { data = JSON.parse(responseText); } catch {
+          storeErrors.push(`JSON parse p${page}: ${responseText.slice(0, 200)}`);
+          break;
+        }
+
+        if (page === 1 && !data.coupons) {
+          storeErrors.push(`resposta inesperada: keys=[${Object.keys(data).join(',')}] preview=${responseText.slice(0, 300)}`);
+          break;
+        }
+
+        const coupons: any[] = data.coupons ?? [];
+        const pagination = data.pagination ?? {};
+        totalPages = pagination.totalPage ?? pagination.total_page ?? 1;
+        if (coupons.length === 0) break;
+
+        for (const coupon of coupons) {
+          try {
+            const store = coupon.store ?? {};
+            const storeExtId = String(store.id ?? storeIdStr);
+            const storeName: string = store.name ?? 'Loja Lomadee';
+
+            // Auto-registra loja nova com enabled=true; pula se já existe (ignoreDuplicates)
+            try {
+              await db.upsert('lomadee_store_filters', {
+                account_id: account.id,
+                lomadee_store_id: storeExtId,
+                store_name: storeName,
+                store_logo: store.thumbnail ?? store.image ?? '',
+                enabled: true,
+              }, 'account_id,lomadee_store_id', true);
+            } catch { /* ignora */ }
+
+            // Buscar ou criar loja no banco
+            let storeDbId: string | null = null;
+            try {
+              const storeRows = await db.select<{ id: string }>('stores', `store_id=eq.${storeExtId}&select=id`);
+              if (storeRows.length > 0) {
+                storeDbId = storeRows[0].id;
+              } else {
+                const slug = `cupom-desconto-${slugify(storeName)}`;
+                try {
+                  const newStore = await db.insert<{ id: string }>('stores', { name: storeName, slug, store_id: storeExtId, active: true });
+                  storeDbId = newStore?.id ?? null;
+                  if (storeDbId) {
+                    stats.stores_created++;
+                    db.invokeFunction(supabaseUrl, 'enrich-store', { store_id: storeDbId });
+                  }
+                } catch {
+                  const retry = await db.insert<{ id: string }>('stores', { name: storeName, slug: `${slug}-${storeExtId}`, store_id: storeExtId, active: true }).catch(() => null);
+                  storeDbId = retry?.id ?? null;
+                }
+              }
+            } catch { /* ignora erro de loja */ }
+
+            if (!storeDbId) { stats.skipped++; continue; }
+
+            // Mapeamento dos campos da API para as colunas da tabela coupons
+            const title: string = coupon.description ?? coupon.title ?? 'Oferta Especial';
+            const code: string | null = coupon.code ?? coupon.couponCode ?? null;
+            const link: string = coupon.link ?? store.link ?? '';
+            // discount (discount_value conforme API) → coluna discount
+            const discount: string = coupon.discount ?? coupon.discount_value ?? '';
+            // finalDate (expiration_date conforme API) → coluna expiry
+            const expiryDate = coupon.finalDate ?? coupon.expiration_date
+              ? new Date(coupon.finalDate ?? coupon.expiration_date)
+              : null;
+
+            if (!link) { stats.skipped++; continue; }
+
+            const categoryName: string = coupon.category?.name ?? '';
+            const promotionId = `lomadee_${coupon.id}`;
+
+            const couponData = {
+              store_id: storeDbId,
+              store: storeName,
+              title,
+              description: coupon.description ?? '',
+              code,
+              discount,
+              link,
+              // expiry = expiration_date da API
+              expiry: expiryDate ? expiryDate.toISOString() : null,
+              expiry_text: expiryDate
+                ? expiryDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+                : '',
+              start_date: coupon.initialDate ? new Date(coupon.initialDate).toISOString() : null,
+              status: true,
+              category: determineCategory(title, coupon.description ?? '', categoryName),
+              updated_at: new Date().toISOString(),
+              awin_promotion_id: promotionId,
+            };
+
+            try {
+              const existing = await db.select<{ id: string }>('coupons', `awin_promotion_id=eq.${promotionId}&select=id`);
+              if (existing.length === 0) {
+                await db.insert('coupons', couponData, false);
+                stats.inserted++;
+              } else {
+                await db.update('coupons', {
+                  title: couponData.title,
+                  description: couponData.description,
+                  code: couponData.code,
+                  discount: couponData.discount,
+                  link: couponData.link,
+                  expiry: couponData.expiry,
+                  expiry_text: couponData.expiry_text,
+                  status: couponData.status,
+                  updated_at: couponData.updated_at,
+                  store: couponData.store,
+                  store_id: couponData.store_id,
+                }, `awin_promotion_id=eq.${promotionId}`);
+                stats.updated++;
+              }
+            } catch { stats.skipped++; }
+
+          } catch (e: any) {
+            storeErrors.push(e.message);
+            stats.skipped++;
+          }
+        }
+
+        if (coupons.length < pageSize) break;
+        page++;
       }
 
-      if (coupons.length < pageSize) break;
-      page++;
+      if (storeErrors.length > 0) {
+        const storeMsg = `[StoreID ${storeId}] ${storeErrors.join('; ')}`;
+        errors.push(storeMsg);
+        console.error(`[sync-lomadee] ${storeMsg}`);
+      } else {
+        console.log(`[sync-lomadee] StoreID ${storeId}: OK`);
+      }
     }
 
     const finalStatus = errors.length > 0 && stats.inserted + stats.updated === 0 ? 'error' : 'success';
@@ -332,8 +403,8 @@ export default async function handler(req: any, res: any): Promise<void> {
           records_inserted: stats.inserted,
           records_updated: stats.updated,
           records_skipped: stats.skipped,
-          error_message: errors.length > 0 ? errors.slice(0, 5).join(' | ') : null,
-          meta: { stores_created: stats.stores_created, pages: page - 1 },
+          error_message: errors.length > 0 ? errors.slice(0, 10).join(' | ') : null,
+          meta: { stores_created: stats.stores_created, store_ids: STORE_IDS },
         }, `id=eq.${logId}`);
       } catch { /* ignora erro de log */ }
     }
