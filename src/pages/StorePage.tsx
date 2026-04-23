@@ -10,10 +10,12 @@ import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ChevronRight, 
-  ChevronDown
+  ChevronDown,
+  MessageCircle
 } from 'lucide-react';
 import { getMonthYear, cn } from '@/lib/utils';
 import StoreIcon from '@/components/StoreIcon';
+import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 
@@ -66,6 +68,15 @@ export default function StorePage() {
       .filter(s => s.slug !== slug && s.is_featured)
       .slice(0, 5);
   }, [storeBrands, slug]);
+
+  const relatedStores = useMemo(() => {
+    if (!storeBrands || !storeBrand) return [];
+    // Tenta buscar lojas da mesma categoria baseada no primeiro cupom
+    const category = storeCoupons[0]?.category;
+    return storeBrands
+      .filter(s => s.slug !== slug && !s.is_featured)
+      .slice(0, 4);
+  }, [storeBrands, storeBrand, slug, storeCoupons]);
 
   const handleVisit = () => {
     const link = storeCoupons[0]?.link || '/';
@@ -186,6 +197,13 @@ export default function StorePage() {
 
           <aside className="space-y-3.5">
             <div className="sticky top-[72px] space-y-3.5">
+              <StoreQuickAccessCard 
+                storeName={storeName} 
+                brandColor={brandColor} 
+                logoUrl={storeBrand?.logo_url} 
+                onVisit={handleVisit} 
+              />
+
               <div className="bg-[#25D366] rounded-2xl p-[18px] text-center text-white shadow-lg">
                 <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg viewBox="0 0 24 24" className="h-8 w-8 fill-white">
@@ -216,6 +234,31 @@ export default function StorePage() {
                     </Link>
                   ))}
                 </div>
+              </div>
+
+              <div className="bg-white border border-[#e8e5e0] rounded-2xl p-4">
+                <h4 className="text-[13px] font-bold text-[#1a1a1a] mb-3">Lojas relacionadas</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {relatedStores.map(s => (
+                    <Link 
+                      key={s.id} 
+                      to="/desconto/$slug" 
+                      params={{ slug: s.slug }} 
+                      className="border border-[#e8e5e0] rounded-xl p-2.5 flex flex-col items-center gap-1.5 hover:border-primary transition-colors"
+                    >
+                      <div className="w-8 h-8 rounded-lg overflow-hidden">
+                        <StoreIcon name={s.name} brandColor={s.brand_color} logoUrl={s.logo_url} size="sm" />
+                      </div>
+                      <div className="text-[10px] font-bold text-[#555] text-center truncate w-full">{s.name}</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-[#f9f7f4] border border-[#e8e5e0] rounded-xl p-3 text-center">
+                <p className="text-[11px] text-[#999] leading-relaxed">
+                  Utilizamos links de afiliados. Ao comprar pelos nossos links, podemos receber comissão — sem custo extra para você.
+                </p>
               </div>
             </div>
           </aside>
