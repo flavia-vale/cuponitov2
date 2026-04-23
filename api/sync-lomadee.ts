@@ -24,17 +24,29 @@ const STORE_IDS: number[] = [
   6321, // Funko
 ];
 
-function httpsGetJson(url: string): Promise<{ ok: boolean; status: number; text: string }> {
+interface HttpResult {
+  ok: boolean;
+  status: number;
+  text: string;
+  location: string | undefined;
+}
+
+// Não segue redirects automaticamente — captura Location para debug de 307/302
+function httpsGetJson(url: string, extraHeaders?: Record<string, string>): Promise<HttpResult> {
   return new Promise((resolve, reject) => {
     const req = https.get(url, {
       headers: {
         Accept: 'application/json',
         'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
+        ...extraHeaders,
       },
     }, (res) => {
+      const status = res.statusCode ?? 0;
+      const location = res.headers['location'] as string | undefined;
       let body = '';
       res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
-      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
+      // Apenas 2xx é considerado ok; 3xx é redirect (não dados), 4xx/5xx é erro
+      res.on('end', () => resolve({ ok: status >= 200 && status < 300, status, text: body, location }));
     });
     req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
     req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
@@ -215,24 +227,35 @@ export default async function handler(req: any, res: any): Promise<void> {
       const storeErrors: string[] = [];
 
       while (page <= totalPages) {
-        // Endpoint v3: appToken no path, sourceId como query param — evita redirect
-        const url = `${baseUrl}/${appToken}/coupon/_store/${storeId}?sourceId=${sourceId}&page=${page}&pageSize=${pageSize}`;
+        // Lomadee v3: appToken no path + token= no query param + sourceId= no query param
+        // Passar token nos dois lugares evita o redirect 307 para página de login
+        const url = `${baseUrl}/${appToken}/coupon/_store/${storeId}?token=${appToken}&sourceId=${sourceId}&page=${page}&pageSize=${pageSize}`;
         let responseText: string;
         let responseOk: boolean;
         let responseStatus: number;
+        let responseLocation: string | undefined;
 
         try {
           const r = await httpsGetJson(url);
           responseText = r.text;
           responseOk = r.ok;
           responseStatus = r.status;
+          responseLocation = r.location;
         } catch (e: any) {
           storeErrors.push(`fetch p${page}: ${e.message}`);
           break;
         }
 
         if (!responseOk) {
-          storeErrors.push(`HTTP ${responseStatus} p${page}: ${responseText.slice(0, 200)}`);
+          if (responseStatus === 307 || responseStatus === 302) {
+            // Redirect indica autenticação rejeitada — loga destino para debug
+            storeErrors.push(
+              `Redirect ${responseStatus} p${page} → ${responseLocation ?? 'sem Location'} ` +
+              `(verifique LOMADEE_APP_TOKEN e publisher_id)`
+            );
+          } else {
+            storeErrors.push(`HTTP ${responseStatus} p${page}: ${responseText.slice(0, 200)}`);
+          }
           break;
         }
 
