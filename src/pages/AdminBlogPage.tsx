@@ -13,6 +13,7 @@ import { AdminBlogAuthorsTab } from '@/components/admin/AdminBlogAuthorsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
 
 const NAV_TABS = [
   { id: 'dashboard', label: 'Dashboard' },
@@ -55,66 +56,70 @@ export default function AdminBlogPage() {
 
   if (editingPost !== undefined) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-5xl px-4 py-6">
-          <AdminBlogEditor post={editingPost} onSave={handleSaved} onCancel={() => setEditingPost(undefined)} />
+      <RoleProtectedRoute requiredRoles={['blog_admin', 'super_admin']}>
+        <div className="min-h-screen bg-background">
+          <div className="mx-auto max-w-5xl px-4 py-6">
+            <AdminBlogEditor post={editingPost} onSave={handleSaved} onCancel={() => setEditingPost(undefined)} />
+          </div>
         </div>
-      </div>
+      </RoleProtectedRoute>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border bg-card">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
-          <Link to="/admin" className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Admin
-          </Link>
-          <span className="text-border">|</span>
-          <BookOpen className="h-4 w-4 text-primary" />
-          <span className="text-sm font-bold text-foreground">Blog</span>
-        </div>
-      </header>
+    <RoleProtectedRoute requiredRoles={['blog_admin', 'super_admin']}>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-20 border-b border-border bg-card">
+          <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
+            <Link to="/admin" className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground">
+              <ArrowLeft className="h-4 w-4" /> Admin
+            </Link>
+            <span className="text-border">|</span>
+            <BookOpen className="h-4 w-4 text-primary" />
+            <span className="text-sm font-bold text-foreground">Blog</span>
+          </div>
+        </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Painel do Blog</h1>
-          <p className="text-sm text-muted-foreground">Gerencie posts, categorias e autores</p>
-        </div>
+        <main className="mx-auto max-w-5xl px-4 py-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-foreground">Painel do Blog</h1>
+            <p className="text-sm text-muted-foreground">Gerencie posts, categorias e autores</p>
+          </div>
 
-        <Tabs defaultValue="dashboard">
-          <TabsList className="mb-4">
-            {NAV_TABS.map(t => (
-              <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
-            ))}
-          </TabsList>
+          <Tabs defaultValue="dashboard">
+            <TabsList className="mb-4">
+              {NAV_TABS.map(t => (
+                <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
+              ))}
+            </TabsList>
 
-          <TabsContent value="dashboard">
-            <AdminBlogDashboard posts={posts} />
-          </TabsContent>
+            <TabsContent value="dashboard">
+              <AdminBlogDashboard posts={posts} />
+            </TabsContent>
 
-          <TabsContent value="posts">
-            {postsLoading
-              ? <p className="py-8 text-center text-sm text-muted-foreground">Carregando posts...</p>
-              : <AdminBlogPostList
-                  posts={posts}
-                  onEdit={(p) => setEditingPost(p)}
-                  onNew={() => setEditingPost(null)}
-                  onDelete={handleDelete}
-                />
-            }
-          </TabsContent>
+            <TabsContent value="posts">
+              {postsLoading
+                ? <p className="py-8 text-center text-sm text-muted-foreground">Carregando posts...</p>
+                : <AdminBlogPostList
+                    posts={posts}
+                    onEdit={(p) => setEditingPost(p)}
+                    onNew={() => setEditingPost(null)}
+                    onDelete={handleDelete}
+                  />
+              }
+            </TabsContent>
 
-          <TabsContent value="categorias">
-            <AdminBlogCategoriesTab />
-          </TabsContent>
+            <TabsContent value="categorias">
+              <AdminBlogCategoriesTab />
+            </TabsContent>
 
-          <TabsContent value="autores">
-            <AdminBlogAuthorsTab />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+            <TabsContent value="autores">
+              <AdminBlogAuthorsTab />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
+    </RoleProtectedRoute>
   );
 }

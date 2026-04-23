@@ -21,6 +21,9 @@ import { Route as DescontoSlugRouteImport } from './routes/desconto.$slug'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
+import { Route as AdminBlogRouteImport } from './routes/admin.blog'
+import { Route as AdminAccessDeniedRouteImport } from './routes/admin.access-denied'
 
 const LojasRoute = LojasRouteImport.update({
   id: '/lojas',
@@ -82,6 +85,21 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBlogRoute = AdminBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
+  id: '/access-denied',
+  path: '/access-denied',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -90,6 +108,9 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRouteWithChildren
   '/cupons': typeof CuponsRoute
   '/lojas': typeof LojasRoute
+  '/admin/access-denied': typeof AdminAccessDeniedRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -102,6 +123,9 @@ export interface FileRoutesByTo {
   '/adminblog': typeof AdminblogRoute
   '/cupons': typeof CuponsRoute
   '/lojas': typeof LojasRoute
+  '/admin/access-denied': typeof AdminAccessDeniedRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -117,6 +141,9 @@ export interface FileRoutesById {
   '/blog': typeof BlogRouteWithChildren
   '/cupons': typeof CuponsRoute
   '/lojas': typeof LojasRoute
+  '/admin/access-denied': typeof AdminAccessDeniedRoute
+  '/admin/blog': typeof AdminBlogRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/categoria/$slug': typeof CategoriaSlugRoute
@@ -133,6 +160,9 @@ export interface FileRouteTypes {
     | '/blog'
     | '/cupons'
     | '/lojas'
+    | '/admin/access-denied'
+    | '/admin/blog'
+    | '/admin/coupons'
     | '/admin/login'
     | '/blog/$slug'
     | '/categoria/$slug'
@@ -145,6 +175,9 @@ export interface FileRouteTypes {
     | '/adminblog'
     | '/cupons'
     | '/lojas'
+    | '/admin/access-denied'
+    | '/admin/blog'
+    | '/admin/coupons'
     | '/admin/login'
     | '/blog/$slug'
     | '/categoria/$slug'
@@ -159,6 +192,9 @@ export interface FileRouteTypes {
     | '/blog'
     | '/cupons'
     | '/lojas'
+    | '/admin/access-denied'
+    | '/admin/blog'
+    | '/admin/coupons'
     | '/admin/login'
     | '/blog/$slug'
     | '/categoria/$slug'
@@ -264,15 +300,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/blog': {
+      id: '/admin/blog'
+      path: '/blog'
+      fullPath: '/admin/blog'
+      preLoaderRoute: typeof AdminBlogRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/access-denied': {
+      id: '/admin/access-denied'
+      path: '/access-denied'
+      fullPath: '/admin/access-denied'
+      preLoaderRoute: typeof AdminAccessDeniedRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAccessDeniedRoute: typeof AdminAccessDeniedRoute
+  AdminBlogRoute: typeof AdminBlogRoute
+  AdminCouponsRoute: typeof AdminCouponsRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAccessDeniedRoute: AdminAccessDeniedRoute,
+  AdminBlogRoute: AdminBlogRoute,
+  AdminCouponsRoute: AdminCouponsRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

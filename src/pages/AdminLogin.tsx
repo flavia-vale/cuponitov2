@@ -16,8 +16,20 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { if (session) navigate({ to: '/admin' }); });
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session) navigate({ to: '/admin' }); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        const role = session.user.user_metadata?.role as string;
+        if (role === 'coupon_admin' || role === 'super_admin') navigate({ to: '/admin/coupons' });
+        else if (role === 'blog_admin') navigate({ to: '/admin/blog' });
+      }
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const role = session.user.user_metadata?.role as string;
+        if (role === 'coupon_admin' || role === 'super_admin') navigate({ to: '/admin/coupons' });
+        else if (role === 'blog_admin') navigate({ to: '/admin/blog' });
+      }
+    });
     return () => subscription.unsubscribe();
   }, [navigate]);
 
