@@ -2,26 +2,24 @@
 
 import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
-import { Clock, User, Share2, MessageCircle, Zap, ArrowLeft } from 'lucide-react';
+import { Clock, User, Share2, ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
-import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts, useLogBannerClick, type BannerItem } from '@/hooks/useBlog';
+import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
+import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead';
 import { calcReadingTime } from '@/lib/blog';
 import { SITE_URL } from '@/lib/seo';
-import { useSettings } from '@/hooks/useSettings';
 
 export default function BlogPost() {
   const { slug } = useParams({ strict: false });
   const { data: post, isLoading } = useBlogPost(slug || '');
   const { data: authors } = useBlogAuthors();
   const { data: allPosts } = useBlogPosts();
-  const { data: settings } = useSettings();
   const incrementViews = useIncrementBlogViews();
-  const logBannerClick = useLogBannerClick();
 
   useEffect(() => { if (post?.id) incrementViews.mutate(post.id); }, [post?.id]);
 
@@ -31,7 +29,6 @@ export default function BlogPost() {
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null;
   const readingTime = post?.content ? calcReadingTime(post.content) : 1;
-  const whatsappLink = settings?.global_links.whatsapp_group || '#';
 
   if (isLoading) {
     return (
@@ -78,7 +75,6 @@ export default function BlogPost() {
 
       <Header />
 
-      {/* HEADER CLEAN: Título e Imagem Lado a Lado */}
       <section className="bg-[#fcfbf9] border-b border-black/5 py-12 md:py-16">
         <div className="mx-auto max-w-6xl px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
@@ -149,27 +145,9 @@ export default function BlogPost() {
           )}
         </article>
 
-        {/* CTA WHATSAPP */}
-        <section className="mt-16 rounded-[2.5rem] bg-gradient-to-br from-[#25D366] to-[#128C7E] p-8 md:p-12 text-center text-white shadow-2xl shadow-green-500/20 relative overflow-hidden">
-          <div className="relative z-10">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-md shadow-inner">
-              <MessageCircle size={42} className="fill-white text-green-600" />
-            </div>
-            <h3 className="text-2xl font-black md:text-3xl mb-4">Receba cupons em tempo real!</h3>
-            <p className="mx-auto mb-8 max-w-md text-base font-medium text-white/90 leading-relaxed">
-              Não perca mais nenhuma oferta relâmpago. Entre no nosso grupo VIP e economize antes de todo mundo.
-            </p>
-            <a 
-              href={whatsappLink} 
-              target="_blank" 
-              rel="nofollow noopener noreferrer"
-              className="inline-flex items-center gap-3 rounded-2xl bg-white px-10 py-4 text-lg font-black uppercase tracking-wide text-[#128C7E] shadow-xl transition-all hover:scale-105 hover:bg-gray-50 active:scale-95"
-            >
-              <Zap size={20} className="fill-current" /> Entrar no Grupo
-            </a>
-            <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-white/60">100% Gratuito • Sem Spam</p>
-          </div>
-        </section>
+        <div className="mt-16">
+          <BlogWhatsAppCTA />
+        </div>
 
         {relatedPosts.length > 0 && (
           <section className="mt-20 border-t border-black/5 pt-12">

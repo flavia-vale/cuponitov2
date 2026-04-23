@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Search, Sparkles, TrendingUp, BookOpen } from 'lucide-react';
+import { Search, Sparkles, TrendingUp } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPosts, useBlogCategories } from '@/hooks/useBlog';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogCategoryFilter from '@/components/blog/BlogCategoryFilter';
-import BlogNewsletter from '@/components/blog/BlogNewsletter';
+import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -51,7 +51,6 @@ export default function BlogList() {
       />
       <Header />
 
-      {/* HERO SECTION */}
       <section className="bg-gradient-to-br from-[#FF4D00] via-[#FF7A38] to-[#FFB347] px-4 py-12 text-white">
         <div className="mx-auto max-w-4xl">
           <span className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-white">Blog do Cuponito</span>
@@ -72,7 +71,6 @@ export default function BlogList() {
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-8 space-y-10">
-        {/* CATEGORIES */}
         {categories && <BlogCategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />}
 
         {postsLoading ? (
@@ -83,7 +81,6 @@ export default function BlogList() {
           <EmptyState message="Nenhum artigo encontrado" />
         ) : (
           <>
-            {/* FEATURED */}
             <section>
               <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
                 <Sparkles className="h-4 w-4 text-primary" /> Destaque da semana
@@ -91,7 +88,6 @@ export default function BlogList() {
               {featuredPost && <BlogPostCard post={featuredPost} variant="featured" />}
             </section>
 
-            {/* LATEST & MOST READ */}
             <div className="grid gap-10 lg:grid-cols-[1fr_350px]">
               <section>
                 <h2 className="mb-4 flex items-center justify-between text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
@@ -124,8 +120,7 @@ export default function BlogList() {
               </section>
             </div>
 
-            {/* NEWSLETTER */}
-            <BlogNewsletter />
+            <BlogWhatsAppCTA />
           </>
         )}
       </main>
