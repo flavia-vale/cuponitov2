@@ -63,7 +63,6 @@ export default function AdminBlogPage() {
   return (
     <RoleProtectedRoute requiredRoles={['blog_admin', 'super_admin']}>
       <div className="min-h-screen bg-background">
-        {/* Header */}
         <header className="sticky top-0 z-20 border-b border-border bg-card">
           <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
             <Link to="/admin" className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground">
@@ -72,14 +71,8 @@ export default function AdminBlogPage() {
             <span className="text-border">|</span>
             <BookOpen className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold text-foreground">Blog</span>
-            
             <div className="ml-auto">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleLogout}
-                className="gap-2 text-muted-foreground hover:text-destructive"
-              >
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-muted-foreground hover:text-destructive">
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Sair</span>
               </Button>
