@@ -95,18 +95,22 @@ export default function BlogPost() {
         </div>
       </div>
 
-      {/* HERO IMAGE */}
-      <div className="aspect-[21/9] w-full overflow-hidden bg-gradient-to-br from-primary via-primary-soft to-accent flex items-center justify-center text-7xl md:text-9xl">
+      {/* HERO SECTION WITH TITLE */}
+      <div className="relative aspect-[21/9] w-full overflow-hidden bg-gradient-to-br from-primary via-primary-soft to-accent">
         {post.cover_image ? (
           <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" />
-        ) : '📱'}
+        ) : (
+          <div className="flex h-full items-center justify-center text-7xl md:text-9xl">📱</div>
+        )}
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+          <span className="mb-4 inline-block rounded-lg bg-primary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">Artigo</span>
+          <h1 className="max-w-4xl text-2xl font-black leading-tight text-white md:text-4xl lg:text-5xl">{post.title}</h1>
+        </div>
       </div>
 
       <main className="mx-auto max-w-3xl px-4 py-10">
         <article>
-          <span className="mb-4 inline-block rounded-lg bg-[#FFF0EB] px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">Artigo</span>
-          <h1 className="mb-4 text-2xl font-black leading-tight text-[#1a1a1a] md:text-4xl">{post.title}</h1>
-
           <div className="mb-8 flex flex-wrap items-center gap-4 border-b border-black/5 pb-6 text-[11px] font-medium text-[#aaa]">
             <div className="flex items-center gap-2">
               {author?.avatar_url
