@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const RAKUTEN_TOKEN = 'fPR2Y2X5tYkYoiJ7EIwOwjPiPJNIkGGx';
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -19,11 +21,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Injeta o token da Vercel no corpo da requisição para a Edge Function
+    // Envia o token hardcoded para a Edge Function
     const { data, error } = await supabase.functions.invoke('sync-rakuten', {
       body: { 
         ...req.body, 
-        rakuten_token: process.env.RAKUTEN_TOKEN 
+        rakuten_token: process.env.RAKUTEN_TOKEN || RAKUTEN_TOKEN 
       }
     });
 

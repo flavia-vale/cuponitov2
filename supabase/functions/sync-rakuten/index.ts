@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
 const RESULTS_PER_PAGE = 500
+const HARDCODED_TOKEN = 'fPR2Y2X5tYkYoiJ7EIwOwjPiPJNIkGGx'
 
 function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -108,23 +109,17 @@ serve(async (req) => {
     const { data: logRow } = await supabase.from('sync_logs').insert({ account_id: account.id, status: 'running' }).select('id').single()
     logId = logRow?.id ?? null
 
-    // Prioridade: Token vindo da Vercel (body) -> Token no Banco -> Secret do Supabase
-    const token = body.rakuten_token || account.api_token || Deno.env.get('RAKUTEN_TOKEN')
-
-    if (!token) {
-      await finishLog(supabase, logId, 'error', 0, 0, 0, 'Token não configurado')
-      return new Response(JSON.stringify({ error: 'Token ausente' }), { status: 400, headers: corsHeaders })
-    }
+    // Prioridade: Token vindo da Vercel (body) -> Token no Banco -> Secret do Supabase -> Hardcoded
+    const token = body.rakuten_token || account.api_token || Deno.env.get('RAKUTEN_TOKEN') || HARDCODED_TOKEN
 
     const stats = { inserted: 0, updated: 0, skipped: 0 }
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
     
-    // Chamada à API com Header de Autorização
     const params = new URLSearchParams({ token, resultsperpage: String(RESULTS_PER_PAGE), pagenumber: '1' })
     const res = await fetch(`${baseUrl}?${params}`, {
       headers: { 
         'Accept': 'application/xml',
-        'Authorization': `Bearer ${token}` // Adicionado conforme solicitado
+        'Authorization': `Bearer ${token}`
       }
     })
 
