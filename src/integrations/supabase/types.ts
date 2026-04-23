@@ -184,6 +184,54 @@ export type Database = {
           },
         ]
       }
+      posts: {
+        Row: {
+          id: string
+          title: string
+          meta_description: string
+          slug: string
+          cover_url: string
+          category: string
+          content: string
+          images_json: Json
+          related_post_ids: string[]
+          author: string
+          keywords: string
+          status: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title?: string
+          meta_description?: string
+          slug: string
+          cover_url?: string
+          category?: string
+          content?: string
+          images_json?: Json
+          related_post_ids?: string[]
+          author?: string
+          keywords?: string
+          status?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          meta_description?: string
+          slug?: string
+          cover_url?: string
+          category?: string
+          content?: string
+          images_json?: Json
+          related_post_ids?: string[]
+          author?: string
+          keywords?: string
+          status?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           awin_promotion_id: string | null
