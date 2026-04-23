@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TipTapEditor } from './TipTapEditor';
-import { useAdminPosts, type Post } from '@/hooks/usePosts';
+import { useAdminPosts, usePublishedPostsForSelect, type Post } from '@/hooks/usePosts';
 
 interface BannerItem { url: string; link: string }
 
@@ -37,6 +37,8 @@ async function uploadToBlog(file: File, folder: 'covers' | 'banners'): Promise<s
 
 export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
   const { data: allPosts = [] } = useAdminPosts();
+  const { data: publishedPosts = [] } = usePublishedPostsForSelect();
+  const [relatedOpen, setRelatedOpen] = useState(false);
 
   const [title, setTitle] = useState(post?.title ?? '');
   const [slug, setSlug] = useState(post?.slug ?? '');
@@ -99,12 +101,22 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
     }
   };
 
-  const toggleRelated = (id: string) =>
-    setRelatedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
-  const filteredPosts = allPosts.filter(
-    (p) => p.id !== post?.id && p.title.toLowerCase().includes(relatedSearch.toLowerCase()),
+  const filteredPublished = publishedPosts.filter(
+    (p) =>
+      p.id !== post?.id &&
+      !relatedIds.includes(p.id) &&
+      p.title.toLowerCase().includes(relatedSearch.toLowerCase()),
   );
+
+  const selectedPosts = publishedPosts.filter((p) => relatedIds.includes(p.id));
+
+  const addRelated = (id: string) => {
+    setRelatedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setRelatedSearch('');
+  };
+
+  const removeRelated = (id: string) =>
+    setRelatedIds((prev) => prev.filter((x) => x !== id));
 
   const handleSave = async () => {
     if (!slug) {
@@ -261,38 +273,89 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
           {/* Related posts */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Posts Relacionados</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Posts Relacionados</CardTitle>
+                <span className={`text-[10px] font-medium ${relatedIds.length >= 3 ? 'text-green-600' : 'text-amber-500'}`}>
+                  {relatedIds.length}/3 sugeridos
+                </span>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Input
-                value={relatedSearch}
-                onChange={(e) => setRelatedSearch(e.target.value)}
-                placeholder="Buscar posts..."
-                className="h-9 text-sm"
-              />
-              <div className="max-h-48 overflow-y-auto space-y-1">
-                {filteredPosts.map((p) => (
-                  <label
-                    key={p.id}
-                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+            <CardContent className="space-y-3">
+              {/* Selected chips */}
+              {selectedPosts.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedPosts.map((p) => (
+                    <span
+                      key={p.id}
+                      className="flex items-center gap-1 rounded-full border border-primary/20 bg-[#FFF0EB] px-2.5 py-0.5 text-xs font-medium text-primary"
+                    >
+                      <span className="max-w-[150px] truncate">{p.title || 'Sem título'}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeRelated(p.id)}
+                        className="ml-0.5 rounded-full hover:bg-primary/10 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search input */}
+              <div className="relative">
+                <Input
+                  value={relatedSearch}
+                  onChange={(e) => { setRelatedSearch(e.target.value); setRelatedOpen(true); }}
+                  onFocus={() => setRelatedOpen(true)}
+                  onBlur={() => setTimeout(() => setRelatedOpen(false), 150)}
+                  placeholder="Buscar posts publicados..."
+                  className="h-9 text-sm pr-8"
+                />
+                {relatedSearch && (
+                  <button
+                    type="button"
+                    onClick={() => { setRelatedSearch(''); setRelatedOpen(false); }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    <input
-                      type="checkbox"
-                      checked={relatedIds.includes(p.id)}
-                      onChange={() => toggleRelated(p.id)}
-                      className="h-3.5 w-3.5 accent-primary"
-                    />
-                    <span className="truncate text-foreground">{p.title || <em className="text-muted-foreground">Sem título</em>}</span>
-                    {p.status && <span className="ml-auto text-[10px] text-green-600">Ativo</span>}
-                  </label>
-                ))}
-                {filteredPosts.length === 0 && (
-                  <p className="px-2 py-2 text-xs text-muted-foreground">Nenhum post encontrado.</p>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+
+                {/* Dropdown */}
+                {relatedOpen && (
+                  <div className="absolute z-20 mt-1 w-full rounded-lg border border-border bg-white shadow-xl">
+                    <div className="max-h-52 overflow-y-auto py-1">
+                      {filteredPublished.length > 0 ? (
+                        filteredPublished.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onMouseDown={() => addRelated(p.id)}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-muted transition-colors"
+                          >
+                            <div className="h-8 w-12 shrink-0 overflow-hidden rounded bg-[#f5f3ef]">
+                              {p.cover_url
+                                ? <img src={p.cover_url} alt="" className="h-full w-full object-cover" />
+                                : <div className="flex h-full items-center justify-center text-base">📄</div>}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-foreground">{p.title || 'Sem título'}</p>
+                              {p.category && (
+                                <p className="text-[10px] text-muted-foreground">{p.category}</p>
+                              )}
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="px-3 py-3 text-xs text-muted-foreground">
+                          {relatedSearch ? 'Nenhum post publicado encontrado.' : 'Digite para buscar posts publicados.'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
-              {relatedIds.length > 0 && (
-                <p className="text-xs text-muted-foreground">{relatedIds.length} post(s) selecionado(s)</p>
-              )}
             </CardContent>
           </Card>
         </div>
