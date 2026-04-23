@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Calendar, Clock, User, Share2 } from 'lucide-react';
 import Header from '@/components/Header';
-import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts } from '@/hooks/useBlog';
+import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts, useLogBannerClick, type BannerItem } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import Footer from '@/components/Footer';
@@ -19,6 +19,7 @@ export default function BlogPost() {
   const { data: authors } = useBlogAuthors();
   const { data: allPosts } = useBlogPosts();
   const incrementViews = useIncrementBlogViews();
+  const logBannerClick = useLogBannerClick();
 
   useEffect(() => { if (post?.id) incrementViews.mutate(post.id); }, [post?.id]);
 
@@ -29,6 +30,13 @@ export default function BlogPost() {
     : null;
   const readingTime = post?.content ? calcReadingTime(post.content) : 1;
   const canonical = post?.slug ? `${SITE_URL}/blog/${post.slug}` : undefined;
+
+  const banners: BannerItem[] = Array.isArray(post?.images_json) ? (post.images_json as unknown as BannerItem[]) : [];
+
+  const handleBannerClick = (postId: string, linkUrl: string, bannerUrl: string) => {
+    logBannerClick.mutate({ postId, bannerUrl, linkUrl });
+    window.open(linkUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const handleShare = () => {
     if (navigator.share && post) {
@@ -154,6 +162,27 @@ export default function BlogPost() {
           {/* CTA FINAL */}
           {post.cta_config && typeof post.cta_config === 'object' && (
             <InlineCouponBox config={post.cta_config as InlineCouponConfig} />
+          )}
+
+          {/* BANNERS */}
+          {banners.length > 0 && (
+            <div className="mt-10 space-y-4">
+              {banners.map((banner, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleBannerClick(post.id, banner.link_url, banner.banner_url)}
+                  className="block w-full overflow-hidden rounded-2xl shadow-md transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary"
+                  aria-label={`Abrir oferta ${idx + 1}`}
+                >
+                  <img
+                    src={banner.banner_url}
+                    alt={`Banner ${idx + 1}`}
+                    className="w-full object-cover"
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
           )}
         </article>
 

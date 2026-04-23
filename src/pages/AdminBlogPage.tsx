@@ -10,6 +10,7 @@ import { AdminBlogPostList } from '@/components/admin/AdminBlogPostList';
 import { AdminBlogEditor } from '@/components/admin/AdminBlogEditor';
 import { AdminBlogCategoriesTab } from '@/components/admin/AdminBlogCategoriesTab';
 import { AdminBlogAuthorsTab } from '@/components/admin/AdminBlogAuthorsTab';
+import { AdminBlogStats } from '@/components/admin/AdminBlogStats';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/button';
 const NAV_TABS = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'posts', label: 'Posts' },
+  { id: 'stats', label: 'Banners' },
   { id: 'categorias', label: 'Categorias' },
   { id: 'autores', label: 'Autores' },
 ] as const;
@@ -112,6 +114,10 @@ export default function AdminBlogPage() {
                     onDelete={handleDelete}
                   />
               }
+            </TabsContent>
+
+            <TabsContent value="stats">
+              <AdminBlogStats posts={posts} />
             </TabsContent>
 
             <TabsContent value="categorias">
