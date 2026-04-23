@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Search, User } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 const Header = () => (
   <header className="w-full bg-[#FF4D00] sticky top-0 z-50 shadow-md h-[54px]">
@@ -28,9 +28,6 @@ const Header = () => (
           />
           <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60" />
         </div>
-        <button className="bg-white/20 border border-white/35 text-white text-[11px] px-[13px] py-1.5 rounded-[20px] font-medium hover:bg-white/30 transition-all flex items-center gap-1.5">
-          <User size={12} /> Entrar
-        </button>
       </div>
     </div>
   </header>
