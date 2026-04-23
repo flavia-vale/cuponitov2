@@ -6,7 +6,7 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/sync-lomadee.ts": { "maxDuration": 300 },
+    "api/sync-lomadee.ts": { "maxDuration": 300, "regions": ["gru1"] },
     "api/sitemap.ts": { "maxDuration": 10 }
   },
   "headers": [
