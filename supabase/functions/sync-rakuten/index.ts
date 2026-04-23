@@ -9,6 +9,15 @@ const corsHeaders = {
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
 const TOKEN_ENDPOINT  = 'https://api.linksynergy.com/token'
 const RESULTS_PER_PAGE = 500
+// Renova 2 min antes do vencimento para evitar race conditions
+const TOKEN_REFRESH_BUFFER_SEC = 120
+
+interface TokenSet {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  token_type: string
+}
 
 function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -82,6 +91,66 @@ function parseRakutenResponse(xml: string) {
   }
 }
 
+// ── Token helpers ─────────────────────────────────────────────────────────────
+
+async function postToken(tokenKey: string, body: URLSearchParams): Promise<TokenSet> {
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      // Documentação Rakuten: Authorization: Bearer {token-key} — tanto para
+      // troca inicial quanto para renovação via refresh_token.
+      'Authorization': `Bearer ${tokenKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json',
+    },
+    body: body.toString(),
+  })
+  const text = await res.text()
+  if (!res.ok) throw new Error(`/token ${res.status}: ${text.slice(0, 200)}`)
+  let json: any
+  try { json = JSON.parse(text) } catch { throw new Error(`/token resposta não-JSON: ${text.slice(0, 200)}`) }
+  if (!json.access_token) throw new Error(`/token sem access_token: ${text.slice(0, 200)}`)
+  return json as TokenSet
+}
+
+// Troca token-key por novo par de tokens (usado quando não há refresh_token).
+function exchangeTokenKey(tokenKey: string, sid: string): Promise<TokenSet> {
+  const body = new URLSearchParams()
+  if (sid) body.set('scope', sid)
+  else body.set('scope', '')
+  return postToken(tokenKey, body)
+}
+
+// Renova o access_token usando o refresh_token atual.
+// O access_token anterior expira imediatamente; os novos tokens são persistidos.
+function refreshAccessToken(tokenKey: string, refreshToken: string, sid: string): Promise<TokenSet> {
+  const body = new URLSearchParams()
+  body.set('refresh_token', refreshToken)
+  if (sid) body.set('scope', sid)
+  return postToken(tokenKey, body)
+}
+
+// Persiste o novo par de tokens em extra_config (merge — preserva sid, mid, etc.).
+async function persistTokens(
+  supabase: any,
+  accountId: string,
+  currentExtra: Record<string, any>,
+  tokens: TokenSet
+): Promise<string> {
+  const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+  await supabase.from('affiliate_accounts').update({
+    extra_config: {
+      ...currentExtra,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      token_expires_at: expiresAt,
+    }
+  }).eq('id', accountId)
+  return expiresAt
+}
+
+// ── Log helper ────────────────────────────────────────────────────────────────
+
 async function finishLog(
   supabase: any,
   logId: string | null,
@@ -104,41 +173,7 @@ async function finishLog(
   }).eq('id', logId)
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// OAuth 2.0: troca a token-key (87 chars) por um access_token (Bearer).
-// A API de Cupons só aceita access_token — a token-key passada direta como Bearer
-// resultava em "200 OK com 0 cupons" (XML vazio). Documentação:
-// https://developers.rakutenadvertising.com/documentation/en_US/api_documentation/authentication
-// ───────────────────────────────────────────────────────────────────────────────
-async function exchangeTokenKey(tokenKey: string, sid: string): Promise<{ accessToken: string; expiresIn: number; raw: string }> {
-  const params = new URLSearchParams()
-  // "scope" aceita o SID (Publisher Site ID). Para contas sem SID dedicado, mantém vazio.
-  if (sid) params.set('scope', sid)
-
-  const body = params.toString()
-  const res = await fetch(TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${tokenKey}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json'
-    },
-    body: body.length > 0 ? body : 'scope='
-  })
-  const text = await res.text()
-  if (!res.ok) {
-    throw new Error(`token exchange falhou (${res.status}): ${text.slice(0, 200)}`)
-  }
-  let json: any
-  try { json = JSON.parse(text) } catch {
-    throw new Error(`token exchange: resposta não-JSON ${text.slice(0, 200)}`)
-  }
-  const accessToken = json.access_token as string | undefined
-  if (!accessToken) {
-    throw new Error(`token exchange sem access_token: ${text.slice(0, 200)}`)
-  }
-  return { accessToken, expiresIn: Number(json.expires_in ?? 3600), raw: text }
-}
+// ── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
@@ -163,89 +198,118 @@ serve(async (req) => {
     const { data: logRow } = await supabase.from('sync_logs').insert({ account_id: account.id, status: 'running' }).select('id').single()
     logId = logRow?.id ?? null
 
-    // Resolve o segredo: body → api_token da conta → secret global (nome via extra_config.env_secret)
     const extra = (account.extra_config ?? {}) as Record<string, any>
+
+    // token_key: chave de longa duração usada para autorizar o endpoint /token.
+    // Vem do env (Supabase secret) ou do api_token da conta. Nunca expira.
     const envSecretName = typeof extra.env_secret === 'string' ? extra.env_secret : 'RAKUTEN_TOKEN'
-    const providedToken: string | undefined =
+    const tokenKey: string | undefined =
       body.rakuten_token ||
-      account.api_token ||
+      (account.api_token || undefined) ||
       Deno.env.get(envSecretName) ||
       Deno.env.get('RAKUTEN_TOKEN') ||
       undefined
 
-    if (!providedToken) throw new Error('Token Rakuten ausente: configure api_token da conta ou secret RAKUTEN_TOKEN')
+    if (!tokenKey) throw new Error('token_key ausente: configure api_token da conta ou secret RAKUTEN_TOKEN')
 
-    const sid = String(extra.sid ?? account.publisher_id ?? '')
-    const mid = typeof extra.mid === 'string' ? extra.mid : ''
-    const network = typeof extra.network === 'string' ? extra.network : (typeof extra.network_id === 'string' ? extra.network_id : '')
-    // Modo explícito: 'oauth' (padrão) ou 'legacy' (Web Service Token via ?token=)
-    const authMode: string = (body.rakuten_auth_mode || extra.auth_mode || (providedToken.length >= 60 ? 'oauth' : 'legacy')).toString()
+    const sid     = String(extra.sid ?? account.publisher_id ?? '')
+    const mid     = typeof extra.mid === 'string' ? extra.mid : ''
+    const network = typeof extra.network === 'string' ? extra.network : ''
 
-    telemetry.token_len = providedToken.length
-    telemetry.auth_mode = authMode
+    telemetry.token_key_len = tokenKey.length
     telemetry.sid = sid || null
     telemetry.mid = mid || null
     telemetry.network = network || null
 
-    const stats = { inserted: 0, updated: 0, skipped: 0 }
-    const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
+    // ── Resolução do access_token ────────────────────────────────────────────
+    const storedAccessToken  = typeof extra.access_token  === 'string' ? extra.access_token  : null
+    const storedRefreshToken = typeof extra.refresh_token === 'string' ? extra.refresh_token : null
+    const storedExpiresAt    = typeof extra.token_expires_at === 'string' ? extra.token_expires_at : null
 
-    // ── Autenticação ─────────────────────────────────────────────────────────
-    let accessToken: string | null = null
-    let legacyQueryToken: string | null = null
+    const isValid = storedAccessToken && storedExpiresAt &&
+      new Date(storedExpiresAt).getTime() > Date.now() + TOKEN_REFRESH_BUFFER_SEC * 1000
 
-    if (authMode === 'legacy') {
-      // Fluxo antigo: Web Service Token passa como query param.
-      legacyQueryToken = providedToken
-      telemetry.oauth = 'skipped (legacy)'
-    } else {
-      // Fluxo OAuth 2.0: troca token-key → access_token.
+    let accessToken: string
+    let tokenSource: string
+
+    if (isValid) {
+      // Token ainda dentro da janela de validade — usa sem custo adicional.
+      accessToken = storedAccessToken!
+      tokenSource = 'cached'
+      telemetry.token_expires_at = storedExpiresAt
+    } else if (storedRefreshToken) {
+      // Token expirado (ou prestes a expirar) mas temos refresh_token: renova.
       try {
-        const exchanged = await exchangeTokenKey(providedToken, sid)
-        accessToken = exchanged.accessToken
-        telemetry.oauth = `ok (expires_in=${exchanged.expiresIn})`
-      } catch (oauthErr: any) {
-        // Fallback: tenta usar a token fornecida diretamente como Bearer.
-        // Mantém o comportamento legado para contas já funcionando e deixa o erro
-        // rastreável em sync_logs.meta.
-        telemetry.oauth = `falhou: ${oauthErr.message}`
-        accessToken = providedToken
+        const tokens = await refreshAccessToken(tokenKey, storedRefreshToken, sid)
+        const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
+        accessToken = tokens.access_token
+        tokenSource = 'refreshed'
+        telemetry.token_expires_at = expiresAt
+      } catch (refreshErr: any) {
+        // Refresh falhou (ex.: refresh_token revogado). Tenta troca direta.
+        telemetry.refresh_error = refreshErr.message
+        const tokens = await exchangeTokenKey(tokenKey, sid)
+        const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
+        accessToken = tokens.access_token
+        tokenSource = 'exchanged_after_refresh_fail'
+        telemetry.token_expires_at = expiresAt
       }
+    } else {
+      // Sem refresh_token: troca token-key por access_token pela primeira vez.
+      const tokens = await exchangeTokenKey(tokenKey, sid)
+      const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
+      accessToken = tokens.access_token
+      tokenSource = 'exchanged'
+      telemetry.token_expires_at = expiresAt
     }
 
-    // ── Consulta de cupons ────────────────────────────────────────────────────
-    const qs = new URLSearchParams({
-      resultsperpage: String(RESULTS_PER_PAGE),
-      pagenumber: '1'
-    })
-    if (mid) qs.set('mid', mid)
+    telemetry.token_source = tokenSource
+
+    // ── Chamada à API de cupons ──────────────────────────────────────────────
+    const qs = new URLSearchParams({ resultsperpage: String(RESULTS_PER_PAGE), pagenumber: '1' })
+    if (mid)     qs.set('mid', mid)
     if (network) qs.set('network', network)
-    if (legacyQueryToken) qs.set('token', legacyQueryToken)
 
+    const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
     const url = `${baseUrl}?${qs}`
-    const headers: Record<string, string> = { 'Accept': 'application/xml' }
-    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
 
-    const res = await fetch(url, { headers })
+    const res = await fetch(url, {
+      headers: {
+        'Accept': 'application/xml',
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
     const responseText = await res.text()
 
-    telemetry.request_url = url.replace(/token=[^&]+/, 'token=***')
+    telemetry.request_url    = url
     telemetry.response_status = res.status
-    telemetry.response_bytes = responseText.length
+    telemetry.response_bytes  = responseText.length
     telemetry.response_preview = responseText.slice(0, 300)
 
-    if (!res.ok) throw new Error(`Erro API Rakuten: ${res.status} - ${responseText.slice(0, 200)}`)
+    if (!res.ok) {
+      // Se 401, o access_token foi rejeitado — pode ser que o token tenha sido
+      // invalidado remotamente. Forçar renovação na próxima execução zerando expires_at.
+      if (res.status === 401 && storedRefreshToken) {
+        await supabase.from('affiliate_accounts').update({
+          extra_config: { ...extra, token_expires_at: '1970-01-01T00:00:00.000Z' }
+        }).eq('id', account.id)
+        telemetry.forced_refresh_on_next = true
+      }
+      throw new Error(`API Rakuten: ${res.status} - ${responseText.slice(0, 200)}`)
+    }
 
     const { offers, totalMatches, totalPages } = parseRakutenResponse(responseText)
-    telemetry.parsed_offers = offers.length
-    telemetry.total_matches = totalMatches
-    telemetry.total_pages = totalPages
+    telemetry.parsed_offers  = offers.length
+    telemetry.total_matches  = totalMatches
+    telemetry.total_pages    = totalPages
 
     if (offers.length === 0) {
-      // Sucesso vazio: sinaliza no log que a API respondeu 200 mas sem <link> blocks.
-      await finishLog(supabase, logId, 'success', 0, 0, 0, 'API retornou 0 ofertas — verifique sid/mid/network ou credenciais', telemetry)
-      return new Response(JSON.stringify({ success: true, stats, telemetry }), { headers: corsHeaders })
+      await finishLog(supabase, logId, 'success', 0, 0, 0,
+        'API retornou 0 ofertas — verifique sid/mid/network ou credenciais', telemetry)
+      return new Response(JSON.stringify({ success: true, stats: { inserted: 0, updated: 0, skipped: 0 }, telemetry }), { headers: corsHeaders })
     }
+
+    const stats = { inserted: 0, updated: 0, skipped: 0 }
 
     for (const offer of offers) {
       if (!offer.clickUrl || !offer.advertiserId) { stats.skipped++; continue }
@@ -260,7 +324,6 @@ serve(async (req) => {
         }).select('id').single()
         store = newStore
       }
-
       if (!store) { stats.skipped++; continue }
 
       const promoId = `rakuten_${offer.promotionId}`
@@ -282,12 +345,10 @@ serve(async (req) => {
       const { data: existing } = await supabase.from('coupons').select('id').eq('awin_promotion_id', promoId).maybeSingle()
       if (!existing) {
         const { error: insErr } = await supabase.from('coupons').insert(couponData)
-        if (insErr) { stats.skipped++; continue }
-        stats.inserted++
+        insErr ? stats.skipped++ : stats.inserted++
       } else {
         const { error: updErr } = await supabase.from('coupons').update(couponData).eq('id', existing.id)
-        if (updErr) { stats.skipped++; continue }
-        stats.updated++
+        updErr ? stats.skipped++ : stats.updated++
       }
     }
 
