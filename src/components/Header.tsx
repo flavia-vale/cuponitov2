@@ -8,19 +8,19 @@ const Header = () => (
         <span className="text-xl tracking-tight">cuponito<span className="text-[#FFD166]">.</span></span>
       </Link>
 
-      <nav className="hidden md:flex items-center gap-5 ml-8 text-xs text-white/85">
-        <Link to="/lojas" className="hover:text-white transition-colors">Lojas</Link>
-        <Link to="/" hash="categorias" className="hover:text-white transition-colors">Categorias</Link>
+      <nav className="flex items-center gap-3 sm:gap-5 ml-4 sm:ml-8 text-[10px] sm:text-xs text-white/85">
+        <Link to="/lojas" className="hover:text-white transition-colors font-medium">Lojas</Link>
+        <Link to="/" hash="categorias" className="hover:text-white transition-colors font-medium">Categorias</Link>
         <Link
           to="/blog"
-          className="bg-white/15 border border-white/30 rounded-[14px] px-[11px] py-1 text-[#FFD166] font-semibold hover:text-white transition-colors"
+          className="bg-[#FFD166] text-[#1a1a1a] border-none rounded-[14px] px-[10px] py-1 font-black hover:bg-white transition-colors shadow-sm"
         >
           ✍ Blog
         </Link>
       </nav>
 
       <div className="flex items-center gap-2.5 ml-auto">
-        <div className="relative hidden sm:block">
+        <div className="relative hidden lg:block">
           <input 
             type="text" 
             placeholder="Buscar loja ou cupom..." 

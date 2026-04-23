@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { Flame, Shirt, Smartphone, Pizza, Plane, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const CATEGORIES = [
-  { id: null,        label: 'Em alta',  icon: Flame },
-  { id: 'Moda',      label: 'Moda',     icon: Shirt },
-  { id: 'Tech',      label: 'Tech',     icon: Smartphone },
-  { id: 'Delivery',  label: 'Delivery', icon: Pizza },
-  { id: 'Viagens',   label: 'Viagens',  icon: Plane },
-  { id: 'Beleza',    label: 'Beleza',   icon: Sparkles },
-];
+const CATEGORY_ICONS: Record<string, any> = {
+  'Moda': Shirt,
+  'Tech': Smartphone,
+  'Delivery': Pizza,
+  'Viagens': Plane,
+  'Beleza': Sparkles,
+};
 
 interface Props {
   onSelect?: (category: string | null) => void;
+  availableCategories?: string[];
 }
 
-const CategoryScroll = ({ onSelect }: Props) => {
+const CategoryScroll = ({ onSelect, availableCategories }: Props) => {
   const [active, setActive] = useState<string | null>(null);
 
   const handleClick = (id: string | null) => {
@@ -24,11 +24,20 @@ const CategoryScroll = ({ onSelect }: Props) => {
     onSelect?.(next);
   };
 
+  const categories = [
+    { id: null, label: 'Em alta', icon: Flame },
+    ...(availableCategories || []).map(cat => ({
+      id: cat,
+      label: cat,
+      icon: CATEGORY_ICONS[cat] || Sparkles
+    }))
+  ];
+
   return (
     <section id="categorias" className="mx-auto max-w-6xl px-4 py-6 scroll-mt-20">
       <h2 className="mb-4 text-lg font-bold tracking-tight text-foreground">Categorias</h2>
       <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
-        {CATEGORIES.map((cat) => {
+        {categories.map((cat) => {
           const isActive = active === cat.id;
           return (
             <button
