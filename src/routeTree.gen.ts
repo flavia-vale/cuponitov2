@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LojasRouteImport } from './routes/lojas'
 import { Route as CuponsRouteImport } from './routes/cupons'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AdminblogRouteImport } from './routes/adminblog'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as DescontoSlugRouteImport } from './routes/desconto.$slug'
+import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 
@@ -33,6 +35,11 @@ const CuponsRoute = CuponsRouteImport.update({
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminblogRoute = AdminblogRouteImport.update({
+  id: '/adminblog',
+  path: '/adminblog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -60,6 +67,11 @@ const DescontoSlugRoute = DescontoSlugRouteImport.update({
   path: '/desconto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriaSlugRoute = CategoriaSlugRouteImport.update({
+  id: '/categoria/$slug',
+  path: '/categoria/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -74,21 +86,25 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/adminblog': typeof AdminblogRoute
   '/blog': typeof BlogRouteWithChildren
   '/cupons': typeof CuponsRoute
   '/lojas': typeof LojasRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/categoria/$slug': typeof CategoriaSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/adminblog': typeof AdminblogRoute
   '/cupons': typeof CuponsRoute
   '/lojas': typeof LojasRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/categoria/$slug': typeof CategoriaSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
@@ -97,11 +113,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/adminblog': typeof AdminblogRoute
   '/blog': typeof BlogRouteWithChildren
   '/cupons': typeof CuponsRoute
   '/lojas': typeof LojasRoute
   '/admin/login': typeof AdminLoginRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/categoria/$slug': typeof CategoriaSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
@@ -111,21 +129,25 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/adminblog'
     | '/blog'
     | '/cupons'
     | '/lojas'
     | '/admin/login'
     | '/blog/$slug'
+    | '/categoria/$slug'
     | '/desconto/$slug'
     | '/admin/'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/adminblog'
     | '/cupons'
     | '/lojas'
     | '/admin/login'
     | '/blog/$slug'
+    | '/categoria/$slug'
     | '/desconto/$slug'
     | '/admin'
     | '/blog'
@@ -133,11 +155,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/adminblog'
     | '/blog'
     | '/cupons'
     | '/lojas'
     | '/admin/login'
     | '/blog/$slug'
+    | '/categoria/$slug'
     | '/desconto/$slug'
     | '/admin/'
     | '/blog/'
@@ -146,9 +170,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AdminblogRoute: typeof AdminblogRoute
   BlogRoute: typeof BlogRouteWithChildren
   CuponsRoute: typeof CuponsRoute
   LojasRoute: typeof LojasRoute
+  CategoriaSlugRoute: typeof CategoriaSlugRoute
   DescontoSlugRoute: typeof DescontoSlugRoute
 }
 
@@ -173,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog'
       preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/adminblog': {
+      id: '/adminblog'
+      path: '/adminblog'
+      fullPath: '/adminblog'
+      preLoaderRoute: typeof AdminblogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -208,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/desconto/$slug'
       fullPath: '/desconto/$slug'
       preLoaderRoute: typeof DescontoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categoria/$slug': {
+      id: '/categoria/$slug'
+      path: '/categoria/$slug'
+      fullPath: '/categoria/$slug'
+      preLoaderRoute: typeof CategoriaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/$slug': {
@@ -254,9 +294,11 @@ const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AdminblogRoute: AdminblogRoute,
   BlogRoute: BlogRouteWithChildren,
   CuponsRoute: CuponsRoute,
   LojasRoute: LojasRoute,
+  CategoriaSlugRoute: CategoriaSlugRoute,
   DescontoSlugRoute: DescontoSlugRoute,
 }
 export const routeTree = rootRouteImport
