@@ -2,11 +2,12 @@
 
 import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
-import { ArrowLeft, Calendar, Clock, User, Share2 } from 'lucide-react';
+import { Clock, User, Share2, ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
+import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead';
@@ -28,24 +29,14 @@ export default function BlogPost() {
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null;
   const readingTime = post?.content ? calcReadingTime(post.content) : 1;
-  const canonical = post?.slug ? `${SITE_URL}/blog/${post.slug}` : undefined;
-
-  const handleShare = () => {
-    if (navigator.share && post) {
-      navigator.share({ title: post.title, text: post.excerpt, url: window.location.href });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-    }
-  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
-        <div className="mx-auto max-w-3xl px-4 py-12">
-          <Skeleton className="mb-4 h-10 w-full rounded-xl" />
-          <Skeleton className="mb-8 h-4 w-1/2 rounded-lg" />
-          <Skeleton className="h-96 w-full rounded-3xl" />
+        <div className="mx-auto max-w-5xl px-4 py-12">
+          <Skeleton className="h-12 w-3/4 mb-6" />
+          <Skeleton className="h-64 w-full rounded-3xl" />
         </div>
       </div>
     );
@@ -66,7 +57,7 @@ export default function BlogPost() {
       <SEOHead
         title={`${post.meta_title || post.title} | Blog Cuponito`}
         description={post.meta_description || post.excerpt || ''}
-        canonical={canonical}
+        canonical={`${SITE_URL}/blog/${post.slug}`}
         ogType="article"
         ogImage={post.cover_image || undefined}
         jsonLdRoute={{
@@ -82,86 +73,86 @@ export default function BlogPost() {
         }}
       />
 
-      {/* TOP BAR */}
-      <div className="bg-[#FF4D00] px-4 py-3 text-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link to="/blog" className="flex items-center gap-2 text-sm font-bold text-white/90 hover:text-white">
-            <ArrowLeft size={18} /> Voltar
-          </Link>
-          <span className="text-sm font-black">cuponito<span className="text-accent">.</span> blog</span>
-          <button onClick={handleShare} aria-label="Compartilhar" className="text-white/90 hover:text-white transition-colors">
-            <Share2 size={18} />
-          </button>
-        </div>
-      </div>
+      <Header />
 
-      {/* HERO SECTION WITH TITLE */}
-      <div className="relative aspect-[21/9] w-full overflow-hidden bg-gradient-to-br from-primary via-primary-soft to-accent">
-        {post.cover_image ? (
-          <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-7xl md:text-9xl">📱</div>
-        )}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-          <span className="mb-4 inline-block rounded-lg bg-primary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">Artigo</span>
-          <h1 className="max-w-4xl text-2xl font-black leading-tight text-white md:text-4xl lg:text-5xl">{post.title}</h1>
-        </div>
-      </div>
+      <section className="bg-[#fcfbf9] border-b border-black/5 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="rounded-full bg-primary/10 px-4 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+                  {post.category || 'Economia'}
+                </span>
+                <span className="text-[11px] font-bold text-[#aaa] flex items-center gap-1">
+                  <Clock size={12} /> {readingTime} min
+                </span>
+              </div>
+              
+              <h1 className="text-3xl font-black leading-tight text-[#1a1a1a] md:text-4xl lg:text-5xl mb-6">
+                {post.title}
+              </h1>
 
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <article>
-          <div className="mb-8 flex flex-wrap items-center gap-4 border-b border-black/5 pb-6 text-[11px] font-medium text-[#aaa]">
-            <div className="flex items-center gap-2">
-              {author?.avatar_url
-                ? <img src={author.avatar_url} alt={author.name} className="h-6 w-6 rounded-full object-cover" loading="lazy" />
-                : <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f5f3ef]"><User size={12} /></div>
-              }
-              <span className="text-[#1a1a1a] font-bold">{author?.name || 'Equipe Cuponito'}</span>
+              <div className="flex items-center justify-between border-t border-black/5 pt-6">
+                <div className="flex items-center gap-3">
+                  {author?.avatar_url
+                    ? <img src={author.avatar_url} alt={author.name} className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                    : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa]"><User size={18} /></div>
+                  }
+                  <div>
+                    <p className="text-xs font-black text-[#1a1a1a]">{author?.name || 'Equipe Cuponito'}</p>
+                    <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wider">{publishedDate}</p>
+                  </div>
+                </div>
+                <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 text-[#555] hover:text-primary transition-colors shadow-sm">
+                  <Share2 size={18} />
+                </button>
+              </div>
             </div>
-            <span className="h-1 w-1 rounded-full bg-[#ddd]" />
-            <span className="flex items-center gap-1"><Clock size={12} /> {readingTime} min de leitura</span>
-            <span className="h-1 w-1 rounded-full bg-[#ddd]" />
-            <span className="flex items-center gap-1"><Calendar size={12} /> {publishedDate}</span>
-          </div>
 
+            <div className="order-1 md:order-2">
+              <div className="relative aspect-video w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/10 border-4 border-white">
+                {post.cover_image ? (
+                  <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-muted text-4xl">✍️</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-3xl px-4 py-12">
+        <article>
           {post.excerpt && (
-            <p className="mb-8 text-base font-medium leading-relaxed text-[#444] italic border-l-4 border-primary/30 pl-4">
+            <p className="mb-10 text-lg font-medium leading-relaxed text-[#444] italic border-l-4 border-primary pl-6 py-2 bg-primary/5 rounded-r-2xl">
               {post.excerpt}
             </p>
           )}
 
           <div
-            className="prose prose-neutral max-w-none text-[#555] leading-[1.8] text-sm md:text-base
+            className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-base md:text-lg
               prose-headings:text-[#1a1a1a] prose-headings:font-black
-              prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-2
-              prose-h3:text-base prose-h3:mt-6 prose-h3:mb-3
-              prose-p:mb-6 prose-p:leading-[1.9]
-              prose-strong:text-[#1a1a1a]
-              prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-[#FFF8F5] prose-blockquote:rounded-r-xl prose-blockquote:px-5 prose-blockquote:py-3 prose-blockquote:not-italic prose-blockquote:text-[#444]
-              prose-table:text-sm prose-table:w-full
-              prose-thead:bg-[#FFF0EB] prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-black prose-th:text-[#1a1a1a] prose-th:text-xs prose-th:uppercase prose-th:tracking-wider
-              prose-td:px-4 prose-td:py-3 prose-td:border-b prose-td:border-black/5
-              prose-tr:even:bg-[#FAFAFA]
-              prose-img:rounded-2xl prose-img:shadow-md
-              prose-code:bg-[#FFF0EB] prose-code:text-primary prose-code:rounded prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-              prose-ul:space-y-1 prose-ol:space-y-1
-              prose-li:marker:text-primary"
+              prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-3
+              prose-strong:text-[#1a1a1a] prose-strong:font-black
+              prose-a:text-primary prose-a:font-black prose-a:no-underline hover:prose-a:underline
+              prose-img:rounded-[2rem] prose-img:shadow-xl prose-img:my-12"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          {/* CTA FINAL */}
           {post.cta_config && typeof post.cta_config === 'object' && (
             <InlineCouponBox config={post.cta_config as InlineCouponConfig} />
           )}
         </article>
 
-        {/* RELATED */}
+        <div className="mt-16">
+          <BlogWhatsAppCTA />
+        </div>
+
         {relatedPosts.length > 0 && (
-          <section className="mt-16 border-t border-black/5 pt-10">
-            <h2 className="mb-6 text-sm font-black uppercase tracking-wider text-[#1a1a1a]">Artigos relacionados</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <section className="mt-20 border-t border-black/5 pt-12">
+            <h2 className="mb-8 text-lg font-black uppercase tracking-widest text-[#1a1a1a] text-center">Continue economizando</h2>
+            <div className="grid gap-6 sm:grid-cols-2">
               {relatedPosts.map(p => <BlogPostCard key={p.id} post={p} />)}
             </div>
           </section>

@@ -23,9 +23,7 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
   const isCode = !!coupon.code;
   const expired = isExpiredProp || isExpired(coupon.expiry);
   
-  // Um cupom é considerado verificado se tem validade futura confirmada
   const isVerified = !expired && !!coupon.expiry;
-  
   const isExpiring = coupon.expiry && !expired && (new Date(coupon.expiry).getTime() - new Date().getTime() < 48 * 60 * 60 * 1000);
   const usageCount = Math.floor(Math.random() * 2000) + 100;
 
@@ -45,10 +43,6 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
     window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
   };
 
-  const handleReveal = () => {
-    setIsOpen(true);
-  };
-
   return (
     <>
       <div className={cn(
@@ -65,7 +59,7 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
 
           <div className="coupon-body flex-1 p-4 sm:p-[14px_16px]">
             <div className="coupon-top flex flex-col sm:flex-row items-start justify-between gap-3 mb-2">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="coupon-badges flex flex-wrap gap-[5px] mb-1.5">
                   {expired ? (
                     <span className="coupon-type-badge bg-[#f0f0f0] text-[#999] py-0.5 px-2 rounded-lg text-[10px] font-bold">Expirado</span>
@@ -82,15 +76,10 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
                           <ShieldCheck size={10} /> Verificado
                         </span>
                       )}
-                      {coupon.category === 'Frete Grátis' && (
-                        <span className="coupon-type-badge badge-free bg-[#E3F2FD] text-[#1565C0] py-0.5 px-2 rounded-lg text-[10px] font-bold">
-                          Frete grátis
-                        </span>
-                      )}
                     </>
                   )}
                 </div>
-                <h3 className="coupon-title text-sm font-bold text-[#1a1a1a] leading-tight mb-1">
+                <h3 className="coupon-title text-sm font-bold text-[#1a1a1a] leading-tight mb-1 break-words">
                   {coupon.title}
                 </h3>
                 <p className="coupon-desc text-xs text-[#666] line-clamp-2 leading-relaxed mb-2.5">
@@ -99,9 +88,8 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
               </div>
               
               <div className={cn(
-                "coupon-discount text-[22px] font-black shrink-0 leading-none",
+                "coupon-discount text-xl sm:text-[22px] font-black shrink-0 leading-none",
                 !isCode ? "text-[#2E7D32]" : "text-[#FF4D00]",
-                coupon.category === 'Frete Grátis' && "text-[#1565C0]",
                 expired && "text-gray-400"
               )}>
                 {coupon.discount}
@@ -117,20 +105,17 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
                   ⏰ Vence em breve
                 </span>
               )}
-              <span className="coupon-meta-item flex items-center gap-1">
-                👥 {usageCount} usos
-              </span>
             </div>
           </div>
 
-          <div className="coupon-action p-4 sm:p-[12px_16px_12px_0] flex flex-col items-center sm:items-end justify-center gap-2 sm:min-w-[190px]">
+          <div className="coupon-action p-4 sm:p-[12px_16px_12px_0] flex flex-col items-center sm:items-end justify-center gap-2 sm:min-w-[180px]">
             {isCode ? (
               <div className="w-full space-y-2">
                 <div 
-                  onClick={handleReveal}
+                  onClick={() => setIsOpen(true)}
                   className="code-box flex items-center justify-between gap-0 border-2 border-dashed border-[#FF4D00] rounded-xl overflow-hidden group/code transition-colors hover:border-[#FF4D00]/70 cursor-pointer"
                 >
-                  <span className="code-text flex-1 font-mono text-sm font-bold text-[#FF4D00] py-2 px-3 text-center bg-[#FFF0EB] uppercase tracking-widest">
+                  <span className="code-text flex-1 font-mono text-sm font-bold text-[#FF4D00] py-2 px-2 text-center bg-[#FFF0EB] uppercase tracking-widest">
                     {maskCode(coupon.code)}
                   </span>
                   <div className="bg-[#FF4D00] h-full px-3 flex items-center justify-center py-2">
@@ -139,27 +124,25 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
                 </div>
                 <button 
                   onClick={handleAction}
-                  className="go-btn w-full border-[1.5px] border-[#FF4D00] text-[#FF4D00] font-bold py-[7px] rounded-lg text-xs hover:bg-[#FF4D00] hover:text-white transition-all"
+                  className="go-btn w-full border-[1.5px] border-[#FF4D00] text-[#FF4D00] font-bold py-2.5 rounded-lg text-xs hover:bg-[#FF4D00] hover:text-white transition-all"
                 >
                   Copiar e ir à loja ↗
                 </button>
               </div>
             ) : (
-              <div className="w-full flex flex-col gap-2">
-                <button 
-                  onClick={handleAction}
-                  className="activate-btn w-full bg-[#FF4D00] hover:bg-[#D83C00] text-white font-bold py-[9px] rounded-lg text-xs transition-all"
-                >
-                  Aproveitar oferta ↗
-                </button>
-              </div>
+              <button 
+                onClick={handleAction}
+                className="activate-btn w-full bg-[#FF4D00] hover:bg-[#D83C00] text-white font-bold py-3rounded-lg text-xs transition-all"
+              >
+                Aproveitar oferta ↗
+              </button>
             )}
           </div>
         </div>
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md text-center p-8">
+        <DialogContent className="sm:max-w-md text-center p-6 sm:p-8">
           <DialogHeader className="flex flex-col items-center">
             <DialogTitle className="text-xl font-bold">Cupom {coupon.store}</DialogTitle>
             <DialogDescription className="text-sm font-medium pt-1">
@@ -170,7 +153,7 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
           <div className="mt-6 space-y-6">
             <div className="relative group">
               <div className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#FF4D00] bg-[#FFF0EB] p-5">
-                <span className="font-mono text-2xl font-black uppercase tracking-widest text-[#FF4D00]">
+                <span className="font-mono text-2xl font-black uppercase tracking-widest text-[#FF4D00] break-all">
                   {coupon.code}
                 </span>
               </div>

@@ -4,7 +4,7 @@ import { Search } from 'lucide-react';
 const Header = () => (
   <header className="w-full bg-[#FF4D00] sticky top-0 z-50 shadow-md h-[54px]">
     <div className="mx-auto flex h-full max-w-[1100px] items-center justify-between px-5">
-      <Link to="/" className="flex items-center gap-1 font-bold text-white shrink-0">
+      <Link to="/" className="flex items-center gap-1 font-bold text-white shrink-0 hover:opacity-90 transition-opacity">
         <span className="text-xl tracking-tight">cuponito<span className="text-[#FFD166]">.</span></span>
       </Link>
 

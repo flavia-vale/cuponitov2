@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { FileText, Eye, Star, TrendingUp } from 'lucide-react';
+import { FileText, Eye, Star, TrendingUp, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import type { BlogPost } from '@/hooks/useBlog';
 
@@ -30,7 +30,33 @@ export function AdminBlogDashboard({ posts }: Props) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map((c) => (<Card key={c.label}><CardContent className="flex items-center gap-3 p-4"><c.icon className={`h-5 w-5 shrink-0 ${c.color}`} /><div><p className="text-xs text-muted-foreground">{c.label}</p><p className="text-lg font-bold text-foreground">{c.value}</p></div></CardContent></Card>))}
       </div>
-      {topPosts.length > 0 && (<Card><CardContent className="p-4"><h2 className="mb-3 text-sm font-bold text-foreground">Top 5 — Mais vistos</h2><div className="space-y-2">{topPosts.map((p, i) => (<div key={p.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-3 py-2"><div className="flex items-center gap-2 min-w-0"><span className="text-xs font-bold text-muted-foreground">#{i + 1}</span><span className="truncate text-sm font-medium text-foreground">{p.title || 'Sem título'}</span></div><span className="shrink-0 text-xs font-semibold text-muted-foreground">{(p.views_count || 0).toLocaleString('pt-BR')} views</span></div>))}</div></CardContent></Card>)}
+      {topPosts.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h2 className="mb-3 text-sm font-bold text-foreground">Top 5 — Mais vistos</h2>
+            <div className="space-y-2">
+              {topPosts.map((p, i) => (
+                <div key={p.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-3 py-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-bold text-muted-foreground">#{i + 1}</span>
+                    <span className="truncate text-sm font-medium text-foreground">{p.title || 'Sem título'}</span>
+                    <a 
+                      href={`/blog/${p.slug}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      title="Ver post publicado"
+                    >
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                  <span className="shrink-0 text-xs font-semibold text-muted-foreground">{(p.views_count || 0).toLocaleString('pt-BR')} views</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -109,6 +109,38 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_clicks: {
+        Row: {
+          banner_url: string
+          created_at: string
+          id: string
+          link_url: string
+          post_id: string
+        }
+        Insert: {
+          banner_url: string
+          created_at?: string
+          id?: string
+          link_url: string
+          post_id: string
+        }
+        Update: {
+          banner_url?: string
+          created_at?: string
+          id?: string
+          link_url?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_clicks_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string | null
@@ -120,6 +152,7 @@ export type Database = {
           excerpt: string
           featured: boolean
           id: string
+          images_json: Json | null
           meta_description: string
           meta_title: string
           published_at: string | null
@@ -139,6 +172,7 @@ export type Database = {
           excerpt?: string
           featured?: boolean
           id?: string
+          images_json?: Json | null
           meta_description?: string
           meta_title?: string
           published_at?: string | null
@@ -158,6 +192,7 @@ export type Database = {
           excerpt?: string
           featured?: boolean
           id?: string
+          images_json?: Json | null
           meta_description?: string
           meta_title?: string
           published_at?: string | null
