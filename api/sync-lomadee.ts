@@ -328,7 +328,6 @@ export default async function handler(req: any, res: any): Promise<void> {
         }
       }
 
-      if (coupons.length < pageSize) break;
       page++;
     }
 
