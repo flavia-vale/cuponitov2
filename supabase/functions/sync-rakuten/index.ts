@@ -7,8 +7,8 @@ const corsHeaders = {
 }
 
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
+const TOKEN_ENDPOINT  = 'https://api.linksynergy.com/token'
 const RESULTS_PER_PAGE = 500
-const HARDCODED_TOKEN = 'MuUtdYgwGUo7tPsA7UGVEVrume8GXRwh'
 
 function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
@@ -82,9 +82,62 @@ function parseRakutenResponse(xml: string) {
   }
 }
 
-async function finishLog(supabase: any, logId: string | null, status: string, inserted: number, updated: number, skipped: number, error: string | null = null) {
+async function finishLog(
+  supabase: any,
+  logId: string | null,
+  status: string,
+  inserted: number,
+  updated: number,
+  skipped: number,
+  error: string | null = null,
+  meta: Record<string, unknown> = {}
+) {
   if (!logId) return
-  await supabase.from('sync_logs').update({ status, finished_at: new Date().toISOString(), records_inserted: inserted, records_updated: updated, records_skipped: skipped, error_message: error }).eq('id', logId)
+  await supabase.from('sync_logs').update({
+    status,
+    finished_at: new Date().toISOString(),
+    records_inserted: inserted,
+    records_updated: updated,
+    records_skipped: skipped,
+    error_message: error,
+    meta
+  }).eq('id', logId)
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// OAuth 2.0: troca a token-key (87 chars) por um access_token (Bearer).
+// A API de Cupons só aceita access_token — a token-key passada direta como Bearer
+// resultava em "200 OK com 0 cupons" (XML vazio). Documentação:
+// https://developers.rakutenadvertising.com/documentation/en_US/api_documentation/authentication
+// ───────────────────────────────────────────────────────────────────────────────
+async function exchangeTokenKey(tokenKey: string, sid: string): Promise<{ accessToken: string; expiresIn: number; raw: string }> {
+  const params = new URLSearchParams()
+  // "scope" aceita o SID (Publisher Site ID). Para contas sem SID dedicado, mantém vazio.
+  if (sid) params.set('scope', sid)
+
+  const body = params.toString()
+  const res = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${tokenKey}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    },
+    body: body.length > 0 ? body : 'scope='
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    throw new Error(`token exchange falhou (${res.status}): ${text.slice(0, 200)}`)
+  }
+  let json: any
+  try { json = JSON.parse(text) } catch {
+    throw new Error(`token exchange: resposta não-JSON ${text.slice(0, 200)}`)
+  }
+  const accessToken = json.access_token as string | undefined
+  if (!accessToken) {
+    throw new Error(`token exchange sem access_token: ${text.slice(0, 200)}`)
+  }
+  return { accessToken, expiresIn: Number(json.expires_in ?? 3600), raw: text }
 }
 
 serve(async (req) => {
@@ -92,11 +145,12 @@ serve(async (req) => {
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
   let logId: string | null = null
+  const telemetry: Record<string, unknown> = {}
 
   try {
     const body = await req.json().catch(() => ({}))
     const accountId = body.account_id
-    
+
     const { data: accounts, error: accError } = await supabase
       .from('affiliate_accounts')
       .select('*, integration_providers(slug, base_url)')
@@ -109,32 +163,89 @@ serve(async (req) => {
     const { data: logRow } = await supabase.from('sync_logs').insert({ account_id: account.id, status: 'running' }).select('id').single()
     logId = logRow?.id ?? null
 
-    // Prioridade: Token vindo da Vercel (body) -> Token no Banco -> Secret do Supabase -> Hardcoded
-    const token = body.rakuten_token || account.api_token || Deno.env.get('RAKUTEN_TOKEN') || HARDCODED_TOKEN
+    // Resolve o segredo: body → api_token da conta → secret global (nome via extra_config.env_secret)
+    const extra = (account.extra_config ?? {}) as Record<string, any>
+    const envSecretName = typeof extra.env_secret === 'string' ? extra.env_secret : 'RAKUTEN_TOKEN'
+    const providedToken: string | undefined =
+      body.rakuten_token ||
+      account.api_token ||
+      Deno.env.get(envSecretName) ||
+      Deno.env.get('RAKUTEN_TOKEN') ||
+      undefined
 
-    // Log de depuração mascarado
-    console.log("[sync-rakuten] Token status:", token ? `Presente (inicia com ${token.substring(0, 4)})` : "Ausente");
+    if (!providedToken) throw new Error('Token Rakuten ausente: configure api_token da conta ou secret RAKUTEN_TOKEN')
+
+    const sid = String(extra.sid ?? account.publisher_id ?? '')
+    const mid = typeof extra.mid === 'string' ? extra.mid : ''
+    const network = typeof extra.network === 'string' ? extra.network : (typeof extra.network_id === 'string' ? extra.network_id : '')
+    // Modo explícito: 'oauth' (padrão) ou 'legacy' (Web Service Token via ?token=)
+    const authMode: string = (body.rakuten_auth_mode || extra.auth_mode || (providedToken.length >= 60 ? 'oauth' : 'legacy')).toString()
+
+    telemetry.token_len = providedToken.length
+    telemetry.auth_mode = authMode
+    telemetry.sid = sid || null
+    telemetry.mid = mid || null
+    telemetry.network = network || null
 
     const stats = { inserted: 0, updated: 0, skipped: 0 }
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
-    
-    // Parâmetros da URL (token também é aceito aqui em algumas versões da API)
-    const params = new URLSearchParams({ 
-      resultsperpage: String(RESULTS_PER_PAGE), 
-      pagenumber: '1' 
-    })
-    
-    const res = await fetch(`${baseUrl}?${params}`, {
-      headers: { 
-        'Accept': 'application/xml',
-        'Authorization': `Bearer ${token}`
+
+    // ── Autenticação ─────────────────────────────────────────────────────────
+    let accessToken: string | null = null
+    let legacyQueryToken: string | null = null
+
+    if (authMode === 'legacy') {
+      // Fluxo antigo: Web Service Token passa como query param.
+      legacyQueryToken = providedToken
+      telemetry.oauth = 'skipped (legacy)'
+    } else {
+      // Fluxo OAuth 2.0: troca token-key → access_token.
+      try {
+        const exchanged = await exchangeTokenKey(providedToken, sid)
+        accessToken = exchanged.accessToken
+        telemetry.oauth = `ok (expires_in=${exchanged.expiresIn})`
+      } catch (oauthErr: any) {
+        // Fallback: tenta usar a token fornecida diretamente como Bearer.
+        // Mantém o comportamento legado para contas já funcionando e deixa o erro
+        // rastreável em sync_logs.meta.
+        telemetry.oauth = `falhou: ${oauthErr.message}`
+        accessToken = providedToken
       }
+    }
+
+    // ── Consulta de cupons ────────────────────────────────────────────────────
+    const qs = new URLSearchParams({
+      resultsperpage: String(RESULTS_PER_PAGE),
+      pagenumber: '1'
     })
+    if (mid) qs.set('mid', mid)
+    if (network) qs.set('network', network)
+    if (legacyQueryToken) qs.set('token', legacyQueryToken)
 
+    const url = `${baseUrl}?${qs}`
+    const headers: Record<string, string> = { 'Accept': 'application/xml' }
+    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`
+
+    const res = await fetch(url, { headers })
     const responseText = await res.text()
-    if (!res.ok) throw new Error(`Erro API Rakuten: ${res.status} - ${responseText.slice(0, 150)}`)
 
-    const { offers } = parseRakutenResponse(responseText)
+    telemetry.request_url = url.replace(/token=[^&]+/, 'token=***')
+    telemetry.response_status = res.status
+    telemetry.response_bytes = responseText.length
+    telemetry.response_preview = responseText.slice(0, 300)
+
+    if (!res.ok) throw new Error(`Erro API Rakuten: ${res.status} - ${responseText.slice(0, 200)}`)
+
+    const { offers, totalMatches, totalPages } = parseRakutenResponse(responseText)
+    telemetry.parsed_offers = offers.length
+    telemetry.total_matches = totalMatches
+    telemetry.total_pages = totalPages
+
+    if (offers.length === 0) {
+      // Sucesso vazio: sinaliza no log que a API respondeu 200 mas sem <link> blocks.
+      await finishLog(supabase, logId, 'success', 0, 0, 0, 'API retornou 0 ofertas — verifique sid/mid/network ou credenciais', telemetry)
+      return new Response(JSON.stringify({ success: true, stats, telemetry }), { headers: corsHeaders })
+    }
 
     for (const offer of offers) {
       if (!offer.clickUrl || !offer.advertiserId) { stats.skipped++; continue }
@@ -170,19 +281,21 @@ serve(async (req) => {
 
       const { data: existing } = await supabase.from('coupons').select('id').eq('awin_promotion_id', promoId).maybeSingle()
       if (!existing) {
-        await supabase.from('coupons').insert(couponData)
+        const { error: insErr } = await supabase.from('coupons').insert(couponData)
+        if (insErr) { stats.skipped++; continue }
         stats.inserted++
       } else {
-        await supabase.from('coupons').update(couponData).eq('id', existing.id)
+        const { error: updErr } = await supabase.from('coupons').update(couponData).eq('id', existing.id)
+        if (updErr) { stats.skipped++; continue }
         stats.updated++
       }
     }
 
-    await finishLog(supabase, logId, 'success', stats.inserted, stats.updated, stats.skipped)
-    return new Response(JSON.stringify({ success: true, stats }), { headers: corsHeaders })
+    await finishLog(supabase, logId, 'success', stats.inserted, stats.updated, stats.skipped, null, telemetry)
+    return new Response(JSON.stringify({ success: true, stats, telemetry }), { headers: corsHeaders })
 
   } catch (err: any) {
-    if (logId) await finishLog(supabase, logId, 'error', 0, 0, 0, err.message)
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders })
+    if (logId) await finishLog(supabase, logId, 'error', 0, 0, 0, err.message, telemetry)
+    return new Response(JSON.stringify({ error: err.message, telemetry }), { status: 500, headers: corsHeaders })
   }
 })

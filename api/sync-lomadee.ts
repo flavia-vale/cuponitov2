@@ -4,21 +4,34 @@
 
 import https from 'https';
 
-function httpsGetJson(url: string): Promise<{ ok: boolean; status: number; text: string }> {
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, {
-      headers: {
-        Accept: 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
-      },
-    }, (res) => {
-      let body = '';
-      res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
-      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
+function httpsGetJson(url: string, maxRedirects = 5): Promise<{ ok: boolean; status: number; text: string; finalUrl: string; redirects: string[] }> {
+  const redirects: string[] = [];
+  const attempt = (currentUrl: string, left: number): Promise<{ ok: boolean; status: number; text: string; finalUrl: string; redirects: string[] }> =>
+    new Promise((resolve, reject) => {
+      const req = https.get(currentUrl, {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
+        },
+      }, (res) => {
+        const status = res.statusCode ?? 0;
+        // Seguir redirects manualmente: a API Lomadee responde 307 quando o appToken
+        // está no lugar errado ou está inválido. Sem follow, víamos "status<400 + body vazio".
+        if (status >= 300 && status < 400 && res.headers.location && left > 0) {
+          res.resume();
+          const next = new URL(res.headers.location, currentUrl).toString();
+          redirects.push(`${status}→${next}`);
+          attempt(next, left - 1).then(resolve, reject);
+          return;
+        }
+        let body = '';
+        res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+        res.on('end', () => resolve({ ok: status >= 200 && status < 300, status, text: body, finalUrl: currentUrl, redirects }));
+      });
+      req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
+      req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
     });
-    req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
-    req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
-  });
+  return attempt(url, maxRedirects);
 }
 
 // ── Supabase REST helper ───────────────────────────────────────────────────────
@@ -185,33 +198,42 @@ export default async function handler(req: any, res: any): Promise<void> {
     let totalPages = 1;
 
     while (page <= totalPages) {
-      const url = `${baseUrl}/${sourceId}/coupon/_all?token=${token}&sourceId=${sourceId}&page=${page}&pageSize=${pageSize}`;
+      // Lomadee v3: appToken OBRIGATÓRIO no path; sourceId como query.
+      // Aplicamos redundância do token também como query param (alguns gateways exigem).
+      // Referência: https://developer.lomadee.com/api/v3/#/coupon
+      const url = `${baseUrl}/${token}/coupon/_all?sourceId=${sourceId}&token=${token}&page=${page}&pageSize=${pageSize}`;
       let responseText: string;
       let responseOk: boolean;
       let responseStatus: number;
+      let redirectsTrail: string[] = [];
       try {
         const r = await httpsGetJson(url);
         responseText = r.text;
         responseOk = r.ok;
         responseStatus = r.status;
+        redirectsTrail = r.redirects;
       } catch (e: any) {
         errors.push(`Fetch error p${page}: ${e.message}`);
         break;
       }
 
       if (!responseOk) {
-        errors.push(`API error p${page}: ${responseStatus} ${responseText.slice(0, 200)}`);
+        const trail = redirectsTrail.length ? ` redirects=[${redirectsTrail.join(' ')}]` : '';
+        errors.push(`API error p${page}: ${responseStatus}${trail} ${responseText.slice(0, 200)}`);
         break;
       }
 
       let data: any;
       try { data = JSON.parse(responseText); } catch {
-        errors.push(`JSON parse error: ${responseText.slice(0, 200)}`);
+        errors.push(`JSON parse error p${page} (status=${responseStatus}): ${responseText.slice(0, 200)}`);
         break;
       }
 
-      if (page === 1 && !data.coupons) {
-        errors.push(`debug: keys=${Object.keys(data).join(',')} preview=${responseText.slice(0, 300)}`);
+      if (page === 1 && (!data.coupons || (Array.isArray(data.coupons) && data.coupons.length === 0))) {
+        // Telemetria: captura formato exato da resposta quando a primeira página vem vazia.
+        // Isso torna visível o "sucesso vazio" (ex.: API respondendo {"message":"Invalid token"}).
+        const trail = redirectsTrail.length ? ` redirects=[${redirectsTrail.join(' ')}]` : '';
+        errors.push(`empty_first_page status=${responseStatus}${trail} keys=${Object.keys(data).join(',')} preview=${responseText.slice(0, 300)}`);
         break;
       }
 
