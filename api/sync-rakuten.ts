@@ -19,9 +19,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Dispara a Edge Function do Supabase que contém a lógica de parsing XML do Rakuten
+    // Injeta o token da Vercel no corpo da requisição para a Edge Function
     const { data, error } = await supabase.functions.invoke('sync-rakuten', {
-      body: req.body || {}
+      body: { 
+        ...req.body, 
+        rakuten_token: process.env.RAKUTEN_TOKEN 
+      }
     });
 
     if (error) throw error;
