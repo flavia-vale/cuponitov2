@@ -18,27 +18,21 @@ import type { Tables } from '@/integrations/supabase/types';
 type Coupon = Tables<'coupons'>;
 
 export default function AdminCouponsDashboard() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminTab>('cupons');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const navigate = useNavigate();
   const { data: stores, refetch: refetchStores } = useStoreBrands();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { navigate({ to: '/admin/login' }); return; }
-      setLoading(false);
+    const loadCoupons = async () => {
       const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
       setCoupons(data || []);
     };
-    checkAuth();
-  }, [navigate]);
+    loadCoupons();
+  }, []);
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: '/admin/login' }); };
-
-  if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
 
   return (
     <RoleProtectedRoute requiredRoles={['coupon_admin', 'super_admin']}>

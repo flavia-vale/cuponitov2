@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Menu, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAdminBlogPosts, type BlogPost } from '@/hooks/useBlog';
@@ -11,8 +11,6 @@ import { AdminBlogEditor } from '@/components/admin/AdminBlogEditor';
 import { AdminBlogCategoriesTab } from '@/components/admin/AdminBlogCategoriesTab';
 import { AdminBlogAuthorsTab } from '@/components/admin/AdminBlogAuthorsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
 
 const NAV_TABS = [
@@ -27,16 +25,8 @@ type BlogTab = typeof NAV_TABS[number]['id'];
 export default function AdminBlogPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<BlogPost | null | undefined>(undefined);
   const { data: posts = [], isLoading: postsLoading } = useAdminBlogPosts();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { navigate({ to: '/admin/login' }); return; }
-      setLoading(false);
-    });
-  }, [navigate]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir este post?')) return;
@@ -49,10 +39,6 @@ export default function AdminBlogPage() {
     setEditingPost(undefined);
     queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
   };
-
-  if (loading) {
-    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
-  }
 
   if (editingPost !== undefined) {
     return (
