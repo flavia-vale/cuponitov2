@@ -107,7 +107,7 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md text-center p-8">
+        <DialogContent className="sm:max-w-md text-center p-6 sm:p-8">
           <DialogHeader className="flex flex-col items-center">
             <div className="h-16 w-16 mb-4 flex items-center justify-center rounded-2xl bg-primary/10 text-primary">
               {storeBrand?.logo_url ? (
@@ -125,7 +125,7 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
           <div className="mt-6 space-y-6">
             <div className="relative group">
               <div className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary bg-primary/5 p-5">
-                <span className="font-mono text-2xl font-black uppercase tracking-widest text-primary">
+                <span className="font-mono text-2xl font-black uppercase tracking-widest text-primary break-all">
                   {coupon.code}
                 </span>
               </div>

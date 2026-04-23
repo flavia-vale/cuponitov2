@@ -97,7 +97,7 @@ export default function Home() {
       <main className="relative z-10 space-y-2 pb-12">
         <CategoryScroll onSelect={setActiveCategory} availableCategories={availableCategories} />
 
-        <section className="mx-auto max-w-6xl overflow-hidden px-4">
+        <section className="mx-auto max-w-6xl px-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Destaques do dia</h2>
             <Link to="/cupons" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
@@ -105,12 +105,10 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-3 -mx-4 px-4 sm:mx-0 sm:px-0">
-            {couponsLoading ? [1,2].map(i => <Skeleton key={i} className="h-48 min-w-[85vw] rounded-3xl sm:min-w-full" />) :
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {couponsLoading ? [1,2,3].map(i => <Skeleton key={i} className="h-48 rounded-3xl" />) :
               featuredCoupons.map(c => (
-                <div key={c.id} className="min-w-[85vw] snap-center sm:min-w-full">
-                  <FeaturedStoreCard coupon={c} storeBrand={storeBrandMap[c.store]} />
-                </div>
+                <FeaturedStoreCard key={c.id} coupon={c} storeBrand={storeBrandMap[c.store]} />
               ))}
           </div>
         </section>
@@ -135,7 +133,7 @@ export default function Home() {
               Ver todas <ArrowRight size={14} />
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {storesLoading ? [1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />) :
               featuredStores.map(s => (
                 <PartnerStoreCard
@@ -150,7 +148,9 @@ export default function Home() {
         <HowItWorks />
 
         <Suspense fallback={null}>
-          <WhatsAppCTA variant="urgency" />
+          <div className="mx-auto max-w-6xl px-4">
+            <WhatsAppCTA variant="urgency" />
+          </div>
           <Footer />
         </Suspense>
       </main>
