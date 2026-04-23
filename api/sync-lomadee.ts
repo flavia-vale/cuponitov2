@@ -14,7 +14,7 @@ function httpsGetJson(url: string): Promise<{ ok: boolean; status: number; text:
     }, (res) => {
       let body = '';
       res.on('data', (chunk: Buffer) => { body += chunk.toString(); });
-      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) < 400, status: res.statusCode ?? 0, text: body }));
+      res.on('end', () => resolve({ ok: (res.statusCode ?? 0) >= 200 && (res.statusCode ?? 0) < 300, status: res.statusCode ?? 0, text: body }));
     });
     req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
     req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
@@ -200,7 +200,13 @@ export default async function handler(req: any, res: any): Promise<void> {
       }
 
       if (!responseOk) {
-        errors.push(`API error p${page}: ${responseStatus} ${responseText.slice(0, 200)}`);
+        if (responseStatus >= 300 && responseStatus < 400) {
+          let redirectTarget = '';
+          try { redirectTarget = JSON.parse(responseText).redirect ?? ''; } catch { /* noop */ }
+          errors.push(`Lomadee redirecionou (HTTP ${responseStatus}) — token inválido ou expirado. Verifique o secret LOMADEE_APP_TOKEN.${redirectTarget ? ` Redirect: ${redirectTarget}` : ''}`);
+        } else {
+          errors.push(`API error p${page}: ${responseStatus} ${responseText.slice(0, 200)}`);
+        }
         break;
       }
 
@@ -210,8 +216,14 @@ export default async function handler(req: any, res: any): Promise<void> {
         break;
       }
 
+      // Lomadee às vezes retorna 200 com body de redirect semântico
+      if (data.redirect && !data.coupons) {
+        errors.push(`Lomadee retornou redirect semântico — token inválido ou expirado. Redirect: ${data.redirect}`);
+        break;
+      }
+
       if (page === 1 && !data.coupons) {
-        errors.push(`debug: keys=${Object.keys(data).join(',')} preview=${responseText.slice(0, 300)}`);
+        errors.push(`Estrutura inesperada da API Lomadee: keys=${Object.keys(data).join(',')} — preview: ${responseText.slice(0, 300)}`);
         break;
       }
 
