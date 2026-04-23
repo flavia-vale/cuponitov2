@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAdminBlogPosts, type BlogPost } from '@/hooks/useBlog';
@@ -12,6 +12,7 @@ import { AdminBlogCategoriesTab } from '@/components/admin/AdminBlogCategoriesTa
 import { AdminBlogAuthorsTab } from '@/components/admin/AdminBlogAuthorsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
+import { Button } from '@/components/ui/button';
 
 const NAV_TABS = [
   { id: 'dashboard', label: 'Dashboard' },
@@ -40,6 +41,11 @@ export default function AdminBlogPage() {
     queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: '/admin/login' });
+  };
+
   if (editingPost !== undefined) {
     return (
       <RoleProtectedRoute requiredRoles={['blog_admin', 'super_admin']}>
@@ -64,6 +70,18 @@ export default function AdminBlogPage() {
             <span className="text-border">|</span>
             <BookOpen className="h-4 w-4 text-primary" />
             <span className="text-sm font-bold text-foreground">Blog</span>
+            
+            <div className="ml-auto">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout}
+                className="gap-2 text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sair</span>
+              </Button>
+            </div>
           </div>
         </header>
 
