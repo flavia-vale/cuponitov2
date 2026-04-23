@@ -128,8 +128,8 @@ export default async function handler(req: any, res: any): Promise<void> {
   const serviceRoleKey: string = process.env.SUPABASE_SERVICE_ROLE_KEY || body.service_role_key || '';
   const lomadeeToken: string = process.env.LOMADEE_APP_TOKEN || body.lomadee_token || '';
 
-  if (!supabaseUrl || !serviceRoleKey || !lomadeeToken) {
-    res.status(500).json({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMADEE_APP_TOKEN' });
+  if (!supabaseUrl || !serviceRoleKey) {
+    res.status(500).json({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY' });
     return;
   }
 
@@ -177,6 +177,20 @@ export default async function handler(req: any, res: any): Promise<void> {
 
     // api_token no banco tem prioridade; fallback para LOMADEE_APP_TOKEN global
     const token = account.api_token || lomadeeToken;
+    if (!token) {
+      const errMsg = 'Token Lomadee ausente: preencha api_token na conta ou configure LOMADEE_APP_TOKEN';
+      if (logId) {
+        try {
+          await db.update('sync_logs', {
+            status: 'error', finished_at: new Date().toISOString(),
+            error_message: errMsg,
+          }, `id=eq.${logId}`);
+        } catch { /* ignora */ }
+      }
+      summary.push({ account: account.name, status: 'error', error: errMsg });
+      continue;
+    }
+
     const sourceId = account.publisher_id;
     const baseUrl = account.integration_providers?.base_url || 'https://api.lomadee.com.br/v3';
     const pageSize = 100;
