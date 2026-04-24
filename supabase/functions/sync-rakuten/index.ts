@@ -250,23 +250,27 @@ serve(async (req) => {
     telemetry.network = network || null
 
     // ── Resolução do access_token ────────────────────────────────────────────
+    // Estratégia: confiar no access_token armazenado primeiro (mesmo sem saber
+    // expires_at correto). Se a Coupon API devolver 401, aí sim refresh/exchange.
+    // Evita queimar chamadas ao /token quando o access_token guardado ainda vale.
     const storedAccessToken  = typeof extra.access_token  === 'string' ? extra.access_token  : null
     const storedRefreshToken = typeof extra.refresh_token === 'string' ? extra.refresh_token : null
     const storedExpiresAt    = typeof extra.token_expires_at === 'string' ? extra.token_expires_at : null
 
-    const isValid = storedAccessToken && storedExpiresAt &&
+    const stillValidByClock = storedAccessToken && storedExpiresAt &&
       new Date(storedExpiresAt).getTime() > Date.now() + TOKEN_REFRESH_BUFFER_SEC * 1000
 
     let accessToken: string
     let tokenSource: string
 
-    if (isValid) {
-      // Token ainda dentro da janela de validade — usa sem custo adicional.
-      accessToken = storedAccessToken!
-      tokenSource = 'cached'
+    if (storedAccessToken) {
+      // Usa o access_token guardado — se a Coupon API retornar 401, a lógica
+      // de retry mais abaixo (após fetchPage) vai disparar refresh/exchange.
+      accessToken = storedAccessToken
+      tokenSource = stillValidByClock ? 'cached_fresh' : 'cached_stale_try_anyway'
       telemetry.token_expires_at = storedExpiresAt
     } else if (storedRefreshToken) {
-      // Token expirado (ou prestes a expirar) mas temos refresh_token: renova.
+      // Sem access_token mas com refresh_token: renova.
       try {
         const tokens = await refreshAccessToken(tokenKey, storedRefreshToken, scope)
         const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
@@ -274,7 +278,6 @@ serve(async (req) => {
         tokenSource = 'refreshed'
         telemetry.token_expires_at = expiresAt
       } catch (refreshErr: any) {
-        // Refresh falhou (ex.: refresh_token revogado). Tenta troca direta.
         telemetry.refresh_error = refreshErr.message
         const tokens = await exchangeTokenKey(tokenKey, scope)
         const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
@@ -283,7 +286,7 @@ serve(async (req) => {
         telemetry.token_expires_at = expiresAt
       }
     } else {
-      // Sem refresh_token: troca token-key por access_token pela primeira vez.
+      // Sem nada: troca token-key por access_token pela primeira vez.
       const tokens = await exchangeTokenKey(tokenKey, scope)
       const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
       accessToken = tokens.access_token
@@ -292,6 +295,34 @@ serve(async (req) => {
     }
 
     telemetry.token_source = tokenSource
+
+    // Função para renovar access_token após um 401 da Coupon API.
+    async function recoverOn401(): Promise<boolean> {
+      telemetry.recovered_after_401 = true
+      try {
+        if (storedRefreshToken) {
+          const tokens = await refreshAccessToken(tokenKey, storedRefreshToken, scope)
+          const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
+          accessToken = tokens.access_token
+          telemetry.token_source = 'refreshed_after_401'
+          telemetry.token_expires_at = expiresAt
+          return true
+        }
+      } catch (e: any) {
+        telemetry.refresh_error_401 = e.message
+      }
+      try {
+        const tokens = await exchangeTokenKey(tokenKey, scope)
+        const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
+        accessToken = tokens.access_token
+        telemetry.token_source = 'exchanged_after_401'
+        telemetry.token_expires_at = expiresAt
+        return true
+      } catch (e: any) {
+        telemetry.exchange_error_401 = e.message
+        return false
+      }
+    }
 
     // ── Chamada à API de cupons ──────────────────────────────────────────────
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
@@ -315,13 +346,18 @@ serve(async (req) => {
     telemetry.response_bytes   = r.text.length
     telemetry.response_preview = r.text.slice(0, 300)
 
-    if (!r.ok) {
-      if (r.status === 401 && storedRefreshToken) {
-        await supabase.from('affiliate_accounts').update({
-          extra_config: { ...extra, token_expires_at: '1970-01-01T00:00:00.000Z' }
-        }).eq('id', account.id)
-        telemetry.forced_refresh_on_next = true
+    // Se 401 com access_token guardado, tenta refresh/exchange e re-executa.
+    if (r.status === 401 && (tokenSource === 'cached_fresh' || tokenSource === 'cached_stale_try_anyway')) {
+      const recovered = await recoverOn401()
+      if (recovered) {
+        r = await fetchPage(1)
+        telemetry.retry_after_401_status = r.status
+        telemetry.retry_after_401_bytes  = r.text.length
+        telemetry.retry_after_401_preview = r.text.slice(0, 300)
       }
+    }
+
+    if (!r.ok) {
       throw new Error(`API Rakuten: ${r.status} - ${r.text.slice(0, 200)}`)
     }
 
