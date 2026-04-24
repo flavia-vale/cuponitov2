@@ -1,22 +1,17 @@
-// Vercel serverless function — região gru1 (São Paulo) para acessar api.lomadee.com
-// Usa REST API do Supabase diretamente (sem @supabase/supabase-js) pois o pacote ws
-// (dependência do realtime-js) falha na inicialização em funções serverless em gru1.
+// Vercel serverless function — região gru1 (São Paulo) para acessar api-beta.lomadee.com.br
+// Nova API Lomadee (2024+): POST /affiliate/campaigns com x-api-key header
+// Suporta ambos offerType (Url direto + Spreadsheet via shortener endpoint)
 
 import https from 'https';
 
-function httpsGetJson(url: string, maxRedirects = 5): Promise<{ ok: boolean; status: number; text: string; finalUrl: string; redirects: string[] }> {
+function httpsGetJson(url: string, headers: Record<string, string> = {}, maxRedirects = 5): Promise<{ ok: boolean; status: number; text: string; finalUrl: string; redirects: string[] }> {
   const redirects: string[] = [];
   const attempt = (currentUrl: string, left: number): Promise<{ ok: boolean; status: number; text: string; finalUrl: string; redirects: string[] }> =>
     new Promise((resolve, reject) => {
       const req = https.get(currentUrl, {
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)',
-        },
+        headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)', ...headers },
       }, (res) => {
         const status = res.statusCode ?? 0;
-        // Seguir redirects manualmente: a API Lomadee responde 307 quando o appToken
-        // está no lugar errado ou está inválido. Sem follow, víamos "status<400 + body vazio".
         if (status >= 300 && status < 400 && res.headers.location && left > 0) {
           res.resume();
           const next = new URL(res.headers.location, currentUrl).toString();
@@ -34,6 +29,27 @@ function httpsGetJson(url: string, maxRedirects = 5): Promise<{ ok: boolean; sta
   return attempt(url, maxRedirects);
 }
 
+function httpsPostJson(url: string, body: string, headers: Record<string, string> = {}): Promise<{ ok: boolean; status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const req = https.request({
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Cuponito/1.0)', ...headers },
+    }, (res) => {
+      const status = res.statusCode ?? 0;
+      let resBody = '';
+      res.on('data', (chunk: Buffer) => { resBody += chunk.toString(); });
+      res.on('end', () => resolve({ ok: status >= 200 && status < 300, status, text: resBody }));
+    });
+    req.setTimeout(30_000, () => { req.destroy(new Error('timeout')); });
+    req.on('error', (e: NodeJS.ErrnoException) => reject(new Error(`${e.code ?? e.message}: ${e.message}`)));
+    req.write(body);
+    req.end();
+  });
+}
+
 // ── Supabase REST helper ───────────────────────────────────────────────────────
 
 class DB {
@@ -42,11 +58,7 @@ class DB {
 
   constructor(url: string, key: string) {
     this.base = `${url}/rest/v1`;
-    this.headers = {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    };
+    this.headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
   }
 
   async select<T = any>(table: string, qs: string): Promise<T[]> {
@@ -76,18 +88,6 @@ class DB {
     if (!res.ok) throw new Error(`UPDATE ${table}: ${await res.text()}`);
   }
 
-  async upsert(table: string, data: object, onConflict: string, ignoreDuplicates = false): Promise<void> {
-    const prefer = ignoreDuplicates
-      ? 'resolution=ignore-duplicates,return=minimal'
-      : 'resolution=merge-duplicates,return=minimal';
-    const res = await fetch(`${this.base}/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
-      method: 'POST',
-      headers: { ...this.headers, Prefer: prefer },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error(`UPSERT ${table}: ${await res.text()}`);
-  }
-
   async invokeFunction(supabaseUrl: string, fn: string, body: object): Promise<void> {
     fetch(`${supabaseUrl}/functions/v1/${fn}`, {
       method: 'POST',
@@ -100,12 +100,7 @@ class DB {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+  return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 function determineCategory(title: string, description: string, categoryName: string): string {
@@ -122,34 +117,25 @@ function determineCategory(title: string, description: string, categoryName: str
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export default async function handler(req: any, res: any): Promise<void> {
-  if (req.method === 'OPTIONS') {
-    res.status(204).end();
-    return;
-  }
+  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
   const syncSecret = process.env.SYNC_SECRET ?? '';
   const authHeader = (req.headers['authorization'] ?? '') as string;
-  if (syncSecret && authHeader !== `Bearer ${syncSecret}`) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
+  if (syncSecret && authHeader !== `Bearer ${syncSecret}`) { res.status(401).json({ error: 'Unauthorized' }); return; }
 
-  // Vercel auto-parseia application/json para req.body
   const body: any = req.body ?? {};
-
   const supabaseUrl: string = process.env.SUPABASE_URL || body.supabase_url || '';
   const serviceRoleKey: string = process.env.SUPABASE_SERVICE_ROLE_KEY || body.service_role_key || '';
-  const lomadeeToken: string = process.env.LOMADEE_APP_TOKEN || body.lomadee_token || '';
+  const lomadeeApiKey: string = process.env.LOMADEE_API_KEY || process.env.LOMADEE_APP_TOKEN || body.lomadee_api_key || body.lomadee_token || '';
 
-  if (!supabaseUrl || !serviceRoleKey || !lomadeeToken) {
-    res.status(500).json({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMADEE_APP_TOKEN' });
+  if (!supabaseUrl || !serviceRoleKey || !lomadeeApiKey) {
+    res.status(500).json({ error: 'Variáveis não configuradas: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LOMADEE_API_KEY' });
     return;
   }
 
   const db = new DB(supabaseUrl, serviceRoleKey);
   const accountId: string | null = body.account_id ?? null;
 
-  // Buscar conta(s) Lomadee ativa(s)
   let accounts: any[];
   try {
     if (accountId) {
@@ -160,227 +146,151 @@ export default async function handler(req: any, res: any): Promise<void> {
       if (!providerId) { res.status(200).json({ message: 'Provider Lomadee não encontrado' }); return; }
       accounts = await db.select('affiliate_accounts', `provider_id=eq.${providerId}&active=eq.true&select=*,integration_providers(slug,base_url)`);
     }
-  } catch (e: any) {
-    res.status(500).json({ error: e.message });
-    return;
-  }
+  } catch (e: any) { res.status(500).json({ error: e.message }); return; }
 
-  if (!accounts || accounts.length === 0) {
-    res.status(200).json({ message: 'Nenhuma conta Lomadee ativa' });
-    return;
-  }
+  if (!accounts || accounts.length === 0) { res.status(200).json({ message: 'Nenhuma conta Lomadee ativa' }); return; }
 
   const summary = [];
+  const apiHeaders = { 'x-api-key': lomadeeApiKey };
+  const brandCache: Record<string, any> = {};
 
   for (const account of accounts) {
     let logId: string | null = null;
+    try { const log = await db.insert<{ id: string }>('sync_logs', { account_id: account.id, status: 'running' }); logId = log?.id ?? null; } catch { }
 
-    try {
-      const log = await db.insert<{ id: string }>('sync_logs', { account_id: account.id, status: 'running' });
-      logId = log?.id ?? null;
-    } catch { /* ignora erro de log */ }
-
-    // Lojas explicitamente desabilitadas pelo admin são ignoradas
-    // Novas lojas (não cadastradas ainda) são sempre sincronizadas e auto-registradas
-    const disabledStoreIds = new Set<string>();
-    try {
-      const filters = await db.select('lomadee_store_filters', `account_id=eq.${account.id}&enabled=eq.false&select=lomadee_store_id`);
-      for (const f of filters) disabledStoreIds.add(f.lomadee_store_id);
-    } catch { /* sem filtros = permite tudo */ }
-
-    const token = lomadeeToken;
-    const sourceId = account.publisher_id;
-    // Candidatos de base URL: configurado → .com.br → bws.buscape.com (legado).
-    // Tentamos em sequência até achar um que devolva JSON da API.
-    const configured = account.integration_providers?.base_url;
-    const baseCandidates: string[] = Array.from(new Set([
-      configured,
-      'https://api.lomadee.com.br/v3',
-      'https://bws.buscape.com/service/coupons/lomadee',
-    ].filter(Boolean) as string[]));
-    const pageSize = 100;
     const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0 };
     const errors: string[] = [];
     let page = 1;
-    let totalPages = 1;
-    let baseUrl = baseCandidates[0];
+    let hasMore = true;
 
-    function buildUrl(base: string, pageNum: number): string {
-      // Formato legado bws.buscape.com: /coupons/lomadee/{token}/?sourceId=...
-      if (base.includes('bws.buscape.com')) {
-        return `${base}/${token}/?sourceId=${sourceId}&format=json&page=${pageNum}&pageSize=${pageSize}`;
-      }
-      // Formato v3 padrão: /v3/{token}/coupon/_all?sourceId=...
-      return `${base}/${token}/coupon/_all?sourceId=${sourceId}&page=${pageNum}&pageSize=${pageSize}`;
-    }
+    while (hasMore) {
+      try {
+        const qs = new URLSearchParams({
+          page: String(page),
+          limit: '100',
+          types: 'PersonalCoupon,GenericCoupon',
+          status: 'onTime',
+        }).toString();
 
-    while (page <= totalPages) {
-      let responseText = '';
-      let responseOk = false;
-      let responseStatus = 0;
-      let redirectsTrail: string[] = [];
-      let url = '';
-      let lastAttempt = '';
+        const { ok, status, text } = await httpsGetJson(`https://api-beta.lomadee.com.br/affiliate/campaigns?${qs}`, apiHeaders);
 
-      // Na primeira página, varre todos os candidatos até achar JSON válido.
-      // Nas páginas seguintes, usa o que já funcionou.
-      const candidates = page === 1 ? baseCandidates : [baseUrl];
-      for (const candidate of candidates) {
-        url = buildUrl(candidate, page);
-        try {
-          const r = await httpsGetJson(url);
-          responseText = r.text;
-          responseOk = r.ok;
-          responseStatus = r.status;
-          redirectsTrail = r.redirects;
-        } catch (e: any) {
-          lastAttempt = `${candidate}: ${e.message}`;
-          continue;
-        }
-
-        const looksHtml = responseText.trimStart().startsWith('<') ||
-          responseText.slice(0, 200).toLowerCase().includes('<!doctype html');
-
-        if (responseOk && !looksHtml) {
-          baseUrl = candidate;
+        if (!ok) {
+          errors.push(`API error p${page}: ${status} ${text.slice(0, 200)}`);
           break;
         }
 
-        lastAttempt = `${candidate}: status=${responseStatus}${looksHtml ? ' html_fallback' : ''}`;
-      }
+        let data: any;
+        try { data = JSON.parse(text); } catch { errors.push(`JSON parse error p${page}: ${text.slice(0, 200)}`); break; }
 
-      if (!responseOk) {
-        const trail = redirectsTrail.length ? ` redirects=[${redirectsTrail.join(' ')}]` : '';
-        errors.push(`API error p${page}: ${responseStatus}${trail} ${responseText.slice(0, 200)} lastAttempt=${lastAttempt}`);
-        break;
-      }
+        const campaigns = Array.isArray(data.data) ? data.data : [];
+        const meta = data.meta ?? {};
+        hasMore = page < (meta.totalPages ?? 1);
 
-      // Detecta resposta HTML mesmo com 200 OK — indica URL errada ou API migrada.
-      if (responseText.trimStart().startsWith('<')) {
-        errors.push(`html_response p${page} (status=${responseStatus}) — endpoint provavelmente migrado; candidatos testados: ${baseCandidates.join(', ')}. preview=${responseText.slice(0, 200)}`);
-        break;
-      }
-
-      let data: any;
-      try { data = JSON.parse(responseText); } catch {
-        errors.push(`JSON parse error p${page} (status=${responseStatus}) baseUrl=${baseUrl}: ${responseText.slice(0, 200)}`);
-        break;
-      }
-
-      if (page === 1 && (!data.coupons || (Array.isArray(data.coupons) && data.coupons.length === 0))) {
-        // Telemetria: captura formato exato da resposta quando a primeira página vem vazia.
-        // Isso torna visível o "sucesso vazio" (ex.: API respondendo {"message":"Invalid token"}).
-        const trail = redirectsTrail.length ? ` redirects=[${redirectsTrail.join(' ')}]` : '';
-        errors.push(`empty_first_page status=${responseStatus}${trail} keys=${Object.keys(data).join(',')} preview=${responseText.slice(0, 300)}`);
-        break;
-      }
-
-      const coupons: any[] = data.coupons ?? [];
-      const pagination = data.pagination ?? {};
-      totalPages = pagination.totalPage ?? pagination.total_page ?? 1;
-      if (coupons.length === 0) break;
-
-      for (const coupon of coupons) {
-        try {
-          const store = coupon.store ?? {};
-          const storeExtId = String(store.id ?? '');
-          const storeName: string = store.name ?? 'Loja Lomadee';
-          if (!storeExtId) { stats.skipped++; continue; }
-
-          // Auto-registra loja nova com enabled=true; pula se já existe (ignoreDuplicates)
-          try {
-            await db.upsert('lomadee_store_filters', {
-              account_id: account.id,
-              lomadee_store_id: storeExtId,
-              store_name: storeName,
-              store_logo: store.thumbnail ?? store.image ?? '',
-              enabled: true,
-            }, 'account_id,lomadee_store_id', true);
-          } catch { /* ignora */ }
-
-          // Pular lojas desabilitadas pelo admin
-          if (disabledStoreIds.has(storeExtId)) {
-            stats.skipped++;
-            continue;
-          }
-
-          // Buscar ou criar loja
-          let storeDbId: string | null = null;
-          try {
-            const storeRows = await db.select<{ id: string }>('stores', `store_id=eq.${storeExtId}&select=id`);
-            if (storeRows.length > 0) {
-              storeDbId = storeRows[0].id;
-            } else {
-              const slug = `cupom-desconto-${slugify(storeName)}`;
-              try {
-                const newStore = await db.insert<{ id: string }>('stores', { name: storeName, slug, store_id: storeExtId, active: true });
-                storeDbId = newStore?.id ?? null;
-                if (storeDbId) {
-                  stats.stores_created++;
-                  db.invokeFunction(supabaseUrl, 'enrich-store', { store_id: storeDbId });
-                }
-              } catch {
-                const retry = await db.insert<{ id: string }>('stores', { name: storeName, slug: `${slug}-${storeExtId}`, store_id: storeExtId, active: true }).catch(() => null);
-                storeDbId = retry?.id ?? null;
-              }
-            }
-          } catch { /* ignora erro de loja */ }
-
-          if (!storeDbId) { stats.skipped++; continue; }
-
-          const code: string | null = coupon.code ?? coupon.couponCode ?? null;
-          const link: string = coupon.link ?? store.link ?? '';
-          if (!link) { stats.skipped++; continue; }
-
-          const expiryDate = coupon.finalDate ? new Date(coupon.finalDate) : null;
-          const categoryName: string = coupon.category?.name ?? '';
-          const promotionId = `lomadee_${coupon.id}`;
-
-          const couponData = {
-            store_id: storeDbId,
-            store: storeName,
-            title: coupon.description ?? coupon.title ?? 'Oferta Especial',
-            description: coupon.description ?? '',
-            code,
-            discount: coupon.discount ?? '',
-            link,
-            expiry: expiryDate ? expiryDate.toISOString() : null,
-            expiry_text: expiryDate
-              ? expiryDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-              : '',
-            start_date: coupon.initialDate ? new Date(coupon.initialDate).toISOString() : null,
-            status: true,
-            category: determineCategory(coupon.description ?? '', '', categoryName),
-            updated_at: new Date().toISOString(),
-            awin_promotion_id: promotionId,
-          };
-
-          try {
-            const existing = await db.select<{ id: string }>('coupons', `awin_promotion_id=eq.${promotionId}&select=id`);
-            if (existing.length === 0) {
-              await db.insert('coupons', couponData, false);
-              stats.inserted++;
-            } else {
-              await db.update('coupons', {
-                title: couponData.title, description: couponData.description,
-                code: couponData.code, discount: couponData.discount,
-                link: couponData.link, expiry: couponData.expiry,
-                expiry_text: couponData.expiry_text, status: couponData.status,
-                updated_at: couponData.updated_at, store: couponData.store,
-                store_id: couponData.store_id,
-              }, `awin_promotion_id=eq.${promotionId}`);
-              stats.updated++;
-            }
-          } catch { stats.skipped++; }
-
-        } catch (e: any) {
-          errors.push(e.message);
-          stats.skipped++;
+        if (page === 1 && campaigns.length === 0) {
+          errors.push(`empty_first_page: ${text.slice(0, 300)}`);
+          break;
         }
-      }
 
-      if (coupons.length < pageSize) break;
-      page++;
+        for (const campaign of campaigns) {
+          try {
+            const orgId = campaign.organizationId;
+            if (!orgId) { stats.skipped++; continue; }
+
+            // Busca info de marca (com cache)
+            let brandName = 'Loja Lomadee';
+            let brandLogo = '';
+            if (!brandCache[orgId]) {
+              try {
+                const { ok: brandOk, text: brandText } = await httpsGetJson(`https://api-beta.lomadee.com.br/affiliate/brands/${orgId}`, apiHeaders);
+                if (brandOk) {
+                  const brandData = JSON.parse(brandText);
+                  brandCache[orgId] = { name: brandData.data?.name ?? 'Loja Lomadee', logo: brandData.data?.logo ?? '' };
+                }
+              } catch { }
+            }
+            if (brandCache[orgId]) { brandName = brandCache[orgId].name; brandLogo = brandCache[orgId].logo; }
+
+            // Registro de loja (sem filtros de habilitação por enquanto)
+            let storeDbId: string | null = null;
+            try {
+              const storeRows = await db.select<{ id: string }>('stores', `store_id=eq.${orgId}&select=id`);
+              if (storeRows.length > 0) {
+                storeDbId = storeRows[0].id;
+              } else {
+                const slug = `cupom-desconto-${slugify(brandName)}`;
+                try {
+                  const newStore = await db.insert<{ id: string }>('stores', { name: brandName, slug, store_id: orgId, active: true, logo_url: brandLogo || null });
+                  storeDbId = newStore?.id ?? null;
+                  if (storeDbId) { stats.stores_created++; db.invokeFunction(supabaseUrl, 'enrich-store', { store_id: storeDbId }); }
+                } catch {
+                  const retry = await db.insert<{ id: string }>('stores', { name: brandName, slug: `${slug}-${orgId}`, store_id: orgId, active: true, logo_url: brandLogo || null }).catch(() => null);
+                  storeDbId = retry?.id ?? null;
+                }
+              }
+            } catch { }
+            if (!storeDbId) { stats.skipped++; continue; }
+
+            // Determina link: se Url, usa direto; se Spreadsheet, chama shortener
+            let linkUrl = campaign.url || '';
+            if (!linkUrl && campaign.offerType === 'Spreadsheet') {
+              try {
+                const shortenerRes = await httpsPostJson(
+                  'https://api-beta.lomadee.com.br/affiliate/shortener/url',
+                  JSON.stringify({ organizationId: orgId, type: 'Coupon', featureId: campaign.id }),
+                  apiHeaders
+                );
+                if (shortenerRes.ok) {
+                  const shortData = JSON.parse(shortenerRes.text);
+                  linkUrl = shortData.data?.[0]?.url ?? campaign.url ?? '';
+                }
+              } catch { linkUrl = campaign.url || ''; }
+            }
+            if (!linkUrl) { stats.skipped++; continue; }
+
+            const code: string | null = campaign.code ?? null;
+            const promotionId = `lomadee_${campaign.id}`;
+            const expiryDate = campaign.period?.endAt ? new Date(campaign.period.endAt) : null;
+
+            const couponData = {
+              store_id: storeDbId,
+              store: brandName,
+              title: campaign.name ?? 'Oferta Especial',
+              description: campaign.description ?? '',
+              code,
+              discount: '', // Lomadee não fornece desconto em %
+              link: linkUrl,
+              expiry: expiryDate ? expiryDate.toISOString() : null,
+              expiry_text: expiryDate
+                ? expiryDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+                : '',
+              start_date: campaign.period?.startAt ? new Date(campaign.period.startAt).toISOString() : null,
+              status: true,
+              category: determineCategory(campaign.name ?? '', campaign.description ?? '', campaign.categories?.join(' ') ?? ''),
+              updated_at: new Date().toISOString(),
+              awin_promotion_id: promotionId,
+            };
+
+            try {
+              const existing = await db.select<{ id: string }>('coupons', `awin_promotion_id=eq.${promotionId}&select=id`);
+              if (existing.length === 0) {
+                await db.insert('coupons', couponData, false);
+                stats.inserted++;
+              } else {
+                await db.update('coupons', {
+                  title: couponData.title, description: couponData.description,
+                  code: couponData.code, link: couponData.link, expiry: couponData.expiry,
+                  expiry_text: couponData.expiry_text, status: couponData.status,
+                  updated_at: couponData.updated_at, store: couponData.store, store_id: couponData.store_id,
+                }, `awin_promotion_id=eq.${promotionId}`);
+                stats.updated++;
+              }
+            } catch { stats.skipped++; }
+
+          } catch (e: any) { errors.push(e.message); stats.skipped++; }
+        }
+
+        page++;
+      } catch (e: any) { errors.push(e.message); break; }
     }
 
     const finalStatus = errors.length > 0 && stats.inserted + stats.updated === 0 ? 'error' : 'success';
@@ -393,15 +303,12 @@ export default async function handler(req: any, res: any): Promise<void> {
           records_updated: stats.updated,
           records_skipped: stats.skipped,
           error_message: errors.length > 0 ? errors.slice(0, 5).join(' | ') : null,
-          meta: { stores_created: stats.stores_created, pages: page - 1 },
+          meta: { stores_created: stats.stores_created, brands_cached: Object.keys(brandCache).length },
         }, `id=eq.${logId}`);
-      } catch { /* ignora erro de log */ }
+      } catch { }
     }
 
-    try {
-      await db.update('sync_schedules', { last_run_at: new Date().toISOString() }, `account_id=eq.${account.id}`);
-    } catch { /* ignora */ }
-
+    try { await db.update('sync_schedules', { last_run_at: new Date().toISOString() }, `account_id=eq.${account.id}`); } catch { }
     summary.push({ account: account.name, ...stats, status: finalStatus });
   }
 
