@@ -117,11 +117,7 @@ async function postToken(tokenKey: string, body: URLSearchParams): Promise<Token
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
-      // /token endpoint usa Basic auth (client credentials OAuth2).
-      // O token-key da Rakuten já vem pré-base64(client_id:client_secret) do painel
-      // (~88 chars). O access_token resultante é que usa Bearer nas chamadas à
-      // Coupon API. Não confundir os dois.
-      'Authorization': `Basic ${tokenKey}`,
+      'Authorization': `Bearer ${tokenKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json',
     },
@@ -135,9 +131,6 @@ async function postToken(tokenKey: string, body: URLSearchParams): Promise<Token
   return json as TokenSet
 }
 
-// Troca token-key por novo par de tokens (usado quando não há refresh_token).
-// OAuth2: grant_type=password é o fluxo padrão da Rakuten para trocar o
-// token-key de longa duração por um access_token de 60 minutos.
 function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
   body.set('grant_type', 'password')
@@ -146,12 +139,14 @@ function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
 }
 
 // Renova o access_token usando o refresh_token atual.
-// O access_token anterior expira imediatamente; os novos tokens são persistidos.
+// Doc oficial: POST /token com Bearer {token-key} + body refresh_token=X&scope=Y.
+// NÃO inclui grant_type — a Rakuten infere o fluxo pelo campo refresh_token.
+// scope é obrigatório e corresponde ao account-id (publisher_id/SID).
+// O access_token anterior expira imediatamente na resposta.
 function refreshAccessToken(tokenKey: string, refreshToken: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
-  body.set('grant_type', 'refresh_token')
   body.set('refresh_token', refreshToken)
-  if (scope) body.set('scope', scope)
+  body.set('scope', scope)
   return postToken(tokenKey, body)
 }
 
@@ -237,10 +232,11 @@ serve(async (req) => {
 
     if (!tokenKey) throw new Error('token_key ausente: configure api_token da conta ou secret RAKUTEN_TOKEN')
 
-    // scope (para /token): só enviamos se explicitamente configurado via
-    // extra_config.scope. publisher_id pode ser o MID de um advertiser, não
-    // o SID do publisher — mandar errado gera token com escopo inválido.
-    const scope   = typeof extra.scope === 'string' ? extra.scope : ''
+    // scope (para /token): obrigatório. Doc oficial exige scope={account-id}.
+    // Default para publisher_id da conta; pode ser sobrescrito por extra_config.scope.
+    const scope   = (typeof extra.scope === 'string' && extra.scope)
+      ? extra.scope
+      : String(account.publisher_id ?? '')
     const mid     = typeof extra.mid === 'string' ? extra.mid : ''
     const network = typeof extra.network === 'string' ? extra.network : ''
 
