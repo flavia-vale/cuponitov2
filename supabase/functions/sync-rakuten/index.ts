@@ -9,9 +9,8 @@ const corsHeaders = {
 
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
 const TOKEN_ENDPOINT  = 'https://api.linksynergy.com/token'
-// A Coupon Feed API tem teto prático de 100/página; valores acima retornam
-// <couponfeed> vazio silenciosamente.
-const RESULTS_PER_PAGE = 100
+// Documentação oficial: máximo 500 por página, padrão 500.
+const RESULTS_PER_PAGE = 500
 // Renova 2 min antes do vencimento para evitar race conditions
 const TOKEN_REFRESH_BUFFER_SEC = 120
 
@@ -38,11 +37,9 @@ function determineCategory(description: string, discountType: string, storeName:
 }
 
 // ── XML parser ────────────────────────────────────────────────────────────────
-// A API Rakuten retorna <couponfeed> com N elementos <link type="TEXT">.
-// Campos principais: offerdescription, couponcode, clickurl, advertiserid,
-// advertisername, offerstartdate, offerenddate (ISO), promotiontypes.
-// Não existe discountamount no formato Brazil Network — o desconto é derivado
-// da description e do nome do promotiontype.
+// Documentação oficial: raiz pode ser <couponfeed> (guia) ou <couponFeedResponse>
+// (schema OpenAPI). Ambos são tratados. Campos: offerdescription, couponcode,
+// clickurl, advertiserid, advertisername, offerstartdate, offerenddate, promotiontypes.
 
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
@@ -75,38 +72,42 @@ function formatDiscount(promoTypeName: string, description: string): string {
   return promoTypeName || 'Desconto Especial'
 }
 
-function parseRakutenResponse(xml: string) {
+function parseRakutenResponse(xml: string): { totalMatches: number; totalPages: number; offers: ReturnType<typeof mapLink>[]; rootKeys: string[] } {
   const root = xmlParser.parse(xml)
-  const feed = root?.couponfeed ?? {}
+  // A API pode retornar <couponfeed> (ex. no guia) ou <couponFeedResponse> (schema OpenAPI).
+  const feed = root?.couponfeed ?? root?.couponFeedResponse ?? {}
   const links: any[] = Array.isArray(feed.link) ? feed.link : (feed.link ? [feed.link] : [])
+  const rootKeys = Object.keys(root ?? {})
 
   return {
     totalMatches: parseInt(String(feed.TotalMatches ?? '0'), 10),
     totalPages:   parseInt(String(feed.TotalPages   ?? '1'), 10),
-    offers: links.map(link => {
-      const promoTypes: any[] = link.promotiontypes?.promotiontype ?? []
-      const promoTypeName = promoTypes
-        .map((p: any) => (typeof p === 'object' ? String(p['#text'] ?? p) : String(p)))
-        .filter(Boolean)
-        .join(', ')
+    rootKeys,
+    offers: links.map(mapLink),
+  }
+}
 
-      const clickUrl = String(link.clickurl ?? '')
-      const offerId  = extractOfferId(clickUrl)
+function mapLink(link: any) {
+  const promoTypes: any[] = link.promotiontypes?.promotiontype ?? []
+  const promoTypeName = promoTypes
+    .map((p: any) => (typeof p === 'object' ? String(p['#text'] ?? p) : String(p)))
+    .filter(Boolean)
+    .join(', ')
 
-      return {
-        advertiserId:   String(link.advertiserid ?? ''),
-        advertiserName: String(link.advertisername ?? ''),
-        // offerId extraído da clickurl é o identificador único confiável do cupom
-        promotionId:    offerId || `${link.advertiserid}_${String(link.offerdescription ?? '').slice(0, 30)}`,
-        description:    String(link.offerdescription ?? ''),
-        beginDate:      parseIsoDate(link.offerstartdate),
-        endDate:        parseIsoDate(link.offerenddate),
-        discount:       formatDiscount(promoTypeName, String(link.offerdescription ?? '')),
-        couponCode:     link.couponcode ? String(link.couponcode) : null,
-        clickUrl,
-        discountType:   promoTypeName,
-      }
-    })
+  const clickUrl = String(link.clickurl ?? '')
+  const offerId  = extractOfferId(clickUrl)
+
+  return {
+    advertiserId:   String(link.advertiserid ?? ''),
+    advertiserName: String(link.advertisername ?? ''),
+    promotionId:    offerId || `${link.advertiserid}_${String(link.offerdescription ?? '').slice(0, 30)}`,
+    description:    String(link.offerdescription ?? ''),
+    beginDate:      parseIsoDate(link.offerstartdate),
+    endDate:        parseIsoDate(link.offerenddate),
+    discount:       formatDiscount(promoTypeName, String(link.offerdescription ?? '')),
+    couponCode:     link.couponcode ? String(link.couponcode) : null,
+    clickUrl,
+    discountType:   promoTypeName,
   }
 }
 
@@ -290,14 +291,11 @@ serve(async (req) => {
     // ── Chamada à API de cupons ──────────────────────────────────────────────
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
 
-    async function fetchCoupons(withParams: boolean): Promise<{ status: number; ok: boolean; text: string; url: string }> {
-      let url = baseUrl
-      if (withParams) {
-        const qs = new URLSearchParams({ resultsperpage: String(RESULTS_PER_PAGE), pagenumber: '1' })
-        if (mid)     qs.set('mid', mid)
-        if (network) qs.set('network', network)
-        url = `${baseUrl}?${qs}`
-      }
+    async function fetchPage(pageNumber: number): Promise<{ status: number; ok: boolean; text: string; url: string }> {
+      const qs = new URLSearchParams({ resultsperpage: String(RESULTS_PER_PAGE), pagenumber: String(pageNumber) })
+      if (mid)     qs.set('mid', mid)
+      if (network) qs.set('network', network)
+      const url = `${baseUrl}?${qs}`
       const res = await fetch(url, {
         headers: { 'Accept': 'application/xml', 'Authorization': `Bearer ${accessToken}` }
       })
@@ -305,14 +303,14 @@ serve(async (req) => {
       return { status: res.status, ok: res.ok, text, url }
     }
 
-    let r = await fetchCoupons(true)
+    // Fetch primeira página para obter TotalPages e verificar resposta.
+    let r = await fetchPage(1)
     telemetry.request_url      = r.url
     telemetry.response_status  = r.status
     telemetry.response_bytes   = r.text.length
     telemetry.response_preview = r.text.slice(0, 300)
 
     if (!r.ok) {
-      // 401: access_token rejeitado — força refresh na próxima execução
       if (r.status === 401 && storedRefreshToken) {
         await supabase.from('affiliate_accounts').update({
           extra_config: { ...extra, token_expires_at: '1970-01-01T00:00:00.000Z' }
@@ -322,34 +320,51 @@ serve(async (req) => {
       throw new Error(`API Rakuten: ${r.status} - ${r.text.slice(0, 200)}`)
     }
 
-    let parsed = parseRakutenResponse(r.text)
+    let firstParsed = parseRakutenResponse(r.text)
+    telemetry.xml_root_keys = firstParsed.rootKeys
 
-    // Se chamada com params retornar 0 ofertas, tenta sem params (o curl
-    // "puro" costuma devolver o feed default quando o token é válido).
-    if (parsed.offers.length === 0) {
+    // Se chamada com params retornar 0 ofertas, tenta sem params (replica curl bare).
+    if (firstParsed.offers.length === 0) {
       telemetry.retry_without_params = true
-      r = await fetchCoupons(false)
-      telemetry.retry_request_url     = r.url
-      telemetry.retry_response_status = r.status
-      telemetry.retry_response_bytes  = r.text.length
-      telemetry.retry_response_preview = r.text.slice(0, 300)
-      if (r.ok) parsed = parseRakutenResponse(r.text)
+      const rFallback = await fetch(baseUrl, {
+        headers: { 'Accept': 'application/xml', 'Authorization': `Bearer ${accessToken}` }
+      })
+      const fallbackText = await rFallback.text()
+      telemetry.retry_request_url      = baseUrl
+      telemetry.retry_response_status  = rFallback.status
+      telemetry.retry_response_bytes   = fallbackText.length
+      telemetry.retry_response_preview = fallbackText.slice(0, 300)
+      if (rFallback.ok) {
+        firstParsed = parseRakutenResponse(fallbackText)
+        telemetry.retry_xml_root_keys = firstParsed.rootKeys
+      }
     }
 
-    const { offers, totalMatches, totalPages } = parsed
-    telemetry.parsed_offers  = offers.length
-    telemetry.total_matches  = totalMatches
+    const allOffers: typeof firstParsed.offers = [...firstParsed.offers]
+    const totalPages = firstParsed.totalPages || 1
+
+    // Buscar páginas adicionais quando TotalPages > 1.
+    for (let page = 2; page <= totalPages; page++) {
+      const rPage = await fetchPage(page)
+      if (!rPage.ok) break
+      const pageParsed = parseRakutenResponse(rPage.text)
+      allOffers.push(...pageParsed.offers)
+      if (pageParsed.offers.length === 0) break
+    }
+
+    telemetry.parsed_offers  = allOffers.length
+    telemetry.total_matches  = firstParsed.totalMatches
     telemetry.total_pages    = totalPages
 
-    if (offers.length === 0) {
+    if (allOffers.length === 0) {
       await finishLog(supabase, logId, 'success', 0, 0, 0,
-        'API retornou 0 ofertas — verifique scope/mid/network, limites da API ou credenciais', telemetry)
+        'API retornou 0 ofertas — verifique scope/mid/network, credenciais ou account_id', telemetry)
       return new Response(JSON.stringify({ success: true, stats: { inserted: 0, updated: 0, skipped: 0 }, telemetry }), { headers: corsHeaders })
     }
 
     const stats = { inserted: 0, updated: 0, skipped: 0 }
 
-    for (const offer of offers) {
+    for (const offer of allOffers) {
       if (!offer.clickUrl || !offer.advertiserId) { stats.skipped++; continue }
 
       let { data: store } = await supabase.from('stores').select('id').eq('store_id', offer.advertiserId).maybeSingle()
