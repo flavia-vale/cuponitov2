@@ -32,7 +32,7 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.slug.trim()) { toast({ title: 'Preencha nome e slug', variant: 'destructive' }); return; }
-    
+
     const payload = {
       name: form.name,
       slug: form.slug,
@@ -44,8 +44,20 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
     };
 
     if (editingId) {
+      // Pega nome antigo antes de atualizar para propagar mudança aos cupons
+      const { data: oldStore } = await supabase.from('stores').select('name').eq('id', editingId).single();
+      const oldName = oldStore?.name;
+
       const { error } = await supabase.from('stores').update(payload).eq('id', editingId);
       if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
+
+      // Propaga mudança de nome para cupons associados (por store_id e por nome antigo)
+      if (oldName && oldName !== form.name) {
+        await supabase.from('coupons').update({ store: form.name }).eq('store_id', editingId);
+        await supabase.from('coupons').update({ store: form.name, store_id: editingId }).eq('store', oldName);
+        queryClient.invalidateQueries({ queryKey: ['coupons'] });
+      }
+
       toast({ title: 'Loja atualizada!' });
     } else {
       const { error } = await supabase.from('stores').insert([payload]);
