@@ -158,7 +158,7 @@ export default async function handler(req: any, res: any): Promise<void> {
     let logId: string | null = null;
     try { const log = await db.insert<{ id: string }>('sync_logs', { account_id: account.id, status: 'running' }); logId = log?.id ?? null; } catch { }
 
-    const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0 };
+    const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0, skipped_no_url: 0, shortener_errors: 0, offer_types: {} as Record<string, number> };
     const errors: string[] = [];
     let page = 1;
     let hasMore = true;
@@ -193,6 +193,9 @@ export default async function handler(req: any, res: any): Promise<void> {
 
         for (const campaign of campaigns) {
           try {
+            const offerType = campaign.offerType ?? 'Unknown';
+            stats.offer_types[offerType] = (stats.offer_types[offerType] ?? 0) + 1;
+
             const orgId = campaign.organizationId;
             if (!orgId) { stats.skipped++; continue; }
 
@@ -242,10 +245,12 @@ export default async function handler(req: any, res: any): Promise<void> {
                 if (shortenerRes.ok) {
                   const shortData = JSON.parse(shortenerRes.text);
                   linkUrl = shortData.data?.[0]?.url ?? campaign.url ?? '';
+                } else {
+                  stats.shortener_errors++;
                 }
-              } catch { linkUrl = campaign.url || ''; }
+              } catch (e: any) { stats.shortener_errors++; linkUrl = campaign.url || ''; }
             }
-            if (!linkUrl) { stats.skipped++; continue; }
+            if (!linkUrl) { stats.skipped_no_url++; stats.skipped++; continue; }
 
             const code: string | null = campaign.code ?? null;
             const promotionId = `lomadee_${campaign.id}`;
@@ -303,7 +308,13 @@ export default async function handler(req: any, res: any): Promise<void> {
           records_updated: stats.updated,
           records_skipped: stats.skipped,
           error_message: errors.length > 0 ? errors.slice(0, 5).join(' | ') : null,
-          meta: { stores_created: stats.stores_created, brands_cached: Object.keys(brandCache).length },
+          meta: {
+            stores_created: stats.stores_created,
+            brands_cached: Object.keys(brandCache).length,
+            skipped_no_url: stats.skipped_no_url,
+            shortener_errors: stats.shortener_errors,
+            offer_types: stats.offer_types,
+          },
         }, `id=eq.${logId}`);
       } catch { }
     }
