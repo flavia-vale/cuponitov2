@@ -117,9 +117,11 @@ async function postToken(tokenKey: string, body: URLSearchParams): Promise<Token
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
-      // Documentação Rakuten: Authorization: Bearer {token-key} — tanto para
-      // troca inicial quanto para renovação via refresh_token.
-      'Authorization': `Bearer ${tokenKey}`,
+      // /token endpoint usa Basic auth (client credentials OAuth2).
+      // O token-key da Rakuten já vem pré-base64(client_id:client_secret) do painel
+      // (~88 chars). O access_token resultante é que usa Bearer nas chamadas à
+      // Coupon API. Não confundir os dois.
+      'Authorization': `Basic ${tokenKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json',
     },
