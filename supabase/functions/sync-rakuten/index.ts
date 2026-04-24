@@ -9,7 +9,9 @@ const corsHeaders = {
 
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
 const TOKEN_ENDPOINT  = 'https://api.linksynergy.com/token'
-const RESULTS_PER_PAGE = 500
+// A Coupon Feed API tem teto prático de 100/página; valores acima retornam
+// <couponfeed> vazio silenciosamente.
+const RESULTS_PER_PAGE = 100
 // Renova 2 min antes do vencimento para evitar race conditions
 const TOKEN_REFRESH_BUFFER_SEC = 120
 
@@ -131,19 +133,19 @@ async function postToken(tokenKey: string, body: URLSearchParams): Promise<Token
 }
 
 // Troca token-key por novo par de tokens (usado quando não há refresh_token).
-function exchangeTokenKey(tokenKey: string, sid: string): Promise<TokenSet> {
+function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
-  if (sid) body.set('scope', sid)
+  if (scope) body.set('scope', scope)
   else body.set('scope', '')
   return postToken(tokenKey, body)
 }
 
 // Renova o access_token usando o refresh_token atual.
 // O access_token anterior expira imediatamente; os novos tokens são persistidos.
-function refreshAccessToken(tokenKey: string, refreshToken: string, sid: string): Promise<TokenSet> {
+function refreshAccessToken(tokenKey: string, refreshToken: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
   body.set('refresh_token', refreshToken)
-  if (sid) body.set('scope', sid)
+  if (scope) body.set('scope', scope)
   return postToken(tokenKey, body)
 }
 
@@ -229,12 +231,15 @@ serve(async (req) => {
 
     if (!tokenKey) throw new Error('token_key ausente: configure api_token da conta ou secret RAKUTEN_TOKEN')
 
-    const sid     = String(extra.sid ?? account.publisher_id ?? '')
+    // scope (para /token): só enviamos se explicitamente configurado via
+    // extra_config.scope. publisher_id pode ser o MID de um advertiser, não
+    // o SID do publisher — mandar errado gera token com escopo inválido.
+    const scope   = typeof extra.scope === 'string' ? extra.scope : ''
     const mid     = typeof extra.mid === 'string' ? extra.mid : ''
     const network = typeof extra.network === 'string' ? extra.network : ''
 
     telemetry.token_key_len = tokenKey.length
-    telemetry.sid = sid || null
+    telemetry.scope = scope || null
     telemetry.mid = mid || null
     telemetry.network = network || null
 
@@ -257,7 +262,7 @@ serve(async (req) => {
     } else if (storedRefreshToken) {
       // Token expirado (ou prestes a expirar) mas temos refresh_token: renova.
       try {
-        const tokens = await refreshAccessToken(tokenKey, storedRefreshToken, sid)
+        const tokens = await refreshAccessToken(tokenKey, storedRefreshToken, scope)
         const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
         accessToken = tokens.access_token
         tokenSource = 'refreshed'
@@ -265,7 +270,7 @@ serve(async (req) => {
       } catch (refreshErr: any) {
         // Refresh falhou (ex.: refresh_token revogado). Tenta troca direta.
         telemetry.refresh_error = refreshErr.message
-        const tokens = await exchangeTokenKey(tokenKey, sid)
+        const tokens = await exchangeTokenKey(tokenKey, scope)
         const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
         accessToken = tokens.access_token
         tokenSource = 'exchanged_after_refresh_fail'
@@ -273,7 +278,7 @@ serve(async (req) => {
       }
     } else {
       // Sem refresh_token: troca token-key por access_token pela primeira vez.
-      const tokens = await exchangeTokenKey(tokenKey, sid)
+      const tokens = await exchangeTokenKey(tokenKey, scope)
       const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
       accessToken = tokens.access_token
       tokenSource = 'exchanged'
@@ -283,46 +288,62 @@ serve(async (req) => {
     telemetry.token_source = tokenSource
 
     // ── Chamada à API de cupons ──────────────────────────────────────────────
-    const qs = new URLSearchParams({ resultsperpage: String(RESULTS_PER_PAGE), pagenumber: '1' })
-    if (mid)     qs.set('mid', mid)
-    if (network) qs.set('network', network)
-
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
-    const url = `${baseUrl}?${qs}`
 
-    const res = await fetch(url, {
-      headers: {
-        'Accept': 'application/xml',
-        'Authorization': `Bearer ${accessToken}`,
+    async function fetchCoupons(withParams: boolean): Promise<{ status: number; ok: boolean; text: string; url: string }> {
+      let url = baseUrl
+      if (withParams) {
+        const qs = new URLSearchParams({ resultsperpage: String(RESULTS_PER_PAGE), pagenumber: '1' })
+        if (mid)     qs.set('mid', mid)
+        if (network) qs.set('network', network)
+        url = `${baseUrl}?${qs}`
       }
-    })
-    const responseText = await res.text()
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/xml', 'Authorization': `Bearer ${accessToken}` }
+      })
+      const text = await res.text()
+      return { status: res.status, ok: res.ok, text, url }
+    }
 
-    telemetry.request_url    = url
-    telemetry.response_status = res.status
-    telemetry.response_bytes  = responseText.length
-    telemetry.response_preview = responseText.slice(0, 300)
+    let r = await fetchCoupons(true)
+    telemetry.request_url      = r.url
+    telemetry.response_status  = r.status
+    telemetry.response_bytes   = r.text.length
+    telemetry.response_preview = r.text.slice(0, 300)
 
-    if (!res.ok) {
-      // Se 401, o access_token foi rejeitado — pode ser que o token tenha sido
-      // invalidado remotamente. Forçar renovação na próxima execução zerando expires_at.
-      if (res.status === 401 && storedRefreshToken) {
+    if (!r.ok) {
+      // 401: access_token rejeitado — força refresh na próxima execução
+      if (r.status === 401 && storedRefreshToken) {
         await supabase.from('affiliate_accounts').update({
           extra_config: { ...extra, token_expires_at: '1970-01-01T00:00:00.000Z' }
         }).eq('id', account.id)
         telemetry.forced_refresh_on_next = true
       }
-      throw new Error(`API Rakuten: ${res.status} - ${responseText.slice(0, 200)}`)
+      throw new Error(`API Rakuten: ${r.status} - ${r.text.slice(0, 200)}`)
     }
 
-    const { offers, totalMatches, totalPages } = parseRakutenResponse(responseText)
+    let parsed = parseRakutenResponse(r.text)
+
+    // Se chamada com params retornar 0 ofertas, tenta sem params (o curl
+    // "puro" costuma devolver o feed default quando o token é válido).
+    if (parsed.offers.length === 0) {
+      telemetry.retry_without_params = true
+      r = await fetchCoupons(false)
+      telemetry.retry_request_url     = r.url
+      telemetry.retry_response_status = r.status
+      telemetry.retry_response_bytes  = r.text.length
+      telemetry.retry_response_preview = r.text.slice(0, 300)
+      if (r.ok) parsed = parseRakutenResponse(r.text)
+    }
+
+    const { offers, totalMatches, totalPages } = parsed
     telemetry.parsed_offers  = offers.length
     telemetry.total_matches  = totalMatches
     telemetry.total_pages    = totalPages
 
     if (offers.length === 0) {
       await finishLog(supabase, logId, 'success', 0, 0, 0,
-        'API retornou 0 ofertas — verifique sid/mid/network ou credenciais', telemetry)
+        'API retornou 0 ofertas — verifique scope/mid/network, limites da API ou credenciais', telemetry)
       return new Response(JSON.stringify({ success: true, stats: { inserted: 0, updated: 0, skipped: 0 }, telemetry }), { headers: corsHeaders })
     }
 
