@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { XMLParser } from 'https://esm.sh/fast-xml-parser@4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,58 +35,74 @@ function determineCategory(description: string, discountType: string, storeName:
   return 'Geral'
 }
 
-function xmlText(xml: string, tag: string): string {
-  const re = new RegExp(`<${tag}(?:\\s[^>]*)?>(?:<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>|([^<]*))</${tag}>`, 'i')
-  const m = re.exec(xml)
-  return m ? (m[1] ?? m[2] ?? '').trim() : ''
+// ── XML parser ────────────────────────────────────────────────────────────────
+// A API Rakuten retorna <couponfeed> com N elementos <link type="TEXT">.
+// Campos principais: offerdescription, couponcode, clickurl, advertiserid,
+// advertisername, offerstartdate, offerenddate (ISO), promotiontypes.
+// Não existe discountamount no formato Brazil Network — o desconto é derivado
+// da description e do nome do promotiontype.
+
+const xmlParser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: '@_',
+  // Garante array mesmo com um único <link> ou <category>/<promotiontype>
+  isArray: (name) => ['link', 'category', 'promotiontype'].includes(name),
+})
+
+function extractOfferId(clickUrl: string): string {
+  // clickurl traz o offerid como query param: ...?id=X&offerid=951620.1097&...
+  try {
+    return new URL(clickUrl).searchParams.get('offerid') ?? ''
+  } catch {
+    return ''
+  }
 }
 
-function xmlAttrText(xml: string, tag: string, attr: string, attrVal: string): string {
-  const re = new RegExp(`<${tag}[^>]+${attr}=["']${attrVal}["'][^>]*>(?:<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>|([^<]*))</${tag}>`, 'i')
-  const m = re.exec(xml)
-  return m ? (m[1] ?? m[2] ?? '').trim() : ''
-}
-
-function extractLinkBlocks(xml: string): string[] {
-  return [...xml.matchAll(/<link>([\s\S]*?)<\/link>/g)].map(m => m[0])
-}
-
-function parseRakutenDate(dateStr: string): string | null {
+function parseIsoDate(dateStr: string | undefined): string | null {
   if (!dateStr) return null
-  const parts = dateStr.split('/')
-  if (parts.length !== 3) return null
-  const [mm, dd, yyyy] = parts
-  const d = new Date(`${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T23:59:59`)
+  const d = new Date(String(dateStr))
   return isNaN(d.getTime()) ? null : d.toISOString()
 }
 
-function formatDiscount(discountType: string, block: string): string {
-  const pct = parseFloat(xmlAttrText(block, 'discountamount', 'type', 'percent') || '0')
-  const abs = parseFloat(xmlAttrText(block, 'discountamount', 'type', 'absolute') || '0')
-  const type = discountType.toLowerCase()
-  if (type.includes('percentage') && pct > 0) return `${pct % 1 === 0 ? pct.toFixed(0) : pct}% OFF`
-  if ((type.includes('dollar') || type.includes('fixed') || type.includes('amount')) && abs > 0) return `R$ ${abs % 1 === 0 ? abs.toFixed(0) : abs.toFixed(2)} OFF`
-  if (type.includes('free shipping')) return 'Frete Grátis'
-  return 'Desconto Especial'
+function formatDiscount(promoTypeName: string, description: string): string {
+  const text = `${description} ${promoTypeName}`.toLowerCase()
+  if (/frete gr[aá]ti|envio gr[aá]ti|free shipping/.test(text)) return 'Frete Grátis'
+  // Extrai "X%" da descrição quando mencionado
+  const pctMatch = description.match(/(\d+(?:[.,]\d+)?)\s*%/)
+  if (pctMatch) return `${pctMatch[1].replace(',', '.')}% OFF`
+  return promoTypeName || 'Desconto Especial'
 }
 
 function parseRakutenResponse(xml: string) {
+  const root = xmlParser.parse(xml)
+  const feed = root?.couponfeed ?? {}
+  const links: any[] = Array.isArray(feed.link) ? feed.link : (feed.link ? [feed.link] : [])
+
   return {
-    totalMatches: parseInt(xmlText(xml, 'TotalMatches') || '0', 10),
-    totalPages: parseInt(xmlText(xml, 'TotalPages') || '0', 10),
-    offers: extractLinkBlocks(xml).map(block => {
-      const discountType = xmlText(block, 'discounttype')
+    totalMatches: parseInt(String(feed.TotalMatches ?? '0'), 10),
+    totalPages:   parseInt(String(feed.TotalPages   ?? '1'), 10),
+    offers: links.map(link => {
+      const promoTypes: any[] = link.promotiontypes?.promotiontype ?? []
+      const promoTypeName = promoTypes
+        .map((p: any) => (typeof p === 'object' ? String(p['#text'] ?? p) : String(p)))
+        .filter(Boolean)
+        .join(', ')
+
+      const clickUrl = String(link.clickurl ?? '')
+      const offerId  = extractOfferId(clickUrl)
+
       return {
-        advertiserId: xmlText(block, 'advertiserid') || xmlText(block, 'mid'),
-        advertiserName: xmlText(block, 'advertisername'),
-        promotionId: xmlText(block, 'promotionid'),
-        description: xmlText(block, 'offerdescription'),
-        beginDate: parseRakutenDate(xmlText(block, 'offerbegindate')),
-        endDate: parseRakutenDate(xmlText(block, 'offerenddate')),
-        discount: formatDiscount(discountType, block),
-        couponCode: xmlText(block, 'couponcode'),
-        clickUrl: xmlText(block, 'clickurl'),
-        discountType
+        advertiserId:   String(link.advertiserid ?? ''),
+        advertiserName: String(link.advertisername ?? ''),
+        // offerId extraído da clickurl é o identificador único confiável do cupom
+        promotionId:    offerId || `${link.advertiserid}_${String(link.offerdescription ?? '').slice(0, 30)}`,
+        description:    String(link.offerdescription ?? ''),
+        beginDate:      parseIsoDate(link.offerstartdate),
+        endDate:        parseIsoDate(link.offerenddate),
+        discount:       formatDiscount(promoTypeName, String(link.offerdescription ?? '')),
+        couponCode:     link.couponcode ? String(link.couponcode) : null,
+        clickUrl,
+        discountType:   promoTypeName,
       }
     })
   }
