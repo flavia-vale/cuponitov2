@@ -190,42 +190,80 @@ export default async function handler(req: any, res: any): Promise<void> {
 
     const token = lomadeeToken;
     const sourceId = account.publisher_id;
-    const baseUrl = account.integration_providers?.base_url || 'https://api.lomadee.com.br/v3';
+    // Candidatos de base URL: configurado → .com.br → bws.buscape.com (legado).
+    // Tentamos em sequência até achar um que devolva JSON da API.
+    const configured = account.integration_providers?.base_url;
+    const baseCandidates: string[] = Array.from(new Set([
+      configured,
+      'https://api.lomadee.com.br/v3',
+      'https://bws.buscape.com/service/coupons/lomadee',
+    ].filter(Boolean) as string[]));
     const pageSize = 100;
     const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0 };
     const errors: string[] = [];
     let page = 1;
     let totalPages = 1;
+    let baseUrl = baseCandidates[0];
+
+    function buildUrl(base: string, pageNum: number): string {
+      // Formato legado bws.buscape.com: /coupons/lomadee/{token}/?sourceId=...
+      if (base.includes('bws.buscape.com')) {
+        return `${base}/${token}/?sourceId=${sourceId}&format=json&page=${pageNum}&pageSize=${pageSize}`;
+      }
+      // Formato v3 padrão: /v3/{token}/coupon/_all?sourceId=...
+      return `${base}/${token}/coupon/_all?sourceId=${sourceId}&page=${pageNum}&pageSize=${pageSize}`;
+    }
 
     while (page <= totalPages) {
-      // Lomadee v3: appToken OBRIGATÓRIO no path; sourceId como query.
-      // Aplicamos redundância do token também como query param (alguns gateways exigem).
-      // Referência: https://developer.lomadee.com/api/v3/#/coupon
-      const url = `${baseUrl}/${token}/coupon/_all?sourceId=${sourceId}&token=${token}&page=${page}&pageSize=${pageSize}`;
-      let responseText: string;
-      let responseOk: boolean;
-      let responseStatus: number;
+      let responseText = '';
+      let responseOk = false;
+      let responseStatus = 0;
       let redirectsTrail: string[] = [];
-      try {
-        const r = await httpsGetJson(url);
-        responseText = r.text;
-        responseOk = r.ok;
-        responseStatus = r.status;
-        redirectsTrail = r.redirects;
-      } catch (e: any) {
-        errors.push(`Fetch error p${page}: ${e.message}`);
-        break;
+      let url = '';
+      let lastAttempt = '';
+
+      // Na primeira página, varre todos os candidatos até achar JSON válido.
+      // Nas páginas seguintes, usa o que já funcionou.
+      const candidates = page === 1 ? baseCandidates : [baseUrl];
+      for (const candidate of candidates) {
+        url = buildUrl(candidate, page);
+        try {
+          const r = await httpsGetJson(url);
+          responseText = r.text;
+          responseOk = r.ok;
+          responseStatus = r.status;
+          redirectsTrail = r.redirects;
+        } catch (e: any) {
+          lastAttempt = `${candidate}: ${e.message}`;
+          continue;
+        }
+
+        const looksHtml = responseText.trimStart().startsWith('<') ||
+          responseText.slice(0, 200).toLowerCase().includes('<!doctype html');
+
+        if (responseOk && !looksHtml) {
+          baseUrl = candidate;
+          break;
+        }
+
+        lastAttempt = `${candidate}: status=${responseStatus}${looksHtml ? ' html_fallback' : ''}`;
       }
 
       if (!responseOk) {
         const trail = redirectsTrail.length ? ` redirects=[${redirectsTrail.join(' ')}]` : '';
-        errors.push(`API error p${page}: ${responseStatus}${trail} ${responseText.slice(0, 200)}`);
+        errors.push(`API error p${page}: ${responseStatus}${trail} ${responseText.slice(0, 200)} lastAttempt=${lastAttempt}`);
+        break;
+      }
+
+      // Detecta resposta HTML mesmo com 200 OK — indica URL errada ou API migrada.
+      if (responseText.trimStart().startsWith('<')) {
+        errors.push(`html_response p${page} (status=${responseStatus}) — endpoint provavelmente migrado; candidatos testados: ${baseCandidates.join(', ')}. preview=${responseText.slice(0, 200)}`);
         break;
       }
 
       let data: any;
       try { data = JSON.parse(responseText); } catch {
-        errors.push(`JSON parse error p${page} (status=${responseStatus}): ${responseText.slice(0, 200)}`);
+        errors.push(`JSON parse error p${page} (status=${responseStatus}) baseUrl=${baseUrl}: ${responseText.slice(0, 200)}`);
         break;
       }
 

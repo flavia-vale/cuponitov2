@@ -134,10 +134,12 @@ async function postToken(tokenKey: string, body: URLSearchParams): Promise<Token
 }
 
 // Troca token-key por novo par de tokens (usado quando não há refresh_token).
+// OAuth2: grant_type=password é o fluxo padrão da Rakuten para trocar o
+// token-key de longa duração por um access_token de 60 minutos.
 function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
+  body.set('grant_type', 'password')
   if (scope) body.set('scope', scope)
-  else body.set('scope', '')
   return postToken(tokenKey, body)
 }
 
@@ -145,6 +147,7 @@ function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
 // O access_token anterior expira imediatamente; os novos tokens são persistidos.
 function refreshAccessToken(tokenKey: string, refreshToken: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
+  body.set('grant_type', 'refresh_token')
   body.set('refresh_token', refreshToken)
   if (scope) body.set('scope', scope)
   return postToken(tokenKey, body)
