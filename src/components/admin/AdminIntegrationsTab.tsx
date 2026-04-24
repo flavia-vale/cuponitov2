@@ -122,8 +122,8 @@ export function AdminIntegrationsTab() {
       });
       if (error) throw error;
 
-      const s = data?.summary?.[0];
-      toast.success(`${account.name}: ${s?.inserted ?? 0} novos, ${s?.updated ?? 0} atualizados`);
+      const { inserted = 0, updated = 0, skipped = 0 } = data?.stats || {};
+      toast.success(`${account.name}: ${inserted} novos, ${updated} atualizados`);
       await load();
     } catch (err: any) {
       toast.error(`Erro ao sincronizar: ${err.message}`);

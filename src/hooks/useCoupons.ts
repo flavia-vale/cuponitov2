@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
-export type Coupon = Tables<'coupons'>;
+export type Coupon = Tables<'coupons'> & { stores?: Tables<'stores'> | null };
 
 export function useCoupons() {
   return useQuery<Coupon[]>({
@@ -10,7 +10,7 @@ export function useCoupons() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('coupons')
-        .select('*')
+        .select('*, stores(id, name, logo_url, color)')
         .eq('status', true)
         .order('is_flash', { ascending: false })
         .order('created_at', { ascending: false });

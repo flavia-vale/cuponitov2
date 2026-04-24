@@ -111,11 +111,11 @@ function slugify(text: string): string {
 function determineCategory(title: string, description: string, categoryName: string): string {
   const text = `${title} ${description} ${categoryName}`.toLowerCase();
   if (/frete gr[aá]ti|envio gr[aá]ti/.test(text)) return 'Frete Grátis';
-  if (/moda|roupa|vest[iu]|fashion|c&a|zara|renner/.test(text)) return 'Moda';
-  if (/tech|eletr[ôo]|notebook|celular|smartphone|kabum|tv |ssd|gpu/.test(text)) return 'Tech';
-  if (/delivery|comida|restaurante|ifood|pizza|lanche/.test(text)) return 'Delivery';
-  if (/viagem|hotel|passagem|hospedagem|a[eé]reo|turismo/.test(text)) return 'Viagens';
-  if (/beleza|cosm[eé]t|maquiagem|perfume|skincare|cabelo/.test(text)) return 'Beleza';
+  if (/moda|roupa|vest[iu]|fashion|c&a|zara|renner|under armour|asics|nike|adidas|puma|denim|calvin klein|lacoste|tommy hilfiger|quiksilver|billabong/.test(text)) return 'Moda';
+  if (/tech|eletr[ôo]|notebook|celular|smartphone|kabum|tv |ssd|gpu|consol|playstation|xbox|monitor|teclado|mouse|headphone|fone|samsung|lg|iphone|ipad|macbook/.test(text)) return 'Tech';
+  if (/delivery|comida|restaurante|ifood|pizza|lanche|burguer|sushi|açai|doces|sobremesa|aliment/.test(text)) return 'Delivery';
+  if (/viagem|hotel|passagem|hospedagem|a[eé]reo|turismo|resort|motel|pousada|booking|airbnb/.test(text)) return 'Viagens';
+  if (/beleza|cosm[eé]t|maquiagem|perfume|skincare|cabelo|shampoo|condicionador|creme|hidratante|sérum|máscara|unha/.test(text)) return 'Beleza';
   return categoryName || 'Geral';
 }
 
