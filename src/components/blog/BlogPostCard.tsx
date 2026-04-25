@@ -21,27 +21,24 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
       <Link
         to="/blog/$slug"
         params={{ slug: post.slug }}
-        className="group relative block overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm transition-all hover:shadow-xl"
+        className="group block overflow-hidden rounded-3xl border border-black/5 shadow-sm transition-all hover:shadow-xl"
       >
-        <div className="aspect-[21/9] w-full overflow-hidden bg-gradient-to-br from-primary to-accent">
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary to-accent">
           {post.cover_image ? (
             <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
             <div className="flex h-full items-center justify-center text-6xl">✍️</div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <span className="mb-2 inline-block rounded-lg bg-primary px-3 py-1 text-[10px] font-black uppercase tracking-wider">Destaque</span>
-            <h3 className="text-xl font-black leading-tight md:text-2xl">{post.title}</h3>
-          </div>
-        </div>
-        <div className="p-6">
-          <p className="mb-4 text-sm text-[#666] line-clamp-2 leading-relaxed">{post.excerpt}</p>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-[#aaa]">{publishedDate} · {readingTime} min de leitura</span>
-            <span className="rounded-md border-2 border-dashed border-primary bg-[#FFF0EB] px-2 py-1 font-mono text-[10px] font-black text-primary">
-              CUPOM
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <span className="mb-3 inline-block rounded-full border border-white/30 bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white backdrop-blur-sm">
+              ⭐ Destaque da semana
             </span>
+            <h3 className="mb-2 text-xl font-black leading-tight text-white drop-shadow-md md:text-2xl">{post.title}</h3>
+            {post.excerpt && (
+              <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-white/80">{post.excerpt}</p>
+            )}
+            <span className="text-[11px] font-medium text-white/60">{publishedDate} · {readingTime} min de leitura</span>
           </div>
         </div>
       </Link>
