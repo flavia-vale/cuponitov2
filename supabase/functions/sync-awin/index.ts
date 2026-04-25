@@ -15,6 +15,16 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+function rollingExpiry(): { iso: string; text: string } {
+  const d = new Date()
+  d.setUTCDate(d.getUTCDate() + 1)
+  d.setUTCHours(23, 59, 59, 999)
+  return {
+    iso: d.toISOString(),
+    text: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+  }
+}
+
 function determineCategory(promo: any, storeName: string): string {
   const text = `${promo.title ?? ''} ${promo.description ?? ''} ${storeName}`.toLowerCase()
   if (/frete gr[aá]ti|envio gr[aá]ti|frete grat/.test(text)) return 'Frete Grátis'
@@ -180,6 +190,7 @@ serve(async (req) => {
 
             if (!store) continue
 
+            const rolling = rollingExpiry()
             const couponData = {
               awin_promotion_id: String(promo.promotionId ?? promo.id),
               store_id: store.id,
@@ -191,10 +202,10 @@ serve(async (req) => {
               code: promo.voucher?.code ?? promo.voucherCode ?? null,
               type: promo.type ?? 'voucher',
               link: promo.urlTracking ?? promo.url ?? '',
-              expiry: promo.endDate ? new Date(promo.endDate).toISOString() : null,
+              expiry: promo.endDate ? new Date(promo.endDate).toISOString() : rolling.iso,
               expiry_text: promo.endDate
                 ? new Date(promo.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-                : '',
+                : rolling.text,
               start_date: promo.startDate ? new Date(promo.startDate).toISOString() : null,
               status: true,
               updated_at: new Date().toISOString(),
@@ -222,8 +233,8 @@ serve(async (req) => {
                   terms: couponData.terms,
                   code: couponData.code,
                   link: couponData.link,
-                  expiry: couponData.expiry,
-                  expiry_text: couponData.expiry_text,
+                  expiry: rolling.iso,
+                  expiry_text: rolling.text,
                   start_date: couponData.start_date,
                   status: couponData.status,
                   updated_at: couponData.updated_at,
