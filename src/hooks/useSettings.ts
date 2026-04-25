@@ -12,6 +12,9 @@ export interface SiteSettings {
     hero_subtitle: string;
     description: string;
     button_text: string;
+    trust_badge_1: string;
+    trust_badge_2: string;
+    trust_badge_3: string;
   };
   seo_defaults: {
     home_title: string;
@@ -35,7 +38,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
     hero_title: "Economize em cada compra",
     hero_subtitle: "+3.000 cupons verificados todos os dias",
     description: "Encontre o melhor cupom de desconto válido para as maiores lojas online do Brasil.",
-    button_text: "Receber cupons em tempo real"
+    button_text: "Receber cupons em tempo real",
+    trust_badge_1: "Verificados hoje",
+    trust_badge_2: "100% gratuito",
+    trust_badge_3: "Economia real"
   },
   seo_defaults: {
     home_title: "Cupom de Desconto {month_year} → Ofertas Atualizadas Hoje | cuponito",

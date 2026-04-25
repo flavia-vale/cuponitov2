@@ -90,10 +90,33 @@ export function AdminSeoTab() {
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Texto do Botão WhatsApp</label>
-              <Input 
-                value={localSettings.hero_content.button_text} 
-                onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, button_text: e.target.value }})} 
+              <Input
+                value={localSettings.hero_content.button_text}
+                onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, button_text: e.target.value }})}
               />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Badge de confiança 1</label>
+                <Input
+                  value={localSettings.hero_content.trust_badge_1 ?? 'Verificados hoje'}
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, trust_badge_1: e.target.value }})}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Badge de confiança 2</label>
+                <Input
+                  value={localSettings.hero_content.trust_badge_2 ?? '100% gratuito'}
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, trust_badge_2: e.target.value }})}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Badge de confiança 3</label>
+                <Input
+                  value={localSettings.hero_content.trust_badge_3 ?? 'Economia real'}
+                  onChange={(e) => setLocalSettings({ ...localSettings, hero_content: { ...localSettings.hero_content, trust_badge_3: e.target.value }})}
+                />
+              </div>
             </div>
             <Button onClick={() => handleSave('hero_content')} disabled={updateSettings.isPending} className="gap-1.5">
               <Save className="h-4 w-4" /> Salvar Hero

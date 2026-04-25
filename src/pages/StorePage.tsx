@@ -143,10 +143,6 @@ export default function StorePage() {
                   <span className="bg-[#EAF3DE] text-[#2E7D32] text-[10px] font-bold px-[9px] py-0.5 rounded-[9px]">Verificado hoje</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3.5 text-xs text-[#888] mb-2.5">
-                  <span className="flex items-center gap-1">
-                    <span className="text-[#FFB347]">★★★★★</span> <strong>4,8</strong> (2.341 avaliações)
-                  </span>
-                  <span className="text-[#2E7D32] font-semibold flex items-center gap-1">✓ Loja confiável</span>
                   <span>Atualizado em {monthYear}</span>
                 </div>
                 <p className="text-[13px] text-[#555] leading-relaxed max-w-[580px]">
@@ -156,10 +152,6 @@ export default function StorePage() {
                   <div className="bg-[#f5f3ef] rounded-xl p-[9px_14px] text-center min-w-[80px]">
                     <span className="block text-lg font-bold text-[#FF4D00]">{activeCoupons.length}</span>
                     <span className="text-[10px] text-[#888]">cupons ativos</span>
-                  </div>
-                  <div className="bg-[#f5f3ef] rounded-xl p-[9px_14px] text-center min-w-[80px]">
-                    <span className="block text-lg font-bold text-[#FF4D00]">até 80%</span>
-                    <span className="text-[10px] text-[#888]">de desconto</span>
                   </div>
                 </div>
               </div>
