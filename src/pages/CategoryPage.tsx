@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
 import CouponCard from '@/components/CouponCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
@@ -20,37 +21,18 @@ import {
 
 const Footer = lazy(() => import('@/components/Footer'));
 
-// Mapeamento slug URL → valor da categoria no banco
-const CATEGORY_MAP: Record<string, string> = {
-  'moda':         'Moda',
-  'tech':         'Tech',
-  'delivery':     'Delivery',
-  'frete-gratis': 'Frete Grátis',
-  'beleza':       'Beleza',
-  'viagens':      'Viagens',
-  'geral':        'Geral',
-};
-
-const CATEGORY_DESCRIPTIONS: Record<string, string> = {
-  'moda':         'Os melhores cupons de desconto para moda e roupas. Economize em roupas, calçados e acessórios nas maiores lojas do Brasil.',
-  'tech':         'Cupons de desconto para tecnologia, eletrônicos e gadgets. Economize em smartphones, notebooks, TVs e acessórios tech.',
-  'delivery':     'Cupons e promoções para delivery de comida. Economize nos seus pedidos no iFood, Rappi e outros apps.',
-  'frete-gratis': 'Cupons de frete grátis verificados. Economize no frete das suas compras online nas maiores lojas.',
-  'beleza':       'Cupons de desconto para beleza e cosméticos. Economize em perfumes, maquiagem, skincare e cuidados pessoais.',
-  'viagens':      'Cupons e promoções para viagens. Economize em passagens aéreas, hotéis, pacotes e aluguel de carros.',
-  'geral':        'Cupons de desconto gerais das melhores lojas. Ofertas variadas verificadas diariamente pelo Cuponito.',
-};
-
 const MIN_COUPONS_FOR_OWN_CANONICAL = 5;
 
 export default function CategoryPage() {
   const { slug } = useParams({ strict: false });
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
+  const { data: couponCategories = [], isLoading: categoriesLoading } = useCouponCategories();
   const monthYear = getMonthYear();
 
-  const categoryName = CATEGORY_MAP[slug ?? ''];
-  const description = CATEGORY_DESCRIPTIONS[slug ?? ''] ?? '';
+  const matchedCategory = couponCategories.find(c => c.slug === (slug ?? ''));
+  const categoryName = matchedCategory?.name;
+  const description = matchedCategory?.description ?? '';
 
   const storeBrandMap = useMemo(() => {
     const map: Record<string, any> = {};
@@ -71,6 +53,19 @@ export default function CategoryPage() {
   const canonical = active.length >= MIN_COUPONS_FOR_OWN_CANONICAL
     ? `${SITE_URL}/categoria/${slug}`
     : `${SITE_URL}/cupons`;
+
+  if (categoriesLoading) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa]">
+        <Header />
+        <main className="mx-auto max-w-6xl px-4 py-8">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-52 rounded-2xl" />)}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!categoryName) {
     return (

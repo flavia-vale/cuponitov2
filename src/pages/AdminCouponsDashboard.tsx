@@ -11,6 +11,7 @@ import { AdminStoresTab } from '@/components/admin/AdminStoresTab';
 import { AdminSeoTab } from '@/components/admin/AdminSeoTab';
 import { AdminCouponsTab } from '@/components/admin/AdminCouponsTab';
 import { AdminIntegrationsTab } from '@/components/admin/AdminIntegrationsTab';
+import { AdminCouponCategoriesTab } from '@/components/admin/AdminCouponCategoriesTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
 import type { Tables } from '@/integrations/supabase/types';
@@ -51,6 +52,7 @@ export default function AdminCouponsDashboard() {
             {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
             {activeTab === 'seo' && <AdminSeoTab />}
             {activeTab === 'cupons' && <AdminCouponsTab />}
+            {activeTab === 'categorias' && <AdminCouponCategoriesTab />}
             {activeTab === 'integracoes' && <AdminIntegrationsTab />}
           </div>
 
