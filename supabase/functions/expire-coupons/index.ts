@@ -15,22 +15,23 @@ serve(async (req) => {
   )
 
   try {
-    console.log("[expire-coupons] Iniciando rotina de expiração...");
-    
+    console.log("[expire-coupons] Iniciando rotina de exclusão de cupons vencidos...");
+
+    const now = new Date().toISOString()
+
     const { data, error } = await supabase
       .from('coupons')
-      .update({ status: false, updated_at: new Date().toISOString() })
-      .eq('status', true)
+      .delete()
       .not('expiry', 'is', null)
-      .lt('expiry', new Date().toISOString())
+      .lt('expiry', now)
       .select('id')
 
     if (error) throw error
 
-    console.log(`[expire-coupons] ${data?.length ?? 0} cupons expirados.`)
+    console.log(`[expire-coupons] ${data?.length ?? 0} cupons vencidos excluídos.`)
 
     return new Response(
-      JSON.stringify({ success: true, expired_count: data?.length ?? 0 }),
+      JSON.stringify({ success: true, deleted_count: data?.length ?? 0 }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (err: any) {

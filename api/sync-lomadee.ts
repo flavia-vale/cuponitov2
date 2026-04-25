@@ -103,6 +103,16 @@ function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
+function rollingExpiry(): { iso: string; text: string } {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + 1);
+  d.setUTCHours(23, 59, 59, 999);
+  return {
+    iso: d.toISOString(),
+    text: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' }),
+  };
+}
+
 function determineCategory(title: string, description: string, categoryName: string): string {
   const text = `${title} ${description} ${categoryName}`.toLowerCase();
   if (/frete gr[aá]ti|envio gr[aá]ti/.test(text)) return 'Frete Grátis';
@@ -262,6 +272,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             const code: string | null = campaign.code ?? null;
             const promotionId = `lomadee_${campaign.id}`;
             const expiryDate = campaign.period?.endAt ? new Date(campaign.period.endAt) : null;
+            const rolling = rollingExpiry();
 
             const couponData = {
               store_id: storeDbId,
@@ -271,10 +282,10 @@ export default async function handler(req: any, res: any): Promise<void> {
               code,
               discount: '', // Lomadee não fornece desconto em %
               link: linkUrl,
-              expiry: expiryDate ? expiryDate.toISOString() : null,
+              expiry: expiryDate ? expiryDate.toISOString() : rolling.iso,
               expiry_text: expiryDate
                 ? expiryDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-                : '',
+                : rolling.text,
               start_date: campaign.period?.startAt ? new Date(campaign.period.startAt).toISOString() : null,
               status: true,
               category: determineCategory(campaign.name ?? '', campaign.description ?? '', campaign.categories?.join(' ') ?? ''),
@@ -291,8 +302,10 @@ export default async function handler(req: any, res: any): Promise<void> {
               } else {
                 await db.update('coupons', {
                   title: couponData.title, description: couponData.description,
-                  code: couponData.code, link: couponData.link, expiry: couponData.expiry,
-                  expiry_text: couponData.expiry_text, status: couponData.status,
+                  code: couponData.code, link: couponData.link,
+                  expiry: rolling.iso,
+                  expiry_text: rolling.text,
+                  status: couponData.status,
                   updated_at: couponData.updated_at, store: couponData.store, store_id: couponData.store_id,
                 }, `awin_promotion_id=eq.${promotionId}`);
                 stats.updated++;

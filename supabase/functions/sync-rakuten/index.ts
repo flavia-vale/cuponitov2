@@ -25,6 +25,16 @@ function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+function rollingExpiry(): { iso: string; text: string } {
+  const d = new Date()
+  d.setUTCDate(d.getUTCDate() + 1)
+  d.setUTCHours(23, 59, 59, 999)
+  return {
+    iso: d.toISOString(),
+    text: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+  }
+}
+
 function determineCategory(description: string, discountType: string, storeName: string): string {
   const text = `${description} ${discountType} ${storeName}`.toLowerCase()
   if (/frete gr[aá]ti|envio gr[aá]ti|free shipping/.test(text)) return 'Frete Grátis'
@@ -417,6 +427,7 @@ serve(async (req) => {
       if (!store) { stats.skipped++; continue }
 
       const promoId = `rakuten_${offer.promotionId}`
+      const rolling = rollingExpiry()
       const couponData = {
         awin_promotion_id: promoId,
         store_id: store.id,
@@ -426,7 +437,10 @@ serve(async (req) => {
         code: offer.couponCode || null,
         link: offer.clickUrl,
         discount: offer.discount,
-        expiry: offer.endDate,
+        expiry: offer.endDate ?? rolling.iso,
+        expiry_text: offer.endDate
+          ? new Date(offer.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+          : rolling.text,
         status: true,
         updated_at: new Date().toISOString(),
         category: determineCategory(offer.description, offer.discountType, offer.advertiserName)
@@ -437,7 +451,11 @@ serve(async (req) => {
         const { error: insErr } = await supabase.from('coupons').insert(couponData)
         insErr ? stats.skipped++ : stats.inserted++
       } else {
-        const { error: updErr } = await supabase.from('coupons').update(couponData).eq('id', existing.id)
+        const { error: updErr } = await supabase.from('coupons').update({
+          ...couponData,
+          expiry: rolling.iso,
+          expiry_text: rolling.text,
+        }).eq('id', existing.id)
         updErr ? stats.skipped++ : stats.updated++
       }
     }
