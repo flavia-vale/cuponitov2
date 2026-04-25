@@ -38,7 +38,7 @@ export default function BlogList() {
   }, [allPosts, selectedCategory, categories, search]);
 
   const featuredPost = useMemo(() => filtered.find(p => p.featured) || filtered[0], [filtered]);
-  const latestPosts = useMemo(() => filtered.filter(p => p.id !== featuredPost?.id).slice(0, 4), [filtered, featuredPost]);
+  const latestPosts = useMemo(() => filtered.slice(0, 6), [filtered]);
   const mostRead = useMemo(() => [...(allPosts || [])].sort((a, b) => b.views_count - a.views_count).slice(0, 3), [allPosts]);
 
   return (
