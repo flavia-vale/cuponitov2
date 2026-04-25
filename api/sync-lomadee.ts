@@ -158,7 +158,7 @@ export default async function handler(req: any, res: any): Promise<void> {
     let logId: string | null = null;
     try { const log = await db.insert<{ id: string }>('sync_logs', { account_id: account.id, status: 'running' }); logId = log?.id ?? null; } catch { }
 
-    const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0, skipped_no_url: 0, shortener_errors: 0, offer_types: {} as Record<string, number> };
+    const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0, skipped_no_url: 0, skipped_no_store: 0, skipped_db_error: 0, shortener_errors: 0, offer_types: {} as Record<string, number>, sample_errors: [] as string[], sample_payload: null as any };
     const errors: string[] = [];
     let page = 1;
     let hasMore = true;
@@ -225,13 +225,20 @@ export default async function handler(req: any, res: any): Promise<void> {
                   const newStore = await db.insert<{ id: string }>('stores', { name: brandName, slug, store_id: orgId, active: true, logo_url: brandLogo || null });
                   storeDbId = newStore?.id ?? null;
                   if (storeDbId) { stats.stores_created++; db.invokeFunction(supabaseUrl, 'enrich-store', { store_id: storeDbId }); }
-                } catch {
-                  const retry = await db.insert<{ id: string }>('stores', { name: brandName, slug: `${slug}-${orgId}`, store_id: orgId, active: true, logo_url: brandLogo || null }).catch(() => null);
-                  storeDbId = retry?.id ?? null;
+                } catch (e: any) {
+                  if (stats.sample_errors.length < 5) stats.sample_errors.push(`store_insert_1: ${e.message?.slice(0, 200)}`);
+                  try {
+                    const retry = await db.insert<{ id: string }>('stores', { name: brandName, slug: `${slug}-${orgId}`, store_id: orgId, active: true, logo_url: brandLogo || null });
+                    storeDbId = retry?.id ?? null;
+                  } catch (e2: any) {
+                    if (stats.sample_errors.length < 5) stats.sample_errors.push(`store_insert_2: ${e2.message?.slice(0, 200)}`);
+                  }
                 }
               }
-            } catch { }
-            if (!storeDbId) { stats.skipped++; continue; }
+            } catch (e: any) {
+              if (stats.sample_errors.length < 5) stats.sample_errors.push(`store_select: ${e.message?.slice(0, 200)}`);
+            }
+            if (!storeDbId) { stats.skipped_no_store++; stats.skipped++; continue; }
 
             // Determina link: se Url, usa direto; se Spreadsheet, chama shortener
             let linkUrl = campaign.url || '';
@@ -278,6 +285,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             try {
               const existing = await db.select<{ id: string }>('coupons', `awin_promotion_id=eq.${promotionId}&select=id`);
               if (existing.length === 0) {
+                if (!stats.sample_payload) stats.sample_payload = couponData;
                 await db.insert('coupons', couponData, false);
                 stats.inserted++;
               } else {
@@ -289,7 +297,11 @@ export default async function handler(req: any, res: any): Promise<void> {
                 }, `awin_promotion_id=eq.${promotionId}`);
                 stats.updated++;
               }
-            } catch { stats.skipped++; }
+            } catch (e: any) {
+              stats.skipped_db_error++;
+              stats.skipped++;
+              if (stats.sample_errors.length < 5) stats.sample_errors.push(`coupon_db: ${e.message?.slice(0, 300)}`);
+            }
 
           } catch (e: any) { errors.push(e.message); stats.skipped++; }
         }
@@ -312,8 +324,12 @@ export default async function handler(req: any, res: any): Promise<void> {
             stores_created: stats.stores_created,
             brands_cached: Object.keys(brandCache).length,
             skipped_no_url: stats.skipped_no_url,
+            skipped_no_store: stats.skipped_no_store,
+            skipped_db_error: stats.skipped_db_error,
             shortener_errors: stats.shortener_errors,
             offer_types: stats.offer_types,
+            sample_errors: stats.sample_errors,
+            sample_payload: stats.sample_payload,
           },
         }, `id=eq.${logId}`);
       } catch { }
