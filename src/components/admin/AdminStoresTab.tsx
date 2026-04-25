@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Trash2, Pencil, X, Upload, Star } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import type { StoreBrand } from '@/lib/storeBranding';
 
 interface Props { stores: StoreBrand[] | undefined; refetchStores: () => void; }
-interface StoreForm { name: string; slug: string; icon_emoji: string; brand_color: string; fallback_color: string; logo_url: string; store_id?: number; }
-const emptyForm: StoreForm = { name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf', logo_url: '' };
+interface StoreForm { name: string; slug: string; icon_emoji: string; brand_color: string; fallback_color: string; logo_url: string; description: string; meta_description: string; store_id?: number; }
+const emptyForm: StoreForm = { name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf', logo_url: '', description: '', meta_description: '' };
 
 export function AdminStoresTab({ stores, refetchStores }: Props) {
   const queryClient = useQueryClient();
@@ -40,7 +41,9 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
       brand_color: form.brand_color,
       fallback_color: form.fallback_color,
       logo_url: form.logo_url || null,
-      store_id: form.store_id || floor(random() * 8999999 + 1000000)
+      description: form.description || null,
+      meta_description: form.meta_description || null,
+      store_id: form.store_id || Math.floor(Math.random() * 8999999 + 1000000)
     };
 
     if (editingId) {
@@ -67,17 +70,19 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
     setForm(emptyForm); setEditingId(null); refetchStores(); queryClient.invalidateQueries({ queryKey: ['store-brands'] });
   };
 
-  const handleEdit = (store: StoreBrand) => { 
-    setEditingId(store.id); 
-    setForm({ 
-      name: store.name, 
-      slug: store.slug, 
-      icon_emoji: store.icon_emoji, 
-      brand_color: store.brand_color, 
+  const handleEdit = (store: StoreBrand) => {
+    setEditingId(store.id);
+    setForm({
+      name: store.name,
+      slug: store.slug,
+      icon_emoji: store.icon_emoji,
+      brand_color: store.brand_color,
       fallback_color: store.fallback_color,
       logo_url: store.logo_url || '',
+      description: store.description || '',
+      meta_description: store.meta_description || '',
       store_id: store.store_id
-    }); 
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -113,6 +118,15 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
                 <div><label className="mb-1 block text-xs font-medium text-muted-foreground">ID da Loja</label><Input value={form.store_id || ''} readOnly className="bg-muted" /></div>
                 <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Cor da Marca</label><div className="flex items-center gap-2"><input type="color" value={form.brand_color} onChange={(e) => setForm((p) => ({ ...p, brand_color: e.target.value }))} className="h-9 w-10 cursor-pointer rounded border-0" /><Input value={form.brand_color} onChange={(e) => setForm((p) => ({ ...p, brand_color: e.target.value }))} className="font-mono text-xs" /></div></div>
                 <div><label className="mb-1 block text-xs font-medium text-muted-foreground">Emoji</label><Input value={form.icon_emoji} onChange={(e) => setForm((p) => ({ ...p, icon_emoji: e.target.value }))} /></div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Descrição da loja (exibida na página da loja)</label>
+                <Textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ex: A Amazon é uma das maiores lojas do Brasil..." rows={2} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Meta Description (SEO — até 160 caracteres)</label>
+                <Input value={form.meta_description} onChange={(e) => setForm((p) => ({ ...p, meta_description: e.target.value }))} placeholder="Ex: Cupom Amazon válido hoje: até 80% OFF verificado pelo Cuponito." maxLength={160} />
+                <p className="mt-0.5 text-[10px] text-muted-foreground">{form.meta_description.length}/160 caracteres</p>
               </div>
             </div>
             <div className="space-y-3">
