@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
+import { useDebounce } from '@/hooks/useDebounce';
 import CouponCard from '@/components/CouponCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ export default function CuponsPage() {
 
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
+  const debouncedSearch = useDebounce(search, 250);
 
   const storeBrandMap = useMemo(() => {
     const map: Record<string, any> = {};
@@ -38,7 +40,7 @@ export default function CuponsPage() {
 
   // Lógica de filtragem e separação de cupons
   const { active, potentiallyExpired } = useMemo(() => {
-    const term = search.toLowerCase().trim();
+    const term = debouncedSearch.toLowerCase().trim();
     const all = (coupons ?? []).filter(c => {
       const matchesSearch = !term
         || c.title.toLowerCase().includes(term)
@@ -55,7 +57,7 @@ export default function CuponsPage() {
       active: sortCoupons(activeList),
       potentiallyExpired: sortCoupons(expiredList)
     };
-  }, [coupons, search, activeCategory]);
+  }, [coupons, debouncedSearch, activeCategory]);
 
   return (
     <div className="min-h-screen bg-[#f8f9fa]">

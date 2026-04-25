@@ -13,7 +13,7 @@ export function useCoupons() {
         .select('*, stores(id, name, logo_url, color)')
         .eq('status', true)
         .order('is_flash', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
