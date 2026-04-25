@@ -12,8 +12,22 @@ import { toast } from 'sonner';
 import {
   Play, RefreshCcw, Plus, Pencil, Trash2, Clock,
   CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp, Sparkles,
-  Store, Search
+  Store, Search, CalendarX
 } from 'lucide-react';
+
+const UTIL_STORAGE_KEY = 'cuponito_util_prefs';
+
+function loadUtilPrefs() {
+  try {
+    const raw = localStorage.getItem(UTIL_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveUtilPref(key: string, value: unknown) {
+  const prefs = loadUtilPrefs();
+  localStorage.setItem(UTIL_STORAGE_KEY, JSON.stringify({ ...prefs, [key]: value }));
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,7 +85,14 @@ export function AdminIntegrationsTab() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState<string | null>(null);
   const [enriching, setEnriching] = useState(false);
+  const [expiringCoupons, setExpiringCoupons] = useState(false);
   const [expandedLogs, setExpandedLogs] = useState<string | null>(null);
+
+  // Utility routines state (persisted via localStorage)
+  const [enrichInterval, setEnrichInterval] = useState(24);
+  const [enrichLastRun, setEnrichLastRun] = useState<string | null>(null);
+  const [expireInterval, setExpireInterval] = useState(24);
+  const [expireLastRun, setExpireLastRun] = useState<string | null>(null);
 
   const [accountDialog, setAccountDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Partial<typeof EMPTY_ACCOUNT> & { id?: string }>(EMPTY_ACCOUNT);
@@ -106,6 +127,14 @@ export function AdminIntegrationsTab() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const prefs = loadUtilPrefs();
+    if (prefs.enrich_interval) setEnrichInterval(prefs.enrich_interval);
+    if (prefs.enrich_last_run) setEnrichLastRun(prefs.enrich_last_run);
+    if (prefs.expire_interval) setExpireInterval(prefs.expire_interval);
+    if (prefs.expire_last_run) setExpireLastRun(prefs.expire_last_run);
+  }, []);
 
   // ── Sync manual ─────────────────────────────────────────────────────────────
 
@@ -210,17 +239,34 @@ export function AdminIntegrationsTab() {
   const enrichStores = async (force = false) => {
     setEnriching(true);
     try {
-      const { data, error } = await supabase.functions.invoke('enrich-store', {
-        body: { force }
-      });
+      const { data, error } = await supabase.functions.invoke('enrich-store', { body: { force } });
       if (error) throw error;
       const updated = data?.results?.filter((r: any) => r.updated).length ?? 0;
       const total = data?.results?.length ?? 0;
+      const now = new Date().toISOString();
+      setEnrichLastRun(now);
+      saveUtilPref('enrich_last_run', now);
       toast.success(`${updated} de ${total} lojas enriquecidas com logo e cor`);
     } catch (err: any) {
       toast.error(`Erro ao enriquecer lojas: ${err.message}`);
     } finally {
       setEnriching(false);
+    }
+  };
+
+  const runExpireCoupons = async () => {
+    setExpiringCoupons(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('expire-coupons', {});
+      if (error) throw error;
+      const now = new Date().toISOString();
+      setExpireLastRun(now);
+      saveUtilPref('expire_last_run', now);
+      toast.success(`${data?.deleted_count ?? 0} cupons vencidos excluídos`);
+    } catch (err: any) {
+      toast.error(`Erro ao expirar cupons: ${err.message}`);
+    } finally {
+      setExpiringCoupons(false);
     }
   };
 
@@ -311,49 +357,122 @@ export function AdminIntegrationsTab() {
         ))}
       </div>
 
-      {/* ── Enriquecimento de lojas ── */}
-      <Card className="border-dashed">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Logo & Cor das Lojas
-          </CardTitle>
-          <CardDescription>
-            Busca automaticamente logo oficial e cor da marca para lojas sem imagem.
-            Requer a secret <code className="text-xs bg-muted px-1 rounded">BRANDFETCH_API_KEY</code> configurada para obter cores.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="gap-2"
-            disabled={enriching}
-            onClick={() => enrichStores(false)}
-          >
-            {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            Enriquecer lojas sem logo
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-2"
-            disabled={enriching}
-            onClick={() => enrichStores(true)}
-          >
-            {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCcw className="h-3.5 w-3.5" />}
-            Forçar todas as lojas
-          </Button>
-        </CardContent>
-      </Card>
+      {/* ── Rotinas ── */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rotinas</h3>
+
+        {/* Logo & Cor das Lojas */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Logo & Cor das Lojas
+            </CardTitle>
+            <CardDescription>
+              Busca logo oficial e cor da marca para lojas sem imagem via Brandfetch.
+              Requer a secret <code className="text-xs bg-muted px-1 rounded">BRANDFETCH_API_KEY</code>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center gap-4 rounded-lg bg-muted/40 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">A cada</span>
+                <Select
+                  value={String(enrichInterval)}
+                  onValueChange={(v) => {
+                    const h = Number(v);
+                    setEnrichInterval(h);
+                    saveUtilPref('enrich_interval', h);
+                  }}
+                >
+                  <SelectTrigger className="h-7 w-24 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 6, 12, 24, 48].map(h => (
+                      <SelectItem key={h} value={String(h)}>{h}h</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="ml-auto text-xs text-muted-foreground">
+                <span>Última: {fmtDate(enrichLastRun)}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="secondary" className="gap-2" disabled={enriching} onClick={() => enrichStores(false)}>
+                {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                Enriquecer lojas sem logo
+              </Button>
+              <Button size="sm" variant="outline" className="gap-2" disabled={enriching} onClick={() => enrichStores(true)}>
+                {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCcw className="h-3.5 w-3.5" />}
+                Forçar todas as lojas
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Apagar Cupons Vencidos */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CalendarX className="h-4 w-4 text-destructive" />
+              Apagar Cupons Vencidos
+            </CardTitle>
+            <CardDescription>
+              Remove todos os cupons com data de expiração no passado. Execute periodicamente para manter a base limpa.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center gap-4 rounded-lg bg-muted/40 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">A cada</span>
+                <Select
+                  value={String(expireInterval)}
+                  onValueChange={(v) => {
+                    const h = Number(v);
+                    setExpireInterval(h);
+                    saveUtilPref('expire_interval', h);
+                  }}
+                >
+                  <SelectTrigger className="h-7 w-24 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 6, 12, 24, 48].map(h => (
+                      <SelectItem key={h} value={String(h)}>{h}h</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="ml-auto text-xs text-muted-foreground">
+                <span>Última: {fmtDate(expireLastRun)}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="destructive"
+                className="gap-2"
+                disabled={expiringCoupons}
+                onClick={runExpireCoupons}
+              >
+                {expiringCoupons ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Apagar cupons vencidos agora
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* ── Contas ── */}
-      <div className="space-y-4">
-        {accounts.length === 0 && (
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contas de Afiliado</h3>
+        {accounts.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">Nenhuma conta configurada. Clique em "Nova Conta" para começar.</p>
-        )}
-
-        {accounts.map(account => {
+        ) : accounts.map(account => {
           const schedule = getSchedule(account.id);
           const accountLogs = getAccountLogs(account.id);
           const isLogsExpanded = expandedLogs === account.id;
