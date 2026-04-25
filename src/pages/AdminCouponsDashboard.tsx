@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
-import { supabase } from '@/integrations/supabase/client';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { AdminSidebar, type AdminTab } from '@/components/admin/AdminSidebar';
@@ -14,24 +13,13 @@ import { AdminIntegrationsTab } from '@/components/admin/AdminIntegrationsTab';
 import { AdminCouponCategoriesTab } from '@/components/admin/AdminCouponCategoriesTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
-import type { Tables } from '@/integrations/supabase/types';
-
-type Coupon = Tables<'coupons'>;
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AdminCouponsDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('cupons');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const navigate = useNavigate();
   const { data: stores, refetch: refetchStores } = useStoreBrands();
-
-  useEffect(() => {
-    const loadCoupons = async () => {
-      const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
-      setCoupons(data || []);
-    };
-    loadCoupons();
-  }, []);
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: '/admin/login' }); };
 
@@ -48,7 +36,7 @@ export default function AdminCouponsDashboard() {
               <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
             </Link>
 
-            {activeTab === 'dashboard' && <AdminDashboardTab coupons={coupons} stores={stores} />}
+            {activeTab === 'dashboard' && <AdminDashboardTab stores={stores} />}
             {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
             {activeTab === 'seo' && <AdminSeoTab />}
             {activeTab === 'cupons' && <AdminCouponsTab />}
