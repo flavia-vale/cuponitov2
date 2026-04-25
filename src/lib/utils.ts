@@ -31,15 +31,17 @@ export function getDiscountValue(discount: string): number {
 }
 
 export function sortCoupons(coupons: any[]) {
-  return [...coupons].sort((a, b) => {
-    const dateA = new Date(a.updated_at || a.created_at).getTime();
-    const dateB = new Date(b.updated_at || b.created_at).getTime();
-    if (dateB !== dateA) return dateB - dateA;
-    if (b.success_rate !== a.success_rate) return b.success_rate - a.success_rate;
-    const valA = getDiscountValue(a.discount || "");
-    const valB = getDiscountValue(b.discount || "");
-    return valB - valA;
+  const withTs = coupons.map(c => ({
+    c,
+    ts: new Date(c.updated_at || c.created_at).getTime(),
+    dv: getDiscountValue(c.discount || ""),
+  }));
+  withTs.sort((a, b) => {
+    if (b.ts !== a.ts) return b.ts - a.ts;
+    if (b.c.success_rate !== a.c.success_rate) return b.c.success_rate - a.c.success_rate;
+    return b.dv - a.dv;
   });
+  return withTs.map(x => x.c);
 }
 
 /**

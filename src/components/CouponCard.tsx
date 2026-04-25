@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Copy, ExternalLink, CheckCircle2, Zap, Clock, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,10 @@ interface Props {
 const CouponCard = ({ coupon, storeBrand }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isExpiring = coupon.expiry && new Date(coupon.expiry).toDateString() === new Date().toDateString();
-  const usageCount = Math.floor(Math.random() * 500) + 50;
+  const usageCount = useMemo(() => {
+    const hash = coupon.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    return (hash % 451) + 50;
+  }, [coupon.id]);
 
   const maskCode = (code: string | null) => {
     if (!code) return '';

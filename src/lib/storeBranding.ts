@@ -19,7 +19,7 @@ const FALLBACK_COLOR = '#575ecf';
 export async function fetchStoreBrands(): Promise<StoreBrand[]> {
   const { data, error } = await supabase
     .from('stores')
-    .select('*')
+    .select('id, slug, name, brand_color, fallback_color, icon_emoji, logo_url, store_id, is_featured, description, meta_description')
     .order('name');
   if (error) throw error;
   return data as StoreBrand[];
