@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { usePredefinedLinks } from '@/hooks/usePredefinedLinks';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -52,6 +53,7 @@ interface CouponFormProps {
 export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponFormProps) {
   const [loading, setLoading] = useState(false);
   const { data: predefinedLinks = [] } = usePredefinedLinks();
+  const { data: couponCategories = [] } = useCouponCategories();
   const [linkType, setLinkType] = useState<'manual' | string>('manual');
 
   const form = useForm<CouponFormValues>({
@@ -246,15 +248,11 @@ export function CouponForm({ initialData, stores, onSuccess, onCancel }: CouponF
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-white border-border shadow-xl z-50">
-                    <SelectItem value="Moda">Moda</SelectItem>
-                    <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                    <SelectItem value="Casa">Casa</SelectItem>
-                    <SelectItem value="Beleza">Beleza</SelectItem>
-                    <SelectItem value="Esportes">Esportes</SelectItem>
-                    <SelectItem value="Viagens">Viagens</SelectItem>
-                    <SelectItem value="Geral">Geral</SelectItem>
-                    <SelectItem value="Frete Grátis">Frete Grátis</SelectItem>
-                    <SelectItem value="Ofertas no link">Ofertas no link</SelectItem>
+                    {couponCategories.map(cat => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.icon ? `${cat.icon} ` : ''}{cat.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />

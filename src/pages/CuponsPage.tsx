@@ -6,6 +6,7 @@ import SEOHead from '@/components/SEOHead';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
 import CouponCard from '@/components/CouponCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -21,8 +22,6 @@ import {
 
 const Footer = lazy(() => import('@/components/Footer'));
 
-const CATEGORIES = ['Todos', 'Geral', 'Ofertas no link', 'Frete Grátis', 'Moda', 'Tech', 'Delivery', 'Viagens', 'Beleza'];
-
 export default function CuponsPage() {
   const { q = '' } = Route.useSearch();
   const [search, setSearch] = useState(q);
@@ -30,6 +29,8 @@ export default function CuponsPage() {
 
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
+  const { data: couponCategories = [] } = useCouponCategories();
+  const CATEGORIES = ['Todos', ...couponCategories.map(c => c.name)];
   const debouncedSearch = useDebounce(search, 250);
 
   const storeBrandMap = useMemo(() => {
