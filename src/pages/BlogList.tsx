@@ -70,7 +70,7 @@ export default function BlogList() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 space-y-10">
+      <main className="mx-auto max-w-6xl px-4 py-8 space-y-10 overflow-x-hidden">
         {categories && <BlogCategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />}
 
         {postsLoading ? (

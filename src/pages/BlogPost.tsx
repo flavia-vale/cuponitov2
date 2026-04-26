@@ -122,7 +122,7 @@ export default function BlogPost() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12 overflow-x-hidden">
         <article>
           {post.excerpt && (
             <p className="mb-6 border-l-4 border-primary bg-primary/5 py-2 pl-4 pr-3 text-sm font-medium italic leading-relaxed text-[#444] rounded-r-xl sm:mb-10 sm:pl-6 sm:text-base sm:rounded-r-2xl">

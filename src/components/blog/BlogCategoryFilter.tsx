@@ -8,7 +8,8 @@ interface Props {
 }
 
 const BlogCategoryFilter = ({ categories, selected, onSelect }: Props) => (
-  <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full">
+  <div className="w-full overflow-x-auto pb-1 scrollbar-none">
+    <div className="flex items-center gap-2">
     <button
       onClick={() => onSelect(null)}
       className={cn(
@@ -35,6 +36,7 @@ const BlogCategoryFilter = ({ categories, selected, onSelect }: Props) => (
         {cat.name}
       </button>
     ))}
+    </div>
   </div>
 );
 
