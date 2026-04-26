@@ -8,6 +8,17 @@
 
 ---
 
+## 🚨 REGRAS DE BANCO — NÃO VIOLAR
+
+### `useCoupons.ts` — NUNCA adicionar join com `stores`
+A tabela `stores` **não tem coluna `color`**. As colunas de cor são `brand_color` e `fallback_color`.
+O join `stores(id, name, logo_url, color)` causa erro `42703` em produção e **JÁ foi corrigido 3 vezes**.
+- **NÃO FAZER:** `.select('..., stores(id, name, logo_url, color)')`
+- **Correto:** `.select('id, code, title, description, ...')` — sem join stores
+- Os componentes recebem dados de loja via `useStoreBrands()` + `storeBrandMap`, não via join no useCoupons.
+
+---
+
 ## ⚠️ LEMBRETES CRÍTICOS
 
 ### 🔴 **SEMPRE que adicionar uma feature nova:**

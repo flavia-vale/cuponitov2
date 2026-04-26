@@ -11,7 +11,7 @@ export function useCoupons() {
       const { data, error } = await supabase
         .from('coupons')
         .select(
-          'id, code, title, description, discount, link, store, store_id, category, expiry, is_flash, is_featured, status, success_rate, updated_at, created_at, stores(id, name, logo_url, color)'
+          'id, code, title, description, discount, link, store, store_id, category, expiry, is_flash, is_featured, status, success_rate, updated_at, created_at'
         )
         .eq('status', true)
         .order('is_flash', { ascending: false })
