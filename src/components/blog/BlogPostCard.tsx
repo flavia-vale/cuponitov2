@@ -23,7 +23,7 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
         params={{ slug: post.slug }}
         className="group block overflow-hidden rounded-2xl border border-black/5 shadow-sm transition-all hover:shadow-xl sm:rounded-3xl"
       >
-        <div className="relative aspect-[3/2] w-full overflow-hidden bg-gradient-to-br from-primary to-accent sm:aspect-[16/9] md:aspect-[21/9]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary to-accent sm:aspect-[3/2] md:aspect-[16/9] lg:aspect-[21/9]">
           {post.cover_image ? (
             <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
@@ -69,7 +69,7 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
       params={{ slug: post.slug }}
       className="group flex flex-col overflow-hidden rounded-2xl border border-black/5 bg-white transition-all hover:shadow-lg"
     >
-      <div className="aspect-video w-full overflow-hidden bg-[#f5f3ef] flex items-center justify-center text-4xl">
+      <div className="aspect-[2/1] w-full overflow-hidden bg-[#f5f3ef] flex items-center justify-center text-4xl sm:aspect-video">
         {post.cover_image ? (
           <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
         ) : '💡'}
