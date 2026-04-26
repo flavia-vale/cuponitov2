@@ -54,7 +54,7 @@ export function RelatedPostsSection({ currentPostId, category, relatedIds }: Pro
       <h2 className="mb-6 text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
         Artigos relacionados
       </h2>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {posts.map((post) => (
           <RelatedPostCard key={post.id} post={post} />
         ))}

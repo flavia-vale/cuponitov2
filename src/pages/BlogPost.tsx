@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
-import { Clock, User, Share2, ArrowLeft } from 'lucide-react';
+import { Clock, User, Share2 } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
@@ -75,42 +75,42 @@ export default function BlogPost() {
 
       <Header />
 
-      <section className="bg-[#fcfbf9] border-b border-black/5 py-12 md:py-16">
+      <section className="bg-[#fcfbf9] border-b border-black/5 py-6 sm:py-10 md:py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-12 md:items-center">
             <div className="order-2 md:order-1">
-              <div className="mb-4 flex items-center gap-3">
-                <span className="rounded-full bg-primary/10 px-4 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+              <div className="mb-3 flex items-center gap-3">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
                   {post.category || 'Economia'}
                 </span>
                 <span className="text-[11px] font-bold text-[#aaa] flex items-center gap-1">
                   <Clock size={12} /> {readingTime} min
                 </span>
               </div>
-              
-              <h1 className="text-3xl font-black leading-tight text-[#1a1a1a] md:text-4xl lg:text-5xl mb-6">
+
+              <h1 className="mb-4 text-xl font-black leading-tight text-[#1a1a1a] sm:text-2xl md:text-4xl lg:text-5xl sm:mb-6">
                 {post.title}
               </h1>
 
-              <div className="flex items-center justify-between border-t border-black/5 pt-6">
+              <div className="flex items-center justify-between border-t border-black/5 pt-4 sm:pt-6">
                 <div className="flex items-center gap-3">
                   {author?.avatar_url
-                    ? <img src={author.avatar_url} alt={author.name} className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" />
-                    : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa]"><User size={18} /></div>
+                    ? <img src={author.avatar_url} alt={author.name} className="h-9 w-9 rounded-full object-cover border-2 border-white shadow-sm sm:h-10 sm:w-10" />
+                    : <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa] sm:h-10 sm:w-10"><User size={16} /></div>
                   }
                   <div>
                     <p className="text-xs font-black text-[#1a1a1a]">{author?.name || 'Equipe Cuponito'}</p>
-                    <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wider">{publishedDate}</p>
+                    <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wide">{publishedDate}</p>
                   </div>
                 </div>
-                <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 text-[#555] hover:text-primary transition-colors shadow-sm">
-                  <Share2 size={18} />
+                <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/5 text-[#555] hover:text-primary transition-colors shadow-sm sm:h-10 sm:w-10">
+                  <Share2 size={16} />
                 </button>
               </div>
             </div>
 
             <div className="order-1 md:order-2">
-              <div className="relative aspect-video w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/10 border-4 border-white">
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl shadow-lg shadow-primary/10 border-2 border-white sm:rounded-2xl sm:border-4 sm:shadow-2xl">
                 {post.cover_image ? (
                   <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" />
                 ) : (
@@ -122,21 +122,22 @@ export default function BlogPost() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-3xl px-4 py-12">
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
         <article>
           {post.excerpt && (
-            <p className="mb-10 text-lg font-medium leading-relaxed text-[#444] italic border-l-4 border-primary pl-6 py-2 bg-primary/5 rounded-r-2xl">
+            <p className="mb-6 border-l-4 border-primary bg-primary/5 py-2 pl-4 pr-3 text-sm font-medium italic leading-relaxed text-[#444] rounded-r-xl sm:mb-10 sm:pl-6 sm:text-base sm:rounded-r-2xl">
               {post.excerpt}
             </p>
           )}
 
           <div
-            className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-base md:text-lg
+            className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-sm sm:text-base md:text-lg
               prose-headings:text-[#1a1a1a] prose-headings:font-black
-              prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-3
+              prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-3
+              md:prose-h2:text-2xl md:prose-h2:mt-12 md:prose-h2:mb-6
               prose-strong:text-[#1a1a1a] prose-strong:font-black
               prose-a:text-primary prose-a:font-black prose-a:no-underline hover:prose-a:underline
-              prose-img:rounded-[2rem] prose-img:shadow-xl prose-img:my-12"
+              prose-img:rounded-xl prose-img:shadow-xl prose-img:my-8 md:prose-img:rounded-[2rem] md:prose-img:my-12"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
@@ -145,14 +146,14 @@ export default function BlogPost() {
           )}
         </article>
 
-        <div className="mt-16">
+        <div className="mt-10 sm:mt-16">
           <BlogWhatsAppCTA />
         </div>
 
         {relatedPosts.length > 0 && (
-          <section className="mt-20 border-t border-black/5 pt-12">
-            <h2 className="mb-8 text-lg font-black uppercase tracking-widest text-[#1a1a1a] text-center">Continue economizando</h2>
-            <div className="grid gap-6 sm:grid-cols-2">
+          <section className="mt-12 border-t border-black/5 pt-8 sm:mt-20 sm:pt-12">
+            <h2 className="mb-6 text-sm font-black uppercase tracking-wide text-[#1a1a1a] text-center sm:mb-8 sm:text-base sm:tracking-widest">Continue economizando</h2>
+            <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
               {relatedPosts.map(p => <BlogPostCard key={p.id} post={p} />)}
             </div>
           </section>

@@ -102,7 +102,7 @@ export default function BlogList() {
                 </div>
               </section>
 
-              <section className="space-y-6">
+              <section className="hidden lg:block space-y-6">
                 <div>
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
                     <TrendingUp className="h-4 w-4 text-primary" /> Mais lidos
