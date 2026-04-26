@@ -98,16 +98,35 @@ export function useAdminBlogPosts() {
   });
 }
 
+export function useRelatedBlogPosts(postId: string, category?: string | null) {
+  return useQuery<BlogPost[]>({
+    queryKey: ['blog-posts-related', postId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('id, slug, title, cover_image, excerpt, published_at, category, content, views_count')
+        .eq('status', 'published')
+        .neq('id', postId)
+        .order('published_at', { ascending: false })
+        .limit(2);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useIncrementBlogViews() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (postId: string) => {
+    mutationFn: async ({ postId }: { postId: string; slug: string }) => {
       const { error } = await supabase.rpc('increment_blog_views', { post_id: postId });
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+    onSuccess: (_, { slug }) => {
+      queryClient.invalidateQueries({ queryKey: ['blog-post', slug] });
     },
   });
 }

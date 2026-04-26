@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Check, Eye, Clock, ShieldCheck } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn, isExpired } from '@/lib/utils';
@@ -25,7 +25,10 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
   
   const isVerified = !expired && !!coupon.expiry;
   const isExpiring = coupon.expiry && !expired && (new Date(coupon.expiry).getTime() - new Date().getTime() < 48 * 60 * 60 * 1000);
-  const usageCount = Math.floor(Math.random() * 2000) + 100;
+  const usageCount = useMemo(() => {
+    const hash = coupon.id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    return (hash % 1901) + 100;
+  }, [coupon.id]);
 
   const maskCode = (code: string | null) => {
     if (!code) return '';

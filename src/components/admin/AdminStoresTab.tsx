@@ -23,7 +23,7 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
     setUploading(true);
     const ext = file.name.split('.').pop();
     const fileName = `store-logos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from('blog-images').upload(fileName, file, { cacheControl: '3600', upsert: false });
+    const { error } = await supabase.storage.from('blog-images').upload(fileName, file, { cacheControl: '2592000', upsert: false });
     if (error) { toast({ title: 'Erro no upload', description: error.message, variant: 'destructive' }); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName);
     setForm(p => ({ ...p, logo_url: urlData.publicUrl }));

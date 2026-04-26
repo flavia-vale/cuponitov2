@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
 import { supabase } from '@/integrations/supabase/client';
 import { Menu, ArrowLeft } from 'lucide-react';
@@ -14,6 +14,7 @@ import { AdminIntegrationsTab } from '@/components/admin/AdminIntegrationsTab';
 import { AdminCouponCategoriesTab } from '@/components/admin/AdminCouponCategoriesTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
+import { useQuery } from '@tanstack/react-query';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Coupon = Tables<'coupons'>;
@@ -21,17 +22,17 @@ type Coupon = Tables<'coupons'>;
 export default function AdminCouponsDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('cupons');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const navigate = useNavigate();
   const { data: stores, refetch: refetchStores } = useStoreBrands();
 
-  useEffect(() => {
-    const loadCoupons = async () => {
-      const { data } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
-      setCoupons(data || []);
-    };
-    loadCoupons();
-  }, []);
+  const { data: coupons = [] } = useQuery<Coupon[]>({
+    queryKey: ['admin-coupons'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: '/admin/login' }); };
 

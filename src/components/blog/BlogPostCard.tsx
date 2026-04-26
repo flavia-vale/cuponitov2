@@ -25,7 +25,7 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
       >
         <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary to-accent">
           {post.cover_image ? (
-            <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+            <img src={post.cover_image} alt={post.title} loading="lazy" width={800} height={450} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
             <div className="flex h-full items-center justify-center text-6xl">✍️</div>
           )}
@@ -53,7 +53,7 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
         className="group flex items-center gap-4 rounded-2xl border border-black/5 bg-white p-3 transition-all hover:border-primary/20 hover:shadow-md"
       >
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f5f3ef] flex items-center justify-center text-2xl">
-          {post.cover_image ? <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover" /> : '📄'}
+          {post.cover_image ? <img src={post.cover_image} alt={post.title} loading="lazy" width={64} height={64} className="h-full w-full object-cover" /> : '📄'}
         </div>
         <div className="min-w-0 flex-1">
           <h4 className="truncate text-sm font-bold text-[#1a1a1a] group-hover:text-primary transition-colors">{post.title}</h4>
@@ -71,7 +71,7 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
     >
       <div className="aspect-video w-full overflow-hidden bg-[#f5f3ef] flex items-center justify-center text-4xl">
         {post.cover_image ? (
-          <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+          <img src={post.cover_image} alt={post.title} loading="lazy" width={400} height={225} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
         ) : '💡'}
       </div>
       <div className="flex flex-1 flex-col p-4">
