@@ -53,7 +53,7 @@ export default function BlogPost() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen overflow-x-hidden bg-white">
       <SEOHead
         title={`${post.meta_title || post.title} | Blog Cuponito`}
         description={post.meta_description || post.excerpt || ''}

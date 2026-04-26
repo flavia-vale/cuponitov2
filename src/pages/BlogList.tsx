@@ -42,7 +42,7 @@ export default function BlogList() {
   const mostRead = useMemo(() => [...(allPosts || [])].sort((a, b) => b.views_count - a.views_count).slice(0, 3), [allPosts]);
 
   return (
-    <div className="min-h-screen bg-[#f5f3ef]">
+    <div className="min-h-screen overflow-x-hidden bg-[#f5f3ef]">
       <SEOHead
         title="Blog Cuponito — Guias e Dicas para Economizar | Cuponito"
         description="Guias, comparativos e cupons embutidos para você comprar mais barato. Atualizado diariamente pela equipe Cuponito."
