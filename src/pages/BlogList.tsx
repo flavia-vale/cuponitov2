@@ -51,21 +51,21 @@ export default function BlogList() {
       />
       <Header />
 
-      <section className="bg-gradient-to-br from-[#FF4D00] via-[#FF7A38] to-[#FFB347] px-4 py-12 text-white">
+      <section className="bg-gradient-to-br from-[#FF4D00] via-[#FF7A38] to-[#FFB347] px-4 py-8 text-white sm:py-12">
         <div className="mx-auto max-w-4xl">
-          <span className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-white">Blog do Cuponito</span>
-          <h1 className="mb-4 text-3xl font-black leading-tight md:text-5xl text-white">Guias, comparativos e dicas para economizar</h1>
-          <p className="mb-8 text-sm font-medium text-white md:text-lg">Conteúdo com cupons embutidos para você já sair comprando mais barato.</p>
+          <span className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-white/80">Blog do Cuponito</span>
+          <h1 className="mb-3 text-2xl font-black leading-tight text-white sm:text-3xl md:text-5xl">Guias, comparativos e dicas para economizar</h1>
+          <p className="mb-6 text-sm font-medium text-white/90 sm:mb-8 md:text-lg">Conteúdo com cupons embutidos para você já sair comprando mais barato.</p>
 
           <div className="relative flex items-center rounded-full bg-white p-1.5 shadow-2xl">
-            <Search className="ml-4 h-5 w-5 text-[#aaa]" />
+            <Search className="ml-3 h-4 w-4 shrink-0 text-[#aaa] sm:ml-4 sm:h-5 sm:w-5" />
             <Input
               placeholder="Buscar no blog..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-0 bg-transparent shadow-none text-[#1a1a1a] focus-visible:ring-0 placeholder:text-[#aaa]"
             />
-            <Button className="rounded-full bg-[#FF4D00] px-8 font-bold text-white hover:bg-[#D83C00]">Buscar</Button>
+            <Button className="rounded-full bg-[#FF4D00] px-4 font-bold text-white hover:bg-[#D83C00] sm:px-8">Buscar</Button>
           </div>
         </div>
       </section>

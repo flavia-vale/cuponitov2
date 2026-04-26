@@ -21,24 +21,24 @@ const BlogPostCard = ({ post, index = 0, variant = 'grid' }: Props) => {
       <Link
         to="/blog/$slug"
         params={{ slug: post.slug }}
-        className="group block overflow-hidden rounded-3xl border border-black/5 shadow-sm transition-all hover:shadow-xl"
+        className="group block overflow-hidden rounded-2xl border border-black/5 shadow-sm transition-all hover:shadow-xl sm:rounded-3xl"
       >
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-primary to-accent">
+        <div className="relative aspect-[3/2] w-full overflow-hidden bg-gradient-to-br from-primary to-accent sm:aspect-[16/9] md:aspect-[21/9]">
           {post.cover_image ? (
             <img src={post.cover_image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
             <div className="flex h-full items-center justify-center text-6xl">✍️</div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6">
-            <span className="mb-3 inline-block rounded-full border border-white/30 bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white backdrop-blur-sm">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+            <span className="mb-2 inline-block rounded-full border border-white/30 bg-white/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white backdrop-blur-sm sm:mb-3 sm:px-3 sm:py-1 sm:text-[10px]">
               ⭐ Destaque da semana
             </span>
-            <h3 className="mb-2 text-xl font-black leading-tight text-white drop-shadow-md md:text-2xl">{post.title}</h3>
+            <h3 className="text-base font-black leading-tight text-white drop-shadow-md sm:mb-2 sm:text-xl md:text-2xl">{post.title}</h3>
             {post.excerpt && (
-              <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-white/80">{post.excerpt}</p>
+              <p className="mb-2 mt-1.5 hidden line-clamp-2 text-sm leading-relaxed text-white/80 sm:block">{post.excerpt}</p>
             )}
-            <span className="text-[11px] font-medium text-white/60">{publishedDate} · {readingTime} min de leitura</span>
+            <span className="mt-1 block text-[10px] font-medium text-white/60">{publishedDate} · {readingTime} min de leitura</span>
           </div>
         </div>
       </Link>
