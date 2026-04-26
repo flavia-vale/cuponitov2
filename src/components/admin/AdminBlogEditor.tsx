@@ -30,7 +30,7 @@ function slugify(text: string): string {
 async function uploadToBlog(file: File, folder: 'covers' | 'banners'): Promise<string> {
   const ext = file.name.split('.').pop();
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabase.storage.from('blog').upload(path, file, { cacheControl: '3600', upsert: false });
+  const { error } = await supabase.storage.from('blog').upload(path, file, { cacheControl: '2592000', upsert: false });
   if (error) throw error;
   return supabase.storage.from('blog').getPublicUrl(path).data.publicUrl;
 }

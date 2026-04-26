@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { Clock, User, Share2, ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
-import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useBlogPosts } from '@/hooks/useBlog';
+import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useRelatedBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
@@ -18,13 +18,14 @@ export default function BlogPost() {
   const { slug } = useParams({ strict: false });
   const { data: post, isLoading } = useBlogPost(slug || '');
   const { data: authors } = useBlogAuthors();
-  const { data: allPosts } = useBlogPosts();
+  const { data: relatedPosts = [] } = useRelatedBlogPosts(post?.id ?? '', post?.category);
   const incrementViews = useIncrementBlogViews();
 
-  useEffect(() => { if (post?.id) incrementViews.mutate(post.id); }, [post?.id]);
+  useEffect(() => {
+    if (post?.id && slug) incrementViews.mutate({ postId: post.id, slug });
+  }, [post?.id]);
 
   const author = authors?.find((a) => a.id === post?.author_id);
-  const relatedPosts = allPosts?.filter(p => p.id !== post?.id).slice(0, 2) || [];
   const publishedDate = post?.published_at
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null;
@@ -95,7 +96,7 @@ export default function BlogPost() {
               <div className="flex items-center justify-between border-t border-black/5 pt-6">
                 <div className="flex items-center gap-3">
                   {author?.avatar_url
-                    ? <img src={author.avatar_url} alt={author.name} className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                    ? <img src={author.avatar_url} alt={author.name} className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" width={40} height={40} />
                     : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa]"><User size={18} /></div>
                   }
                   <div>
@@ -112,7 +113,7 @@ export default function BlogPost() {
             <div className="order-1 md:order-2">
               <div className="relative aspect-video w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/10 border-4 border-white">
                 {post.cover_image ? (
-                  <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" />
+                  <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" fetchPriority="high" width={800} height={450} />
                 ) : (
                   <div className="flex h-full items-center justify-center bg-muted text-4xl">✍️</div>
                 )}
