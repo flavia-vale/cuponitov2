@@ -50,11 +50,11 @@ export default function Home() {
   }, [validCoupons, activeCategory]);
 
   const popularCoupons = useMemo(() => {
-    const starred = validCoupons.filter(c => c.is_featured);
-    const pool = starred.length >= 3 ? starred : validCoupons;
-    if (!activeCategory) return pool.slice(3, 8);
-    return pool.filter(c => c.category === activeCategory).slice(3, 8);
-  }, [validCoupons, activeCategory]);
+    const featuredIds = new Set(featuredCoupons.map(c => c.id));
+    const remaining = validCoupons.filter(c => !featuredIds.has(c.id));
+    if (!activeCategory) return remaining.slice(0, 5);
+    return remaining.filter(c => c.category === activeCategory).slice(0, 5);
+  }, [validCoupons, featuredCoupons, activeCategory]);
 
   const featuredStores = useMemo(() => {
     const starred = (storeBrands ?? []).filter(s => s.is_featured);
