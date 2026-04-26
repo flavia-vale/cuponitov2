@@ -88,7 +88,7 @@ export default function BlogList() {
               {featuredPost && <BlogPostCard post={featuredPost} variant="featured" />}
             </section>
 
-            <div className="grid gap-10 lg:grid-cols-[1fr_350px]">
+            <div className="grid gap-8 xl:grid-cols-[1fr_280px]">
               <section>
                 <h2 className="mb-4 flex items-center justify-between text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
                   Últimos posts
@@ -102,7 +102,7 @@ export default function BlogList() {
                 </div>
               </section>
 
-              <section className="hidden lg:block space-y-6">
+              <section className="hidden xl:block space-y-6">
                 <div>
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
                     <TrendingUp className="h-4 w-4 text-primary" /> Mais lidos
