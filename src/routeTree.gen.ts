@@ -29,12 +29,12 @@ const LojasRoute = LojasRouteImport.update({
   id: '/lojas',
   path: '/lojas',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/lojas.lazy').then((d) => d.Route))
 const CuponsRoute = CuponsRouteImport.update({
   id: '/cupons',
   path: '/cupons',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/cupons.lazy').then((d) => d.Route))
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -44,7 +44,7 @@ const AdminblogRoute = AdminblogRouteImport.update({
   id: '/adminblog',
   path: '/adminblog',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/adminblog.lazy').then((d) => d.Route))
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -59,47 +59,53 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => BlogRoute,
-} as any)
+} as any).lazy(() => import('./routes/blog.index.lazy').then((d) => d.Route))
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
-} as any)
+} as any).lazy(() => import('./routes/admin.index.lazy').then((d) => d.Route))
 const DescontoSlugRoute = DescontoSlugRouteImport.update({
   id: '/desconto/$slug',
   path: '/desconto/$slug',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./routes/desconto.$slug.lazy').then((d) => d.Route),
+)
 const CategoriaSlugRoute = CategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./routes/categoria.$slug.lazy').then((d) => d.Route),
+)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BlogRoute,
-} as any)
+} as any).lazy(() => import('./routes/blog.$slug.lazy').then((d) => d.Route))
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AdminRoute,
-} as any)
+} as any).lazy(() => import('./routes/admin.login.lazy').then((d) => d.Route))
 const AdminCouponsRoute = AdminCouponsRouteImport.update({
   id: '/coupons',
   path: '/coupons',
   getParentRoute: () => AdminRoute,
-} as any)
+} as any).lazy(() => import('./routes/admin.coupons.lazy').then((d) => d.Route))
 const AdminBlogRoute = AdminBlogRouteImport.update({
   id: '/blog',
   path: '/blog',
   getParentRoute: () => AdminRoute,
-} as any)
+} as any).lazy(() => import('./routes/admin.blog.lazy').then((d) => d.Route))
 const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
   id: '/access-denied',
   path: '/access-denied',
   getParentRoute: () => AdminRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/admin.access-denied.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute

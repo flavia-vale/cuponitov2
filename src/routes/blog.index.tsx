@@ -1,6 +1,3 @@
 import { createFileRoute } from '@tanstack/react-router';
-import BlogList from '@/pages/BlogList';
 
-export const Route = createFileRoute('/blog/')({
-  component: BlogList,
-});
+export const Route = createFileRoute('/blog/')({});
