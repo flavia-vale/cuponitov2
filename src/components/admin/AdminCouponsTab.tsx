@@ -48,6 +48,8 @@ import { AdminLinksDialog } from './AdminLinksDialog';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 
+const COUPON_COLUMNS = 'id, code, title, description, discount, link, store, store_id, category, expiry, expiry_text, is_flash, is_featured, status, success_rate, updated_at, created_at';
+
 export function AdminCouponsTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -63,7 +65,7 @@ export function AdminCouponsTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('coupons')
-        .select('*')
+        .select(COUPON_COLUMNS)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];

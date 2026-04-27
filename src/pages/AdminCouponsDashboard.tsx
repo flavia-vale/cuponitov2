@@ -19,6 +19,8 @@ import type { Tables } from '@/integrations/supabase/types';
 
 type Coupon = Tables<'coupons'>;
 
+const COUPON_COLUMNS = 'id, code, title, description, discount, link, store, store_id, category, expiry, expiry_text, is_flash, is_featured, status, success_rate, updated_at, created_at';
+
 export default function AdminCouponsDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>('cupons');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,7 +30,10 @@ export default function AdminCouponsDashboard() {
   const { data: coupons = [] } = useQuery<Coupon[]>({
     queryKey: ['admin-coupons'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('coupons').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('coupons')
+        .select(COUPON_COLUMNS)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     },
