@@ -1,23 +1,6 @@
-import { useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { Search } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 
 const Header = () => {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const term = query.trim();
-    if (!term) return;
-
-    navigate({ 
-      to: '/cupons', 
-      search: { q: term } 
-    });
-    setQuery('');
-  };
-
   return (
     <header className="w-full bg-[#FF4D00] sticky top-0 z-50 shadow-md h-[54px]">
       <div className="mx-auto flex h-full max-w-[1100px] items-center justify-between px-5">
@@ -37,18 +20,7 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2.5 ml-auto">
-          <form onSubmit={handleSearch} className="relative hidden lg:block">
-            <input 
-              type="text" 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar loja ou cupom..." 
-              className="bg-white/20 border border-white/30 rounded-[20px] px-3.5 py-1.5 text-xs text-white/80 placeholder:text-white/60 outline-none w-[180px] focus:bg-white/30 transition-all"
-            />
-            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors">
-              <Search size={14} />
-            </button>
-          </form>
+          {/* Busca removida daqui e movida para o Hero */}
         </div>
       </div>
     </header>
