@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { StoreBrand } from '@/lib/storeBranding';
 
 interface Props { stores: StoreBrand[] | undefined; refetchStores: () => void; }
-interface StoreForm { name: string; slug: string; icon_emoji: string; brand_color: string; fallback_color: string; logo_url: string; description: string; meta_description: string; store_id?: number; }
+interface StoreForm { name: string; slug: string; icon_emoji: string; brand_color: string; fallback_color: string; logo_url: string; description: string; meta_description: string; store_id?: string; }
 const emptyForm: StoreForm = { name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf', logo_url: '', description: '', meta_description: '' };
 
 export function AdminStoresTab({ stores, refetchStores }: Props) {
@@ -35,26 +35,24 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
     if (!form.name.trim() || !form.slug.trim()) { toast({ title: 'Preencha nome e slug', variant: 'destructive' }); return; }
 
     const payload = {
-      name: form.name,
-      slug: form.slug,
+      name: form.name.trim(),
+      slug: form.slug.trim(),
       icon_emoji: form.icon_emoji,
       brand_color: form.brand_color,
       fallback_color: form.fallback_color,
       logo_url: form.logo_url || null,
-      description: form.description || null,
-      meta_description: form.meta_description || null,
-      store_id: form.store_id || Math.floor(Math.random() * 8999999 + 1000000)
+      description: form.description || '', // Nunca enviar null para coluna NOT NULL
+      meta_description: form.meta_description || '', // Nunca enviar null para coluna NOT NULL
+      store_id: form.store_id || String(Math.floor(Math.random() * 8999999 + 1000000))
     };
 
     if (editingId) {
-      // Pega nome antigo antes de atualizar para propagar mudança aos cupons
       const { data: oldStore } = await supabase.from('stores').select('name').eq('id', editingId).single();
       const oldName = oldStore?.name;
 
       const { error } = await supabase.from('stores').update(payload).eq('id', editingId);
       if (error) { toast({ title: 'Erro', description: error.message, variant: 'destructive' }); return; }
 
-      // Propaga mudança de nome para cupons associados (por store_id e por nome antigo)
       if (oldName && oldName !== form.name) {
         await supabase.from('coupons').update({ store: form.name }).eq('store_id', editingId);
         await supabase.from('coupons').update({ store: form.name, store_id: editingId }).eq('store', oldName);
@@ -81,7 +79,7 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
       logo_url: store.logo_url || '',
       description: store.description || '',
       meta_description: store.meta_description || '',
-      store_id: store.store_id
+      store_id: String(store.store_id)
     });
   };
 

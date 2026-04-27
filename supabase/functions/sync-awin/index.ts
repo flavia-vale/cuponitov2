@@ -51,7 +51,6 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}))
     accountId = body.account_id ?? null
 
-    // Buscar contas ativas (uma específica ou todas)
     let query = supabase
       .from('affiliate_accounts')
       .select('*, integration_providers(slug, base_url)')
@@ -70,7 +69,6 @@ serve(async (req) => {
     const summary = []
 
     for (const account of accounts) {
-      // Registrar início do log
       const { data: logRow } = await supabase
         .from('sync_logs')
         .insert({
@@ -82,7 +80,6 @@ serve(async (req) => {
 
       logId = logRow?.id ?? null
 
-      // Prioridade: api_token do banco → secret específico da conta → secret global
       const envSecret = account.extra_config?.env_secret
       const token =
         account.api_token ||
@@ -127,11 +124,6 @@ serve(async (req) => {
         try { data = JSON.parse(responseText) } catch { data = {} }
         const promotions: any[] = data.data ?? (Array.isArray(data) ? data : [])
 
-        // Captura diagnóstico na primeira página
-        if (page === 1 && promotions.length === 0) {
-          errors.push(`debug: status=${res.status} total=${data.pagination?.total ?? '?'} body_preview=${responseText.slice(0, 300)}`)
-        }
-
         if (promotions.length === 0) { hasMore = false; break }
 
         for (const promo of promotions) {
@@ -143,7 +135,6 @@ serve(async (req) => {
 
             if (!advertiser?.id) continue
 
-            // Garantir que a loja existe
             let { data: store } = await supabase
               .from('stores')
               .select('id')
@@ -159,13 +150,14 @@ serve(async (req) => {
                   slug: `cupom-desconto-${slugify(storeName)}`,
                   store_id: String(advertiser.id),
                   awin_advertiser_id: String(advertiser.id),
-                  active: true
+                  active: true,
+                  description: '', // Obrigatório NOT NULL
+                  meta_description: '' // Obrigatório NOT NULL
                 })
                 .select('id')
                 .single()
 
               if (storeErr) {
-                // Slug duplicado: tentar com sufixo do ID
                 const { data: retryStore } = await supabase
                   .from('stores')
                   .insert({
@@ -173,7 +165,9 @@ serve(async (req) => {
                     slug: `cupom-desconto-${slugify(storeName)}-${advertiser.id}`,
                     store_id: String(advertiser.id),
                     awin_advertiser_id: String(advertiser.id),
-                    active: true
+                    active: true,
+                    description: '', // Obrigatório NOT NULL
+                    meta_description: '' // Obrigatório NOT NULL
                   })
                   .select('id')
                   .single()
@@ -181,10 +175,9 @@ serve(async (req) => {
               } else {
                 store = newStore
                 stats.stores_created++
-                // Disparar enriquecimento de logo/cor em background (não bloqueia o sync)
                 supabase.functions.invoke('enrich-store', {
                   body: { store_id: newStore!.id }
-                }).catch(() => {/* ignora falha de enriquecimento */})
+                }).catch(() => {})
               }
             }
 
@@ -263,7 +256,6 @@ serve(async (req) => {
         { stores_created: stats.stores_created, pages: page - 1 }
       )
 
-      // Atualizar próxima execução no agendamento
       await supabase
         .from('sync_schedules')
         .update({ last_run_at: new Date().toISOString() })
