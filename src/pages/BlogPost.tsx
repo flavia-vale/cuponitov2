@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
-import { Clock, User, Share2, ArrowLeft } from 'lucide-react';
+import { Clock, User, Share2 } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useRelatedBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
@@ -23,7 +23,7 @@ export default function BlogPost() {
 
   useEffect(() => {
     if (post?.id && slug) incrementViews.mutate({ postId: post.id, slug });
-  }, [post?.id]);
+  }, [post?.id, slug]);
 
   const author = authors?.find((a) => a.id === post?.author_id);
   const publishedDate = post?.published_at
@@ -31,37 +31,19 @@ export default function BlogPost() {
     : null;
   const readingTime = post?.content ? calcReadingTime(post.content) : 1;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <Header />
-        <div className="mx-auto max-w-5xl px-4 py-12">
-          <Skeleton className="h-12 w-3/4 mb-6" />
-          <Skeleton className="h-64 w-full rounded-3xl" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f5f3ef]">
-        <Header />
-        <p className="text-lg font-bold text-[#1a1a1a]">Artigo não encontrado 😕</p>
-        <Link to="/blog" className="text-primary font-bold underline">Voltar ao blog</Link>
-      </div>
-    );
-  }
+  // SEO sempre presente para o Googlebot, mesmo durante o loading
+  const seoTitle = post ? (post.meta_title || post.title) : `${slug?.replace(/-/g, ' ')} | Blog Cuponito`;
+  const seoDesc = post?.meta_description || post?.excerpt || 'Confira este artigo no blog do Cuponito.';
 
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title={`${post.meta_title || post.title} | Blog Cuponito`}
-        description={post.meta_description || post.excerpt || ''}
-        canonical={`${SITE_URL}/blog/${post.slug}`}
+        title={`${seoTitle} | Blog Cuponito`}
+        description={seoDesc}
+        canonical={`${SITE_URL}/blog/${slug}`}
         ogType="article"
-        ogImage={post.cover_image || undefined}
-        jsonLdRoute={{
+        ogImage={post?.cover_image || undefined}
+        jsonLdRoute={post ? {
           type: 'blog',
           article: {
             title: post.title,
@@ -71,94 +53,108 @@ export default function BlogPost() {
             authorName: author?.name,
             imageUrl: post.cover_image,
           }
-        }}
+        } : { type: 'generic' }}
       />
 
       <Header />
 
-      <section className="bg-[#fcfbf9] border-b border-black/5 py-12 md:py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div className="order-2 md:order-1">
-              <div className="mb-4 flex items-center gap-3">
-                <span className="rounded-full bg-primary/10 px-4 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  {post.category || 'Economia'}
-                </span>
-                <span className="text-[11px] font-bold text-[#aaa] flex items-center gap-1">
-                  <Clock size={12} /> {readingTime} min
-                </span>
-              </div>
-              
-              <h1 className="text-3xl font-black leading-tight text-[#1a1a1a] md:text-4xl lg:text-5xl mb-6">
-                {post.title}
-              </h1>
+      {isLoading ? (
+        <div className="mx-auto max-w-5xl px-4 py-12">
+          <Skeleton className="h-12 w-3/4 mb-6" />
+          <Skeleton className="h-64 w-full rounded-3xl" />
+        </div>
+      ) : !post ? (
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 bg-[#f5f3ef] text-center px-4">
+          <p className="text-lg font-bold text-[#1a1a1a]">Artigo não encontrado 😕</p>
+          <Link to="/blog" className="text-primary font-bold underline">Voltar ao blog</Link>
+        </div>
+      ) : (
+        <>
+          <section className="bg-[#fcfbf9] border-b border-black/5 py-12 md:py-16">
+            <div className="mx-auto max-w-6xl px-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div className="order-2 md:order-1">
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="rounded-full bg-primary/10 px-4 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+                      {post.category || 'Economia'}
+                    </span>
+                    <span className="text-[11px] font-bold text-[#aaa] flex items-center gap-1">
+                      <Clock size={12} /> {readingTime} min
+                    </span>
+                  </div>
+                  
+                  <h1 className="text-3xl font-black leading-tight text-[#1a1a1a] md:text-4xl lg:text-5xl mb-6">
+                    {post.title}
+                  </h1>
 
-              <div className="flex items-center justify-between border-t border-black/5 pt-6">
-                <div className="flex items-center gap-3">
-                  {author?.avatar_url
-                    ? <img src={author.avatar_url} alt={author.name} className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" width={40} height={40} />
-                    : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa]"><User size={18} /></div>
-                  }
-                  <div>
-                    <p className="text-xs font-black text-[#1a1a1a]">{author?.name || 'Equipe Cuponito'}</p>
-                    <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wider">{publishedDate}</p>
+                  <div className="flex items-center justify-between border-t border-black/5 pt-6">
+                    <div className="flex items-center gap-3">
+                      {author?.avatar_url
+                        ? <img src={author.avatar_url} alt={author.name} className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" width={40} height={40} />
+                        : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa]"><User size={18} /></div>
+                      }
+                      <div>
+                        <p className="text-xs font-black text-[#1a1a1a]">{author?.name || 'Equipe Cuponito'}</p>
+                        <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wider">{publishedDate}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 text-[#555] hover:text-primary transition-colors shadow-sm">
+                      <Share2 size={18} />
+                    </button>
                   </div>
                 </div>
-                <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-black/5 text-[#555] hover:text-primary transition-colors shadow-sm">
-                  <Share2 size={18} />
-                </button>
+
+                <div className="order-1 md:order-2">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/10 border-4 border-white">
+                    {post.cover_image ? (
+                      <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" fetchPriority="high" width={800} height={450} />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-muted text-4xl">✍️</div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div className="order-1 md:order-2">
-              <div className="relative aspect-video w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-primary/10 border-4 border-white">
-                {post.cover_image ? (
-                  <img src={post.cover_image} alt={post.title} className="h-full w-full object-cover" loading="eager" fetchPriority="high" width={800} height={450} />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-muted text-4xl">✍️</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <main className="mx-auto max-w-3xl px-4 py-12">
-        <article>
-          {post.excerpt && (
-            <p className="mb-10 text-lg font-medium leading-relaxed text-[#444] italic border-l-4 border-primary pl-6 py-2 bg-primary/5 rounded-r-2xl">
-              {post.excerpt}
-            </p>
-          )}
-
-          <div
-            className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-base md:text-lg
-              prose-headings:text-[#1a1a1a] prose-headings:font-black
-              prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-3
-              prose-strong:text-[#1a1a1a] prose-strong:font-black
-              prose-a:text-primary prose-a:font-black prose-a:no-underline hover:prose-a:underline
-              prose-img:rounded-[2rem] prose-img:shadow-xl prose-img:my-12"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
-
-          {post.cta_config && typeof post.cta_config === 'object' && (
-            <InlineCouponBox config={post.cta_config as InlineCouponConfig} />
-          )}
-        </article>
-
-        <div className="mt-16">
-          <BlogWhatsAppCTA />
-        </div>
-
-        {relatedPosts.length > 0 && (
-          <section className="mt-20 border-t border-black/5 pt-12">
-            <h2 className="mb-8 text-lg font-black uppercase tracking-widest text-[#1a1a1a] text-center">Continue economizando</h2>
-            <div className="grid gap-6 sm:grid-cols-2">
-              {relatedPosts.map(p => <BlogPostCard key={p.id} post={p} />)}
             </div>
           </section>
-        )}
-      </main>
+
+          <main className="mx-auto max-w-3xl px-4 py-12">
+            <article>
+              {post.excerpt && (
+                <p className="mb-10 text-lg font-medium leading-relaxed text-[#444] italic border-l-4 border-primary pl-6 py-2 bg-primary/5 rounded-r-2xl">
+                  {post.excerpt}
+                </p>
+              )}
+
+              <div
+                className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-base md:text-lg
+                  prose-headings:text-[#1a1a1a] prose-headings:font-black
+                  prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-3
+                  prose-strong:text-[#1a1a1a] prose-strong:font-black
+                  prose-a:text-primary prose-a:font-black prose-a:no-underline hover:prose-a:underline
+                  prose-img:rounded-[2rem] prose-img:shadow-xl prose-img:my-12"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+
+              {post.cta_config && typeof post.cta_config === 'object' && (
+                <InlineCouponBox config={post.cta_config as InlineCouponConfig} />
+              )}
+            </article>
+
+            <div className="mt-16">
+              <BlogWhatsAppCTA />
+            </div>
+
+            {relatedPosts.length > 0 && (
+              <section className="mt-20 border-t border-black/5 pt-12">
+                <h2 className="mb-8 text-lg font-black uppercase tracking-widest text-[#1a1a1a] text-center">Continue economizando</h2>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {relatedPosts.map(p => <BlogPostCard key={p.id} post={p} />)}
+                </div>
+              </section>
+            )}
+          </main>
+        </>
+      )}
 
       <Footer />
     </div>
