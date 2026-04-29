@@ -42,19 +42,12 @@ export function useBlogPosts(categorySlug?: string) {
     queryFn: async () => {
       let query = supabase
         .from('blog_posts')
-        .select('*')
+        .select('*, blog_categories!inner(slug)')
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
       if (categorySlug) {
-        const { data: cat } = await supabase
-          .from('blog_categories')
-          .select('id')
-          .eq('slug', categorySlug)
-          .maybeSingle();
-        if (cat) {
-          query = query.eq('category_id', cat.id);
-        }
+        query = query.eq('blog_categories.slug', categorySlug);
       }
 
       const { data, error } = await query;
@@ -98,17 +91,22 @@ export function useAdminBlogPosts() {
   });
 }
 
-export function useRelatedBlogPosts(postId: string, category?: string | null) {
+export function useRelatedBlogPosts(postId: string, categoryId?: string | null) {
   return useQuery<BlogPost[]>({
     queryKey: ['blog-posts-related', postId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('blog_posts')
-        .select('id, slug, title, cover_image, excerpt, published_at, category, content, views_count')
+        .select('*')
         .eq('status', 'published')
         .neq('id', postId)
-        .order('published_at', { ascending: false })
-        .limit(2);
+        .order('published_at', { ascending: false });
+      
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+
+      const { data, error } = await query.limit(2);
       if (error) throw error;
       return data || [];
     },
@@ -137,11 +135,6 @@ export interface BannerClickRow {
   banner_url: string;
   link_url: string;
   created_at: string;
-}
-
-export interface BannerItem {
-  banner_url: string;
-  link_url: string;
 }
 
 export function useLogBannerClick() {
