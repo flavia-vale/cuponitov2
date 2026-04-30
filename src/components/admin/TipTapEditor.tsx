@@ -14,7 +14,7 @@ export function TipTapEditor({ content, onChange }: Props) {
     extensions: [StarterKit.configure({ heading: { levels: [2, 3] } }), LinkExt.configure({ openOnClick: false }), Image, Placeholder.configure({ placeholder: 'Comece a escrever seu artigo…' })],
     content,
     onUpdate: ({ editor }) => { onChange(editor.getHTML()); },
-    editorProps: { attributes: { class: 'prose prose-neutral max-w-none min-h-[300px] p-4 focus:outline-none text-foreground' } },
+    editorProps: { attributes: { class: 'prose prose-neutral max-w-none min-h-[300px] p-4 focus:outline-none text-foreground prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1' } },
   });
 
   useEffect(() => { if (editor && content !== editor.getHTML()) editor.commands.setContent(content || ''); }, [content, editor]);

@@ -129,6 +129,9 @@ export default function BlogPost() {
                 className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-base md:text-lg
                   prose-headings:text-[#1a1a1a] prose-headings:font-black
                   prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:border-b prose-h2:border-black/5 prose-h2:pb-3
+                  prose-p:my-4 prose-p:text-[#444]
+                  prose-ul:my-6 prose-ul:ml-6 prose-ol:my-6 prose-ol:ml-6
+                  prose-li:my-2 prose-li:ml-2
                   prose-strong:text-[#1a1a1a] prose-strong:font-black
                   prose-a:text-primary prose-a:font-black prose-a:no-underline hover:prose-a:underline
                   prose-img:rounded-[2rem] prose-img:shadow-xl prose-img:my-12"
