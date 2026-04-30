@@ -65,19 +65,21 @@
 @layer utilities {
   /* Espaçamento para prose (blog posts) */
   .prose p {
-    @apply my-4;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
   }
 
-  .prose ul {
-    @apply my-6 ml-6;
-  }
-
+  .prose ul,
   .prose ol {
-    @apply my-6 ml-6;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    margin-left: 1.5rem;
   }
 
   .prose li {
-    @apply my-2 ml-2;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
   }
 }
 
