@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Save, X, User } from 'lucide-react';
+import { Pencil, Trash2, Save, X, User, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,25 @@ export function AdminBlogAuthorsTab() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadAvatar = async (file: File) => {
+    setUploadingAvatar(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `authors/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('blog-images').upload(path, file, { cacheControl: '2592000', upsert: false });
+      if (error) throw error;
+      const url = supabase.storage.from('blog-images').getPublicUrl(path).data.publicUrl;
+      setForm(f => ({ ...f, avatar_url: url }));
+      toast({ title: 'Avatar enviado!' });
+    } catch (e: any) {
+      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const startEdit = (author: BlogAuthor) => {
     setEditing(author.id);
@@ -69,8 +88,18 @@ export function AdminBlogAuthorsTab() {
             <Textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Uma breve descrição do autor..." className="min-h-[60px] resize-none text-xs" />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">URL do Avatar</label>
-            <Input value={form.avatar_url} onChange={e => setForm(f => ({ ...f, avatar_url: e.target.value }))} placeholder="https://..." className="h-9 text-xs" />
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Avatar</label>
+            <Input value={form.avatar_url} onChange={e => setForm(f => ({ ...f, avatar_url: e.target.value }))} placeholder="Cole a URL da imagem..." className="h-9 text-xs" />
+            <div className="my-1.5 flex items-center gap-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-[10px] text-muted-foreground">ou</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-xs text-muted-foreground transition hover:border-primary/50">
+              <Upload className="h-3.5 w-3.5" />
+              {uploadingAvatar ? 'Enviando...' : 'Subir do computador'}
+              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); }} />
+            </label>
           </div>
           <div className="flex justify-end gap-2">
             {editing && <Button variant="ghost" size="sm" onClick={cancelEdit}><X className="h-4 w-4 mr-1" /> Cancelar</Button>}

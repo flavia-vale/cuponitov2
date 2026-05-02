@@ -216,11 +216,19 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                   <Button variant="destructive" size="icon" className="absolute right-1 top-1 h-6 w-6" onClick={() => setCoverImage('')}><X className="h-3 w-3" /></Button>
                 </div>
               ) : (
-                <label className="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border transition hover:border-primary/50">
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">{uploadingCover ? 'Enviando...' : 'Subir imagem'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} />
-                </label>
+                <div className="space-y-2">
+                  <label className="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border transition hover:border-primary/50">
+                    <Upload className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{uploadingCover ? 'Enviando...' : 'Subir imagem'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} />
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-[10px] text-muted-foreground">ou cole a URL</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <Input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://..." className="h-8 text-xs" />
+                </div>
               )}
             </CardContent>
           </Card>
