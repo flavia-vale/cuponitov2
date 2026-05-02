@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, Upload, X, Plus, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { TipTapEditor } from './TipTapEditor';
 import { useBlogCategories, useBlogAuthors, type BlogPost } from '@/hooks/useBlog';
+import { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 
 interface Props {
   post?: BlogPost | null;
@@ -26,7 +27,7 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-async function uploadToBlog(file: File, folder: 'covers' | 'banners'): Promise<string> {
+async function uploadToBlog(file: File, folder: 'covers' | 'content'): Promise<string> {
   const ext = file.name.split('.').pop();
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage.from('blog-images').upload(path, file, { cacheControl: '2592000', upsert: false });
@@ -51,6 +52,12 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
   const [metaTitle, setMetaTitle] = useState(post?.meta_title ?? '');
   const [metaDescription, setMetaDescription] = useState(post?.meta_description ?? '');
 
+  const rawCta = post?.cta_config;
+  const initialCta: InlineCouponConfig | null =
+    rawCta && typeof rawCta === 'object' && !Array.isArray(rawCta) ? (rawCta as InlineCouponConfig) : null;
+  const [hasCta, setHasCta] = useState(!!initialCta);
+  const [ctaConfig, setCtaConfig] = useState<InlineCouponConfig>(initialCta ?? {});
+
   const [uploadingCover, setUploadingCover] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -71,6 +78,20 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
     }
   };
 
+  const handleContentImageUpload = async (file: File): Promise<string> => {
+    try {
+      const url = await uploadToBlog(file, 'content');
+      toast({ title: 'Imagem inserida!' });
+      return url;
+    } catch (e: any) {
+      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
+      throw e;
+    }
+  };
+
+  const setCta = (field: keyof InlineCouponConfig, value: string) =>
+    setCtaConfig(prev => ({ ...prev, [field]: value }));
+
   const handleSave = async () => {
     if (!title || !slug) {
       toast({ title: 'Título e slug são obrigatórios', variant: 'destructive' });
@@ -89,6 +110,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       featured,
       meta_title: metaTitle,
       meta_description: metaDescription,
+      cta_config: hasCta && Object.keys(ctaConfig).some(k => (ctaConfig as any)[k]) ? ctaConfig : null,
       updated_at: new Date().toISOString(),
       published_at: isPublished && !post?.published_at ? new Date().toISOString() : post?.published_at,
     };
@@ -150,7 +172,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-bold uppercase text-muted-foreground">Conteúdo</CardTitle></CardHeader>
             <CardContent>
-              <TipTapEditor content={content} onChange={setContent} />
+              <TipTapEditor content={content} onChange={setContent} onImageUpload={handleContentImageUpload} />
             </CardContent>
           </Card>
         </div>
@@ -210,6 +232,53 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                 <Textarea value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Descrição para o Google" className="resize-none h-24 text-xs" />
               </div>
             </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-bold uppercase text-muted-foreground flex items-center gap-1.5">
+                  <Tag className="h-3.5 w-3.5" /> Banner / CTA
+                </CardTitle>
+                <Switch checked={hasCta} onCheckedChange={setHasCta} />
+              </div>
+            </CardHeader>
+            {hasCta && (
+              <CardContent className="space-y-2.5">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Loja (nome)</label>
+                  <Input value={ctaConfig.store_name ?? ''} onChange={(e) => setCta('store_name', e.target.value)} placeholder="ex: Amazon" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Slug da loja</label>
+                  <Input value={ctaConfig.store_slug ?? ''} onChange={(e) => setCta('store_slug', e.target.value)} placeholder="ex: amazon" className="font-mono text-sm" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Código do cupom</label>
+                  <Input value={ctaConfig.code ?? ''} onChange={(e) => setCta('code', e.target.value)} placeholder="ex: SAVE10" className="font-mono text-sm uppercase" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Desconto</label>
+                  <Input value={ctaConfig.discount ?? ''} onChange={(e) => setCta('discount', e.target.value)} placeholder="ex: 10% OFF" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Título do banner</label>
+                  <Input value={ctaConfig.title ?? ''} onChange={(e) => setCta('title', e.target.value)} placeholder="ex: Cupom exclusivo" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Descrição</label>
+                  <Input value={ctaConfig.description ?? ''} onChange={(e) => setCta('description', e.target.value)} placeholder="ex: Válido até 31/12" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">URL de destino</label>
+                  <Input value={ctaConfig.url ?? ''} onChange={(e) => setCta('url', e.target.value)} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Texto do botão</label>
+                  <Input value={ctaConfig.button_text ?? ''} onChange={(e) => setCta('button_text', e.target.value)} placeholder="ex: Copiar e ir" />
+                </div>
+              </CardContent>
+            )}
           </Card>
         </div>
       </div>

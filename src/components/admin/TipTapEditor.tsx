@@ -3,13 +3,20 @@ import StarterKit from '@tiptap/starter-kit';
 import LinkExt from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, List, ListOrdered, Heading2, Heading3, Link as LinkIcon, ImageIcon, Undo, Redo, Quote } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Heading2, Heading3, Link as LinkIcon, ImageIcon, Undo, Redo, Quote, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-interface Props { content: string; onChange: (html: string) => void; }
+interface Props {
+  content: string;
+  onChange: (html: string) => void;
+  onImageUpload: (file: File) => Promise<string>;
+}
 
-export function TipTapEditor({ content, onChange }: Props) {
+export function TipTapEditor({ content, onChange, onImageUpload }: Props) {
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [StarterKit.configure({ heading: { levels: [2, 3] } }), LinkExt.configure({ openOnClick: false }), Image, Placeholder.configure({ placeholder: 'Comece a escrever seu artigo…' })],
     content,
@@ -22,10 +29,20 @@ export function TipTapEditor({ content, onChange }: Props) {
   if (!editor) return null;
 
   const addLink = () => { const url = prompt('URL do link:'); if (url) editor.chain().focus().setLink({ href: url }).run(); };
-  const addImage = () => { const url = prompt('URL da imagem:'); if (url) editor.chain().focus().setImage({ src: url }).run(); };
 
-  const ToolBtn = ({ onClick, active, children, title }: { onClick: () => void; active?: boolean; children: React.ReactNode; title: string }) => (
-    <Button type="button" variant={active ? 'default' : 'ghost'} size="icon" className="h-8 w-8" onClick={onClick} title={title}>{children}</Button>
+  const handleImageFile = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const url = await onImageUpload(file);
+      editor.chain().focus().setImage({ src: url }).run();
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const ToolBtn = ({ onClick, active, children, title, disabled }: { onClick: () => void; active?: boolean; children: React.ReactNode; title: string; disabled?: boolean }) => (
+    <Button type="button" variant={active ? 'default' : 'ghost'} size="icon" className="h-8 w-8" onClick={onClick} title={title} disabled={disabled}>{children}</Button>
   );
 
   return (
@@ -39,7 +56,20 @@ export function TipTapEditor({ content, onChange }: Props) {
         <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="Lista numerada"><ListOrdered className="h-4 w-4" /></ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="Citação"><Quote className="h-4 w-4" /></ToolBtn>
         <ToolBtn onClick={addLink} active={editor.isActive('link')} title="Link"><LinkIcon className="h-4 w-4" /></ToolBtn>
-        <ToolBtn onClick={addImage} title="Imagem"><ImageIcon className="h-4 w-4" /></ToolBtn>
+        <ToolBtn
+          onClick={() => fileInputRef.current?.click()}
+          title="Inserir imagem do computador"
+          disabled={uploadingImage}
+        >
+          {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+        </ToolBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); }}
+        />
         <div className="ml-auto flex gap-0.5">
           <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Desfazer"><Undo className="h-4 w-4" /></ToolBtn>
           <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Refazer"><Redo className="h-4 w-4" /></ToolBtn>
