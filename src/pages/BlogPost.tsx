@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { Clock, User, Share2 } from 'lucide-react';
 import Header from '@/components/Header';
-import { useBlogPost, useBlogAuthors, useIncrementBlogViews, useRelatedBlogPosts } from '@/hooks/useBlog';
+import { useBlogPost, useBlogAuthors, useBlogCategories, useIncrementBlogViews, useRelatedBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
@@ -18,7 +18,8 @@ export default function BlogPost() {
   const { slug } = useParams({ strict: false });
   const { data: post, isLoading } = useBlogPost(slug || '');
   const { data: authors } = useBlogAuthors();
-  const { data: relatedPosts = [] } = useRelatedBlogPosts(post?.id ?? '', post?.category);
+  const { data: categories = [] } = useBlogCategories();
+  const { data: relatedPosts = [] } = useRelatedBlogPosts(post?.id ?? '', post?.category_id);
   const incrementViews = useIncrementBlogViews();
 
   useEffect(() => {
@@ -26,19 +27,22 @@ export default function BlogPost() {
   }, [post?.id, slug]);
 
   const author = authors?.find((a) => a.id === post?.author_id);
+  const category = categories.find((c) => c.id === post?.category_id);
   const publishedDate = post?.published_at
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null;
   const readingTime = post?.content ? calcReadingTime(post.content) : 1;
 
   // SEO sempre presente para o Googlebot, mesmo durante o loading
-  const seoTitle = post ? (post.meta_title || post.title) : `${slug?.replace(/-/g, ' ')} | Blog Cuponito`;
+  const seoTitle = post
+    ? (post.meta_title || `${post.title} | Blog Cuponito`)
+    : `${slug?.replace(/-/g, ' ')} | Blog Cuponito`;
   const seoDesc = post?.meta_description || post?.excerpt || 'Confira este artigo no blog do Cuponito.';
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-white">
       <SEOHead
-        title={`${seoTitle} | Blog Cuponito`}
+        title={seoTitle}
         description={seoDesc}
         canonical={`${SITE_URL}/blog/${slug}`}
         ogType="article"
@@ -76,7 +80,7 @@ export default function BlogPost() {
                 <div className="order-2 md:order-1">
                   <div className="mb-3 flex items-center gap-3">
                     <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
-                      {post.category || 'Economia'}
+                      {category?.name || 'Economia'}
                     </span>
                     <span className="text-[11px] font-bold text-[#aaa] flex items-center gap-1">
                       <Clock size={12} /> {readingTime} min

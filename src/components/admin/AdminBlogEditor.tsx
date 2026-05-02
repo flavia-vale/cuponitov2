@@ -97,6 +97,11 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       toast({ title: 'Título e slug são obrigatórios', variant: 'destructive' });
       return;
     }
+    const plainContent = content.replace(/<[^>]*>/g, '').trim();
+    if (!plainContent) {
+      toast({ title: 'O conteúdo do post não pode estar vazio', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
     const payload = {
       title,
@@ -125,7 +130,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       return;
     }
     toast({ title: post ? 'Post atualizado!' : 'Post criado!' });
-    onSave();
+    setTimeout(() => onSave(), 1500);
   };
 
   return (
