@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useSettings } from '@/hooks/useSettings';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
 import { getMonthYear, isExpired, isStale, sortCoupons } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import HowItWorks from '@/components/HowItWorks';
@@ -25,6 +26,7 @@ export default function Home() {
   const { data: coupons, isLoading: couponsLoading } = useCoupons();
   const { data: storeBrands, isLoading: storesLoading } = useStoreBrands();
   const { data: settings } = useSettings();
+  const { data: couponCategories = [] } = useCouponCategories();
   const monthYear = getMonthYear();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -35,12 +37,11 @@ export default function Home() {
   }, [coupons]);
 
   const availableCategories = useMemo(() => {
-    const counts: Record<string, number> = {};
-    validCoupons.forEach(c => {
-      if (c.category) counts[c.category] = (counts[c.category] || 0) + 1;
-    });
-    return Object.keys(counts).filter(cat => counts[cat] > 0 && cat !== 'Geral' && cat !== 'Ofertas no link');
-  }, [validCoupons]);
+    const categoriesWithCoupons = new Set(validCoupons.map(c => c.category).filter(Boolean));
+    return couponCategories
+      .map(c => c.name)
+      .filter(name => categoriesWithCoupons.has(name));
+  }, [validCoupons, couponCategories]);
 
   const featuredCoupons = useMemo(() => {
     const starred = validCoupons.filter(c => c.is_featured);
