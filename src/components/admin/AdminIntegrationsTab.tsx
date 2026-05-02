@@ -129,6 +129,10 @@ export function AdminIntegrationsTab() {
       if (error) throw error;
 
       const { inserted = 0, updated = 0, skipped = 0 } = data?.stats || {};
+      const schedule = getSchedule(account.id);
+      if (schedule) {
+        await supabase.from('sync_schedules').update({ last_run_at: new Date().toISOString() }).eq('id', schedule.id);
+      }
       toast.success(`${account.name}: ${inserted} novos, ${updated} atualizados`);
       await load();
     } catch (err: any) {
