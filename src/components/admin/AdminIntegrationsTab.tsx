@@ -11,8 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import {
   Play, RefreshCcw, Plus, Pencil, Trash2, Clock,
-  CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp, Sparkles,
-  Store, Search, CalendarX
+  CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp, Sparkles, CalendarX
 } from 'lucide-react';
 
 const UTIL_STORAGE_KEY = 'cuponito_util_prefs';
@@ -64,14 +63,6 @@ interface SyncLog {
   error_message: string | null;
 }
 
-interface LomadeeStoreFilter {
-  id: string;
-  account_id: string;
-  lomadee_store_id: string;
-  store_name: string;
-  store_logo: string;
-  enabled: boolean;
-}
 
 const EMPTY_ACCOUNT = { name: '', publisher_id: '', api_token: '', provider_id: '', active: true };
 
@@ -97,32 +88,18 @@ export function AdminIntegrationsTab() {
   const [accountDialog, setAccountDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Partial<typeof EMPTY_ACCOUNT> & { id?: string }>(EMPTY_ACCOUNT);
 
-  // Lomadee store filters
-  const [lomadeeFilters, setLomadeeFilters] = useState<Record<string, LomadeeStoreFilter[]>>({});
-  const [expandedStores, setExpandedStores] = useState<string | null>(null);
-  const [storeSearch, setStoreSearch] = useState<Record<string, string>>({});
-
   const load = useCallback(async () => {
     setLoading(true);
-    const [pRes, aRes, sRes, lRes, fRes] = await Promise.all([
+    const [pRes, aRes, sRes, lRes] = await Promise.all([
       supabase.from('integration_providers').select('*').order('name'),
       supabase.from('affiliate_accounts').select('*, integration_providers(name, slug)').order('name'),
       supabase.from('sync_schedules').select('*'),
       supabase.from('sync_logs').select('*').order('started_at', { ascending: false }).limit(50),
-      supabase.from('lomadee_store_filters').select('*').order('store_name'),
     ]);
     if (pRes.data) setProviders(pRes.data as Provider[]);
     if (aRes.data) setAccounts(aRes.data as Account[]);
     if (sRes.data) setSchedules(sRes.data as Schedule[]);
     if (lRes.data) setLogs(lRes.data as SyncLog[]);
-    if (fRes.data) {
-      const grouped = (fRes.data as LomadeeStoreFilter[]).reduce((acc, f) => {
-        if (!acc[f.account_id]) acc[f.account_id] = [];
-        acc[f.account_id].push(f);
-        return acc;
-      }, {} as Record<string, LomadeeStoreFilter[]>);
-      setLomadeeFilters(grouped);
-    }
     setLoading(false);
   }, []);
 
@@ -158,57 +135,6 @@ export function AdminIntegrationsTab() {
       toast.error(`Erro ao sincronizar: ${err.message}`);
     } finally {
       setSyncing(null);
-    }
-  };
-
-  // ── Lomadee: toggle de loja individual ──────────────────────────────────────
-
-  const toggleLomadeeStore = async (filter: LomadeeStoreFilter, enabled: boolean) => {
-    // Atualização otimista
-    setLomadeeFilters(prev => ({
-      ...prev,
-      [filter.account_id]: prev[filter.account_id]?.map(f =>
-        f.id === filter.id ? { ...f, enabled } : f
-      ) ?? [],
-    }));
-
-    const { error } = await supabase
-      .from('lomadee_store_filters')
-      .update({ enabled })
-      .eq('id', filter.id);
-
-    if (error) {
-      toast.error('Erro ao salvar');
-      // Rollback
-      setLomadeeFilters(prev => ({
-        ...prev,
-        [filter.account_id]: prev[filter.account_id]?.map(f =>
-          f.id === filter.id ? { ...f, enabled: !enabled } : f
-        ) ?? [],
-      }));
-    }
-  };
-
-  // ── Lomadee: ativar/desativar todas ─────────────────────────────────────────
-
-  const toggleAllLomadeeStores = async (accountId: string, enabled: boolean) => {
-    const filters = lomadeeFilters[accountId] ?? [];
-    if (filters.length === 0) return;
-
-    // Atualização otimista
-    setLomadeeFilters(prev => ({
-      ...prev,
-      [accountId]: prev[accountId]?.map(f => ({ ...f, enabled })) ?? [],
-    }));
-
-    const { error } = await supabase
-      .from('lomadee_store_filters')
-      .update({ enabled })
-      .in('id', filters.map(f => f.id));
-
-    if (error) {
-      toast.error('Erro ao salvar');
-      await load();
     }
   };
 
@@ -476,15 +402,6 @@ export function AdminIntegrationsTab() {
           const schedule = getSchedule(account.id);
           const accountLogs = getAccountLogs(account.id);
           const isLogsExpanded = expandedLogs === account.id;
-          const isLomadee = account.integration_providers?.slug === 'lomadee';
-          const filters = lomadeeFilters[account.id] ?? [];
-          const enabledCount = filters.filter(f => f.enabled).length;
-          const isStoresExpanded = expandedStores === account.id;
-          const search = storeSearch[account.id] ?? '';
-          const filteredStores = filters.filter(f =>
-            f.store_name.toLowerCase().includes(search.toLowerCase())
-          );
-
           return (
             <Card key={account.id} className={`border ${!account.active ? 'opacity-60' : ''}`}>
               <CardHeader className="pb-3">
@@ -608,104 +525,6 @@ export function AdminIntegrationsTab() {
                   </div>
                 )}
 
-                {/* ── Seção exclusiva Lomadee: filtro de lojas ── */}
-                {isLomadee && (
-                  <div className="rounded-lg border border-dashed">
-                    <div className="flex items-center justify-between px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Store className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">Lojas Lomadee</span>
-                        {filters.length > 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {enabledCount} / {filters.length} ativas
-                          </Badge>
-                        )}
-                        {filters.length === 0 && (
-                          <span className="text-xs text-muted-foreground">nenhuma loja ainda</span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {filters.length === 0 && (
-                          <span className="text-xs text-muted-foreground italic">descobertas automaticamente na 1ª sincronização</span>
-                        )}
-                        {filters.length > 0 && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="gap-1 text-muted-foreground h-7 text-xs"
-                            onClick={() => setExpandedStores(isStoresExpanded ? null : account.id)}
-                          >
-                            {isStoresExpanded ? 'Recolher' : 'Gerenciar'}
-                            {isStoresExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {isStoresExpanded && filters.length > 0 && (
-                      <div className="border-t px-4 pb-4 pt-3 space-y-3">
-                        {/* Controles */}
-                        <div className="flex items-center gap-2">
-                          <div className="relative flex-1">
-                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                            <Input
-                              className="h-8 pl-8 text-sm"
-                              placeholder="Buscar loja..."
-                              value={search}
-                              onChange={e => setStoreSearch(prev => ({ ...prev, [account.id]: e.target.value }))}
-                            />
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-xs shrink-0"
-                            onClick={() => toggleAllLomadeeStores(account.id, true)}
-                          >
-                            Ativar todas
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-xs shrink-0"
-                            onClick={() => toggleAllLomadeeStores(account.id, false)}
-                          >
-                            Desativar todas
-                          </Button>
-                        </div>
-
-                        {/* Lista de lojas */}
-                        <div className="max-h-80 overflow-y-auto space-y-1 pr-1">
-                          {filteredStores.length === 0 && (
-                            <p className="text-xs text-muted-foreground text-center py-4">Nenhuma loja encontrada</p>
-                          )}
-                          {filteredStores.map(filter => (
-                            <div
-                              key={filter.id}
-                              className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${filter.enabled ? 'bg-primary/5' : 'hover:bg-muted/40'}`}
-                            >
-                              {filter.store_logo ? (
-                                <img
-                                  src={filter.store_logo}
-                                  alt={filter.store_name}
-                                  className="h-6 w-6 rounded object-contain shrink-0"
-                                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                                />
-                              ) : (
-                                <div className="h-6 w-6 rounded bg-muted shrink-0" />
-                              )}
-                              <span className="flex-1 text-sm truncate">{filter.store_name}</span>
-                              <Switch
-                                checked={filter.enabled}
-                                onCheckedChange={v => toggleLomadeeStore(filter, v)}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
