@@ -42,7 +42,7 @@ export default function BlogList() {
   const mostRead = useMemo(() => [...(allPosts || [])].sort((a, b) => b.views_count - a.views_count).slice(0, 3), [allPosts]);
 
   return (
-    <div className="min-h-screen bg-[#f5f3ef]">
+    <div className="min-h-screen overflow-x-hidden bg-[#f5f3ef]">
       <SEOHead
         title="Blog Cuponito — Guias e Dicas para Economizar | Cuponito"
         description="Guias, comparativos e cupons embutidos para você comprar mais barato. Atualizado diariamente pela equipe Cuponito."
@@ -51,26 +51,26 @@ export default function BlogList() {
       />
       <Header />
 
-      <section className="bg-gradient-to-br from-[#FF4D00] via-[#FF7A38] to-[#FFB347] px-4 py-12 text-white">
+      <section className="bg-gradient-to-br from-[#FF4D00] via-[#FF7A38] to-[#FFB347] px-4 py-8 text-white sm:py-12">
         <div className="mx-auto max-w-4xl">
-          <span className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-white">Blog do Cuponito</span>
-          <h1 className="mb-4 text-3xl font-black leading-tight md:text-5xl text-white">Guias, comparativos e dicas para economizar</h1>
-          <p className="mb-8 text-sm font-medium text-white md:text-lg">Conteúdo com cupons embutidos para você já sair comprando mais barato.</p>
+          <span className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-white/80">Blog do Cuponito</span>
+          <h1 className="mb-3 text-2xl font-black leading-tight text-white sm:text-3xl md:text-5xl">Guias, comparativos e dicas para economizar</h1>
+          <p className="mb-6 text-sm font-medium text-white/90 sm:mb-8 md:text-lg">Conteúdo com cupons embutidos para você já sair comprando mais barato.</p>
 
           <div className="relative flex items-center rounded-full bg-white p-1.5 shadow-2xl">
-            <Search className="ml-4 h-5 w-5 text-[#aaa]" />
+            <Search className="ml-3 h-4 w-4 shrink-0 text-[#aaa] sm:ml-4 sm:h-5 sm:w-5" />
             <Input
               placeholder="Buscar no blog..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-0 bg-transparent shadow-none text-[#1a1a1a] focus-visible:ring-0 placeholder:text-[#aaa]"
             />
-            <Button className="rounded-full bg-[#FF4D00] px-8 font-bold text-white hover:bg-[#D83C00]">Buscar</Button>
+            <Button className="rounded-full bg-[#FF4D00] px-4 font-bold text-white hover:bg-[#D83C00] sm:px-8">Buscar</Button>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 space-y-10">
+      <main className="mx-auto max-w-6xl px-4 py-8 space-y-10 overflow-x-hidden">
         {categories && <BlogCategoryFilter categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />}
 
         {postsLoading ? (
@@ -88,7 +88,7 @@ export default function BlogList() {
               {featuredPost && <BlogPostCard post={featuredPost} variant="featured" />}
             </section>
 
-            <div className="grid gap-10 lg:grid-cols-[1fr_350px]">
+            <div className="grid gap-8 xl:grid-cols-[1fr_280px]">
               <section>
                 <h2 className="mb-4 flex items-center justify-between text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
                   Últimos posts
@@ -102,7 +102,7 @@ export default function BlogList() {
                 </div>
               </section>
 
-              <section className="space-y-6">
+              <section className="hidden xl:block space-y-6">
                 <div>
                   <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-[#1a1a1a]">
                     <TrendingUp className="h-4 w-4 text-primary" /> Mais lidos
