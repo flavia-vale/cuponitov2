@@ -27,7 +27,7 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-async function uploadToBlog(file: File, folder: 'covers' | 'content'): Promise<string> {
+async function uploadToBlog(file: File, folder: 'covers' | 'content' | 'logos'): Promise<string> {
   const ext = file.name.split('.').pop();
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage.from('blog-images').upload(path, file, { cacheControl: '2592000', upsert: false });
@@ -59,6 +59,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
   const [ctaConfig, setCtaConfig] = useState<InlineCouponConfig>(initialCta ?? {});
 
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingCtaLogo, setUploadingCtaLogo] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -86,6 +87,19 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
     } catch (e: any) {
       toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
       throw e;
+    }
+  };
+
+  const handleCtaLogoUpload = async (file: File) => {
+    setUploadingCtaLogo(true);
+    try {
+      const url = await uploadToBlog(file, 'logos');
+      setCta('logo_url', url);
+      toast({ title: 'Logo enviada!' });
+    } catch (e: any) {
+      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
+    } finally {
+      setUploadingCtaLogo(false);
     }
   };
 
@@ -261,6 +275,20 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Loja (nome)</label>
                   <Input value={ctaConfig.store_name ?? ''} onChange={(e) => setCta('store_name', e.target.value)} placeholder="ex: Amazon" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Logo da loja</label>
+                  <Input value={ctaConfig.logo_url ?? ''} onChange={(e) => setCta('logo_url', e.target.value)} placeholder="Cole a URL da logo..." className="text-xs" />
+                  <div className="my-1.5 flex items-center gap-2">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-[10px] text-muted-foreground">ou</span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                  <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-2 text-xs text-muted-foreground transition hover:border-primary/50">
+                    <Upload className="h-3.5 w-3.5" />
+                    {uploadingCtaLogo ? 'Enviando...' : 'Subir do computador'}
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCtaLogoUpload(f); }} />
+                  </label>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">Slug da loja</label>

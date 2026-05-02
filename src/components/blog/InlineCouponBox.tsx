@@ -13,6 +13,7 @@ export interface InlineCouponConfig {
   store_slug?: string;
   store_name?: string;
   discount?: string;
+  logo_url?: string;
 }
 
 interface Props {
@@ -30,6 +31,7 @@ export function InlineCouponBox({ config }: Props) {
     store_slug,
     store_name = 'Loja Parceira',
     discount,
+    logo_url,
   } = config;
 
   const handleCopy = () => {
@@ -51,9 +53,13 @@ export function InlineCouponBox({ config }: Props) {
     >
       {/* header */}
       <div className="flex items-center gap-3 border-b border-[#FFCAB0]/60 bg-[#FFF3EE] px-5 py-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-black/10 font-black text-primary text-[10px] uppercase shadow-sm tracking-wider">
-          {initials}
-        </div>
+        {logo_url ? (
+          <img src={logo_url} alt={store_name} className="h-9 w-9 rounded-xl object-contain border border-black/10 bg-white shadow-sm p-0.5" />
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-black/10 font-black text-primary text-[10px] uppercase shadow-sm tracking-wider">
+            {initials}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#888]">{store_name}</p>
           <p className="truncate text-sm font-black text-[#1a1a1a]">{title}</p>
