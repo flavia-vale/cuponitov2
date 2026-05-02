@@ -1,16 +1,33 @@
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Ticket, Store, Zap, ToggleRight } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 import type { StoreBrand } from '@/lib/storeBranding';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
+import { supabase } from '@/integrations/supabase/client';
 
 type Coupon = Tables<'coupons'>;
 
 interface Props {
-  coupons: Coupon[];
   stores: StoreBrand[] | undefined;
 }
 
-export function AdminDashboardTab({ coupons, stores }: Props) {
+export function AdminDashboardTab({ stores }: Props) {
+  const { data: coupons = [] } = useQuery<Coupon[]>({
+    queryKey: ['admin-all-coupons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60 * 1000,
+  });
+
+  const { data: categories = [] } = useCouponCategories();
+
   const active = coupons.filter((c) => c.status).length;
   const flash = coupons.filter((c) => c.is_flash).length;
   const storeCount = stores?.length ?? 0;
@@ -33,6 +50,35 @@ export function AdminDashboardTab({ coupons, stores }: Props) {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Cupons por Categoria</CardTitle></CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {categories.map((cat) => {
+              const total = coupons.filter((c) => c.category === cat.name).length;
+              const activeCount = coupons.filter((c) => c.category === cat.name && c.status).length;
+              if (total === 0) return null;
+              return (
+                <div key={cat.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg leading-none">{cat.icon || '🏷️'}</span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ background: cat.color_hex }}
+                      />
+                      <span className="text-sm font-medium">{cat.name}</span>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">{activeCount} ativos / {total} total</div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader><CardTitle className="text-base">Cupons por Loja</CardTitle></CardHeader>
         <CardContent>

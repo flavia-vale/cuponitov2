@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,6 +40,7 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
   const [defaultStore, setDefaultStore] = useState('');
   const [defaultCategory, setDefaultCategory] = useState('Geral');
   const [detectedLink, setDetectedLink] = useState('');
+  const { data: couponCategories = [] } = useCouponCategories();
 
   const extractCoupons = () => {
     if (!rawText.trim()) {
@@ -221,12 +223,11 @@ export function CouponExtractor({ stores, onSuccess, onCancel }: CouponExtractor
                   <SelectValue placeholder="Geral" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Geral">Geral</SelectItem>
-                  <SelectItem value="Moda">Moda</SelectItem>
-                  <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                  <SelectItem value="Casa">Casa</SelectItem>
-                  <SelectItem value="Beleza">Beleza</SelectItem>
-                  <SelectItem value="Ofertas no link">Ofertas no link</SelectItem>
+                  {couponCategories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.icon ? `${cat.icon} ` : ''}{cat.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

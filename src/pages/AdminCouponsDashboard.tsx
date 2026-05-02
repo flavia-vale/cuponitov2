@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
-import { supabase } from '@/integrations/supabase/client';
 import { Menu, ArrowLeft } from 'lucide-react';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { AdminSidebar, type AdminTab } from '@/components/admin/AdminSidebar';
@@ -14,10 +13,7 @@ import { AdminIntegrationsTab } from '@/components/admin/AdminIntegrationsTab';
 import { AdminCouponCategoriesTab } from '@/components/admin/AdminCouponCategoriesTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
-import { useQuery } from '@tanstack/react-query';
-import type { Tables } from '@/integrations/supabase/types';
-
-type Coupon = Tables<'coupons'>;
+import { supabase } from '@/integrations/supabase/client';
 
 const COUPON_COLUMNS = 'id, code, title, description, discount, link, store, store_id, category, expiry, expiry_text, is_flash, is_featured, status, success_rate, updated_at, created_at';
 
@@ -26,18 +22,6 @@ export default function AdminCouponsDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { data: stores, refetch: refetchStores } = useStoreBrands();
-
-  const { data: coupons = [] } = useQuery<Coupon[]>({
-    queryKey: ['admin-coupons'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('coupons')
-        .select(COUPON_COLUMNS)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate({ to: '/admin/login' }); };
 
@@ -54,7 +38,7 @@ export default function AdminCouponsDashboard() {
               <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
             </Link>
 
-            {activeTab === 'dashboard' && <AdminDashboardTab coupons={coupons} stores={stores} />}
+            {activeTab === 'dashboard' && <AdminDashboardTab stores={stores} />}
             {activeTab === 'lojas' && <AdminStoresTab stores={stores} refetchStores={refetchStores} />}
             {activeTab === 'seo' && <AdminSeoTab />}
             {activeTab === 'cupons' && <AdminCouponsTab />}
