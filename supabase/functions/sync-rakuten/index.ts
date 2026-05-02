@@ -9,7 +9,9 @@ const corsHeaders = {
 
 const COUPON_API_BASE = 'https://api.linksynergy.com/coupon/1.0'
 const TOKEN_ENDPOINT  = 'https://api.linksynergy.com/token'
+// Documentação oficial: máximo 500 por página, padrão 500.
 const RESULTS_PER_PAGE = 500
+// Renova 2 min antes do vencimento para evitar race conditions
 const TOKEN_REFRESH_BUFFER_SEC = 120
 
 interface TokenSet {
@@ -23,34 +25,31 @@ function slugify(text: string): string {
   return text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
-function rollingExpiry(): { iso: string; text: string } {
-  const d = new Date()
-  d.setUTCDate(d.getUTCDate() + 1)
-  d.setUTCHours(23, 59, 59, 999)
-  return {
-    iso: d.toISOString(),
-    text: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-  }
-}
-
 function determineCategory(description: string, discountType: string, storeName: string): string {
   const text = `${description} ${discountType} ${storeName}`.toLowerCase()
   if (/frete gr[aá]ti|envio gr[aá]ti|free shipping/.test(text)) return 'Frete Grátis'
-  if (/moda|roupa|vest[iu]|fashion|c&a|zara|renner|under armour|asics|nike|adidas|puma|denim|calvin klein|lacoste|tommy hilfiger|quiksilver|billabong/.test(text)) return 'Moda'
-  if (/tech|eletr[ôo]|notebook|celular|smartphone|kabum|ssd|consol|playstation|xbox|tv|monitor|teclado|mouse|headphone|fone|samsung|lg|iphone|ipad|macbook/.test(text)) return 'Tech'
-  if (/delivery|comida|restaurante|ifood|pizza|lanche|burguer|sushi|açai|doces|sobremesa|aliment/.test(text)) return 'Delivery'
-  if (/viagem|hotel|passagem|hospedagem|a[eé]reo|turismo|resort|motel|pousada|booking|airbnb/.test(text)) return 'Viagens'
-  if (/beleza|cosm[eé]t|maquiagem|perfume|skincare|cabelo|shampoo|condicionador|creme|hidratante|sérum|máscara|unha/.test(text)) return 'Beleza'
+  if (/moda|roupa|vest[iu]|fashion|c&a|zara|renner/.test(text)) return 'Moda'
+  if (/tech|eletr[ôo]|notebook|celular|smartphone|kabum|ssd/.test(text)) return 'Tech'
+  if (/delivery|comida|restaurante|ifood|pizza|lanche/.test(text)) return 'Delivery'
+  if (/viagem|hotel|passagem|hospedagem|a[eé]reo|turismo/.test(text)) return 'Viagens'
+  if (/beleza|cosm[eé]t|maquiagem|perfume|skincare|cabelo/.test(text)) return 'Beleza'
   return 'Geral'
 }
+
+// ── XML parser ────────────────────────────────────────────────────────────────
+// Documentação oficial: raiz pode ser <couponfeed> (guia) ou <couponFeedResponse>
+// (schema OpenAPI). Ambos são tratados. Campos: offerdescription, couponcode,
+// clickurl, advertiserid, advertisername, offerstartdate, offerenddate, promotiontypes.
 
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: '@_',
+  // Garante array mesmo com um único <link> ou <category>/<promotiontype>
   isArray: (name) => ['link', 'category', 'promotiontype'].includes(name),
 })
 
 function extractOfferId(clickUrl: string): string {
+  // clickurl traz o offerid como query param: ...?id=X&offerid=951620.1097&...
   try {
     return new URL(clickUrl).searchParams.get('offerid') ?? ''
   } catch {
@@ -67,6 +66,7 @@ function parseIsoDate(dateStr: string | undefined): string | null {
 function formatDiscount(promoTypeName: string, description: string): string {
   const text = `${description} ${promoTypeName}`.toLowerCase()
   if (/frete gr[aá]ti|envio gr[aá]ti|free shipping/.test(text)) return 'Frete Grátis'
+  // Extrai "X%" da descrição quando mencionado
   const pctMatch = description.match(/(\d+(?:[.,]\d+)?)\s*%/)
   if (pctMatch) return `${pctMatch[1].replace(',', '.')}% OFF`
   return promoTypeName || 'Desconto Especial'
@@ -74,6 +74,7 @@ function formatDiscount(promoTypeName: string, description: string): string {
 
 function parseRakutenResponse(xml: string): { totalMatches: number; totalPages: number; offers: ReturnType<typeof mapLink>[]; rootKeys: string[] } {
   const root = xmlParser.parse(xml)
+  // A API pode retornar <couponfeed> (ex. no guia) ou <couponFeedResponse> (schema OpenAPI).
   const feed = root?.couponfeed ?? root?.couponFeedResponse ?? {}
   const links: any[] = Array.isArray(feed.link) ? feed.link : (feed.link ? [feed.link] : [])
   const rootKeys = Object.keys(root ?? {})
@@ -110,11 +111,17 @@ function mapLink(link: any) {
   }
 }
 
+// ── Token helpers ─────────────────────────────────────────────────────────────
+
 async function postToken(tokenKey: string, body: URLSearchParams): Promise<TokenSet> {
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${tokenKey}`,
+      // /token endpoint usa Basic auth (client credentials OAuth2).
+      // O token-key da Rakuten já vem pré-base64(client_id:client_secret) do painel
+      // (~88 chars). O access_token resultante é que usa Bearer nas chamadas à
+      // Coupon API. Não confundir os dois.
+      'Authorization': `Basic ${tokenKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json',
     },
@@ -128,6 +135,9 @@ async function postToken(tokenKey: string, body: URLSearchParams): Promise<Token
   return json as TokenSet
 }
 
+// Troca token-key por novo par de tokens (usado quando não há refresh_token).
+// OAuth2: grant_type=password é o fluxo padrão da Rakuten para trocar o
+// token-key de longa duração por um access_token de 60 minutos.
 function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
   body.set('grant_type', 'password')
@@ -135,13 +145,17 @@ function exchangeTokenKey(tokenKey: string, scope: string): Promise<TokenSet> {
   return postToken(tokenKey, body)
 }
 
+// Renova o access_token usando o refresh_token atual.
+// O access_token anterior expira imediatamente; os novos tokens são persistidos.
 function refreshAccessToken(tokenKey: string, refreshToken: string, scope: string): Promise<TokenSet> {
   const body = new URLSearchParams()
+  body.set('grant_type', 'refresh_token')
   body.set('refresh_token', refreshToken)
-  body.set('scope', scope)
+  if (scope) body.set('scope', scope)
   return postToken(tokenKey, body)
 }
 
+// Persiste o novo par de tokens em extra_config (merge — preserva sid, mid, etc.).
 async function persistTokens(
   supabase: any,
   accountId: string,
@@ -159,6 +173,8 @@ async function persistTokens(
   }).eq('id', accountId)
   return expiresAt
 }
+
+// ── Log helper ────────────────────────────────────────────────────────────────
 
 async function finishLog(
   supabase: any,
@@ -181,6 +197,8 @@ async function finishLog(
     meta
   }).eq('id', logId)
 }
+
+// ── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
@@ -207,6 +225,8 @@ serve(async (req) => {
 
     const extra = (account.extra_config ?? {}) as Record<string, any>
 
+    // token_key: chave de longa duração usada para autorizar o endpoint /token.
+    // Vem do env (Supabase secret) ou do api_token da conta. Nunca expira.
     const envSecretName = typeof extra.env_secret === 'string' ? extra.env_secret : 'RAKUTEN_TOKEN'
     const tokenKey: string | undefined =
       body.rakuten_token ||
@@ -217,9 +237,10 @@ serve(async (req) => {
 
     if (!tokenKey) throw new Error('token_key ausente: configure api_token da conta ou secret RAKUTEN_TOKEN')
 
-    const scope   = (typeof extra.scope === 'string' && extra.scope)
-      ? extra.scope
-      : String(account.publisher_id ?? '')
+    // scope (para /token): só enviamos se explicitamente configurado via
+    // extra_config.scope. publisher_id pode ser o MID de um advertiser, não
+    // o SID do publisher — mandar errado gera token com escopo inválido.
+    const scope   = typeof extra.scope === 'string' ? extra.scope : ''
     const mid     = typeof extra.mid === 'string' ? extra.mid : ''
     const network = typeof extra.network === 'string' ? extra.network : ''
 
@@ -228,6 +249,10 @@ serve(async (req) => {
     telemetry.mid = mid || null
     telemetry.network = network || null
 
+    // ── Resolução do access_token ────────────────────────────────────────────
+    // Estratégia: confiar no access_token armazenado primeiro (mesmo sem saber
+    // expires_at correto). Se a Coupon API devolver 401, aí sim refresh/exchange.
+    // Evita queimar chamadas ao /token quando o access_token guardado ainda vale.
     const storedAccessToken  = typeof extra.access_token  === 'string' ? extra.access_token  : null
     const storedRefreshToken = typeof extra.refresh_token === 'string' ? extra.refresh_token : null
     const storedExpiresAt    = typeof extra.token_expires_at === 'string' ? extra.token_expires_at : null
@@ -239,10 +264,13 @@ serve(async (req) => {
     let tokenSource: string
 
     if (storedAccessToken) {
+      // Usa o access_token guardado — se a Coupon API retornar 401, a lógica
+      // de retry mais abaixo (após fetchPage) vai disparar refresh/exchange.
       accessToken = storedAccessToken
       tokenSource = stillValidByClock ? 'cached_fresh' : 'cached_stale_try_anyway'
       telemetry.token_expires_at = storedExpiresAt
     } else if (storedRefreshToken) {
+      // Sem access_token mas com refresh_token: renova.
       try {
         const tokens = await refreshAccessToken(tokenKey, storedRefreshToken, scope)
         const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
@@ -258,6 +286,7 @@ serve(async (req) => {
         telemetry.token_expires_at = expiresAt
       }
     } else {
+      // Sem nada: troca token-key por access_token pela primeira vez.
       const tokens = await exchangeTokenKey(tokenKey, scope)
       const expiresAt = await persistTokens(supabase, account.id, extra, tokens)
       accessToken = tokens.access_token
@@ -267,6 +296,7 @@ serve(async (req) => {
 
     telemetry.token_source = tokenSource
 
+    // Função para renovar access_token após um 401 da Coupon API.
     async function recoverOn401(): Promise<boolean> {
       telemetry.recovered_after_401 = true
       try {
@@ -294,6 +324,7 @@ serve(async (req) => {
       }
     }
 
+    // ── Chamada à API de cupons ──────────────────────────────────────────────
     const baseUrl = account.integration_providers?.base_url || COUPON_API_BASE
 
     async function fetchPage(pageNumber: number): Promise<{ status: number; ok: boolean; text: string; url: string }> {
@@ -308,12 +339,14 @@ serve(async (req) => {
       return { status: res.status, ok: res.ok, text, url }
     }
 
+    // Fetch primeira página para obter TotalPages e verificar resposta.
     let r = await fetchPage(1)
     telemetry.request_url      = r.url
     telemetry.response_status  = r.status
     telemetry.response_bytes   = r.text.length
     telemetry.response_preview = r.text.slice(0, 300)
 
+    // Se 401 com access_token guardado, tenta refresh/exchange e re-executa.
     if (r.status === 401 && (tokenSource === 'cached_fresh' || tokenSource === 'cached_stale_try_anyway')) {
       const recovered = await recoverOn401()
       if (recovered) {
@@ -331,6 +364,7 @@ serve(async (req) => {
     let firstParsed = parseRakutenResponse(r.text)
     telemetry.xml_root_keys = firstParsed.rootKeys
 
+    // Se chamada com params retornar 0 ofertas, tenta sem params (replica curl bare).
     if (firstParsed.offers.length === 0) {
       telemetry.retry_without_params = true
       const rFallback = await fetch(baseUrl, {
@@ -350,6 +384,7 @@ serve(async (req) => {
     const allOffers: typeof firstParsed.offers = [...firstParsed.offers]
     const totalPages = firstParsed.totalPages || 1
 
+    // Buscar páginas adicionais quando TotalPages > 1.
     for (let page = 2; page <= totalPages; page++) {
       const rPage = await fetchPage(page)
       if (!rPage.ok) break
@@ -379,16 +414,13 @@ serve(async (req) => {
           name: offer.advertiserName,
           slug: `cupom-desconto-${slugify(offer.advertiserName)}`,
           store_id: offer.advertiserId,
-          active: true,
-          description: '', // Obrigatório NOT NULL
-          meta_description: '' // Obrigatório NOT NULL
+          active: true
         }).select('id').single()
         store = newStore
       }
       if (!store) { stats.skipped++; continue }
 
       const promoId = `rakuten_${offer.promotionId}`
-      const rolling = rollingExpiry()
       const couponData = {
         awin_promotion_id: promoId,
         store_id: store.id,
@@ -398,10 +430,7 @@ serve(async (req) => {
         code: offer.couponCode || null,
         link: offer.clickUrl,
         discount: offer.discount,
-        expiry: offer.endDate ?? rolling.iso,
-        expiry_text: offer.endDate
-          ? new Date(offer.endDate).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-          : rolling.text,
+        expiry: offer.endDate,
         status: true,
         updated_at: new Date().toISOString(),
         category: determineCategory(offer.description, offer.discountType, offer.advertiserName)
@@ -412,11 +441,7 @@ serve(async (req) => {
         const { error: insErr } = await supabase.from('coupons').insert(couponData)
         insErr ? stats.skipped++ : stats.inserted++
       } else {
-        const { error: updErr } = await supabase.from('coupons').update({
-          ...couponData,
-          expiry: rolling.iso,
-          expiry_text: rolling.text,
-        }).eq('id', existing.id)
+        const { error: updErr } = await supabase.from('coupons').update(couponData).eq('id', existing.id)
         updErr ? stats.skipped++ : stats.updated++
       }
     }
