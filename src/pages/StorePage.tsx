@@ -42,6 +42,25 @@ export default function StorePage() {
     return coupons.filter(c => c.store === storeBrand.name);
   }, [coupons, storeBrand?.name]);
 
+  const lastUpdated = useMemo(() => {
+    if (!storeCoupons.length) return null;
+    const max = storeCoupons.reduce((latest, c) => {
+      const t = c.updated_at ? new Date(c.updated_at).getTime() : 0;
+      return t > latest ? t : latest;
+    }, 0);
+    if (!max) return null;
+    const d = new Date(max);
+    return d.toLocaleString('pt-BR', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'America/Sao_Paulo',
+    }).replace('.', '').replace(',', ',');
+  }, [storeCoupons]);
+
   const activeCoupons = useMemo(() => {
     return storeCoupons.filter(c => c.status);
   }, [storeCoupons]);
@@ -116,7 +135,7 @@ export default function StorePage() {
                       <span className="bg-[#EAF3DE] text-[#2E7D32] text-[10px] font-bold px-[9px] py-0.5 rounded-[9px]">Verificado hoje</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-3.5 text-xs text-[#888] mb-2.5">
-                      <span>Atualizado em {monthYear}</span>
+                      <span>Atualizado em {lastUpdated ?? monthYear}</span>
                     </div>
                     <p className="text-[13px] text-[#555] leading-relaxed max-w-[580px]">
                       {storeBrand?.description || `A ${storeName} é uma das maiores lojas do Brasil. Aqui você encontra os melhores cupons ${storeName} verificados, atualizados várias vezes ao dia pela equipe do Cuponito.`}
