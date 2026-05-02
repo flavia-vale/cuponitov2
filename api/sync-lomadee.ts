@@ -201,6 +201,22 @@ export default async function handler(req: any, res: any): Promise<void> {
           break;
         }
 
+        // Buscar marcas da página em paralelo (evita 100+ chamadas sequenciais)
+        const uncachedOrgIds = [...new Set(
+          campaigns.map((c: any) => c.organizationId).filter((id: any) => id && !brandCache[id])
+        )];
+        await Promise.allSettled(
+          uncachedOrgIds.map(async (orgId: any) => {
+            try {
+              const { ok: brandOk, text: brandText } = await httpsGetJson(`https://api-beta.lomadee.com.br/affiliate/brands/${orgId}`, apiHeaders);
+              if (brandOk) {
+                const brandData = JSON.parse(brandText);
+                brandCache[orgId] = { name: brandData.data?.name ?? 'Loja Lomadee', logo: brandData.data?.logo ?? '' };
+              }
+            } catch { }
+          })
+        );
+
         for (const campaign of campaigns) {
           try {
             const offerType = campaign.offerType ?? 'Unknown';
@@ -209,18 +225,8 @@ export default async function handler(req: any, res: any): Promise<void> {
             const orgId = campaign.organizationId;
             if (!orgId) { stats.skipped++; continue; }
 
-            // Busca info de marca (com cache)
             let brandName = 'Loja Lomadee';
             let brandLogo = '';
-            if (!brandCache[orgId]) {
-              try {
-                const { ok: brandOk, text: brandText } = await httpsGetJson(`https://api-beta.lomadee.com.br/affiliate/brands/${orgId}`, apiHeaders);
-                if (brandOk) {
-                  const brandData = JSON.parse(brandText);
-                  brandCache[orgId] = { name: brandData.data?.name ?? 'Loja Lomadee', logo: brandData.data?.logo ?? '' };
-                }
-              } catch { }
-            }
             if (brandCache[orgId]) { brandName = brandCache[orgId].name; brandLogo = brandCache[orgId].logo; }
 
             // Registro de loja (sem filtros de habilitação por enquanto)
