@@ -4,19 +4,16 @@ const Footer = () => (
   <footer className="bg-[#1a1a1a] py-[30px] px-5 mt-10">
     <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[30px]">
       <div>
-        <div className="text-xl font-bold text-[#FF6B35] mb-2">cuponito.</div>
-        <p className="text-xs text-[#666] leading-relaxed">
-          O site de cupons de desconto mais confiável do Brasil. Todos os cupons são verificados diariamente pela nossa equipe.
-        </p>
+        <Link to="/" className="text-xl font-bold text-[#FF6B35] transition-colors hover:text-[#FF4D00]">cuponito.</Link>
       </div>
       
       <div className="footer-col">
         <h3 className="text-xs font-bold text-white mb-3">Cuponito</h3>
         <div className="flex flex-col gap-1.5">
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Sobre nós</Link>
+          <Link to="/quem-somos" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Quem somos nós</Link>
           <Link to="/blog" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Blog</Link>
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Contato</Link>
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Para lojas</Link>
+          <Link to="/fale-conosco" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Fale conosco</Link>
+          <Link to="/lojas" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Para lojas</Link>
         </div>
       </div>
 
@@ -33,10 +30,9 @@ const Footer = () => (
       <div className="footer-col">
         <h3 className="text-xs font-bold text-white mb-3">Ajuda</h3>
         <div className="flex flex-col gap-1.5">
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">FAQ</Link>
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Como usar cupons</Link>
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Privacidade</Link>
-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Termos de uso</Link>
+          <Link to="/perguntas-frequentes" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Perguntas frequentes</Link>
+          <Link to="/como-funciona" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Como funciona</Link>
+          <Link to="/fale-conosco" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Contato</Link>
         </div>
       </div>
     </div>

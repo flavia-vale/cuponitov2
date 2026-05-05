@@ -9,8 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuemSomosRouteImport } from './routes/quem-somos'
+import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
 import { Route as LojasRouteImport } from './routes/lojas'
+import { Route as FaleConoscoRouteImport } from './routes/fale-conosco'
 import { Route as CuponsRouteImport } from './routes/cupons'
+import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AdminblogRouteImport } from './routes/adminblog'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -25,16 +29,36 @@ import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminAccessDeniedRouteImport } from './routes/admin.access-denied'
 
+const QuemSomosRoute = QuemSomosRouteImport.update({
+  id: '/quem-somos',
+  path: '/quem-somos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerguntasFrequentesRoute = PerguntasFrequentesRouteImport.update({
+  id: '/perguntas-frequentes',
+  path: '/perguntas-frequentes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LojasRoute = LojasRouteImport.update({
   id: '/lojas',
   path: '/lojas',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/lojas.lazy').then((d) => d.Route))
+const FaleConoscoRoute = FaleConoscoRouteImport.update({
+  id: '/fale-conosco',
+  path: '/fale-conosco',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CuponsRoute = CuponsRouteImport.update({
   id: '/cupons',
   path: '/cupons',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/cupons.lazy').then((d) => d.Route))
+const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
+  id: '/como-funciona',
+  path: '/como-funciona',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
@@ -112,8 +136,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/adminblog': typeof AdminblogRoute
   '/blog': typeof BlogRouteWithChildren
+  '/como-funciona': typeof ComoFuncionaRoute
   '/cupons': typeof CuponsRoute
+  '/fale-conosco': typeof FaleConoscoRoute
   '/lojas': typeof LojasRoute
+  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
+  '/quem-somos': typeof QuemSomosRoute
   '/admin/access-denied': typeof AdminAccessDeniedRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -127,8 +155,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/adminblog': typeof AdminblogRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/cupons': typeof CuponsRoute
+  '/fale-conosco': typeof FaleConoscoRoute
   '/lojas': typeof LojasRoute
+  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
+  '/quem-somos': typeof QuemSomosRoute
   '/admin/access-denied': typeof AdminAccessDeniedRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -145,8 +177,12 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/adminblog': typeof AdminblogRoute
   '/blog': typeof BlogRouteWithChildren
+  '/como-funciona': typeof ComoFuncionaRoute
   '/cupons': typeof CuponsRoute
+  '/fale-conosco': typeof FaleConoscoRoute
   '/lojas': typeof LojasRoute
+  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
+  '/quem-somos': typeof QuemSomosRoute
   '/admin/access-denied': typeof AdminAccessDeniedRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -164,8 +200,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/adminblog'
     | '/blog'
+    | '/como-funciona'
     | '/cupons'
+    | '/fale-conosco'
     | '/lojas'
+    | '/perguntas-frequentes'
+    | '/quem-somos'
     | '/admin/access-denied'
     | '/admin/blog'
     | '/admin/coupons'
@@ -179,8 +219,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/adminblog'
+    | '/como-funciona'
     | '/cupons'
+    | '/fale-conosco'
     | '/lojas'
+    | '/perguntas-frequentes'
+    | '/quem-somos'
     | '/admin/access-denied'
     | '/admin/blog'
     | '/admin/coupons'
@@ -196,8 +240,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/adminblog'
     | '/blog'
+    | '/como-funciona'
     | '/cupons'
+    | '/fale-conosco'
     | '/lojas'
+    | '/perguntas-frequentes'
+    | '/quem-somos'
     | '/admin/access-denied'
     | '/admin/blog'
     | '/admin/coupons'
@@ -214,14 +262,32 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AdminblogRoute: typeof AdminblogRoute
   BlogRoute: typeof BlogRouteWithChildren
+  ComoFuncionaRoute: typeof ComoFuncionaRoute
   CuponsRoute: typeof CuponsRoute
+  FaleConoscoRoute: typeof FaleConoscoRoute
   LojasRoute: typeof LojasRoute
+  PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
+  QuemSomosRoute: typeof QuemSomosRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
   DescontoSlugRoute: typeof DescontoSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quem-somos': {
+      id: '/quem-somos'
+      path: '/quem-somos'
+      fullPath: '/quem-somos'
+      preLoaderRoute: typeof QuemSomosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perguntas-frequentes': {
+      id: '/perguntas-frequentes'
+      path: '/perguntas-frequentes'
+      fullPath: '/perguntas-frequentes'
+      preLoaderRoute: typeof PerguntasFrequentesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lojas': {
       id: '/lojas'
       path: '/lojas'
@@ -229,11 +295,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fale-conosco': {
+      id: '/fale-conosco'
+      path: '/fale-conosco'
+      fullPath: '/fale-conosco'
+      preLoaderRoute: typeof FaleConoscoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cupons': {
       id: '/cupons'
       path: '/cupons'
       fullPath: '/cupons'
       preLoaderRoute: typeof CuponsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/como-funciona': {
+      id: '/como-funciona'
+      path: '/como-funciona'
+      fullPath: '/como-funciona'
+      preLoaderRoute: typeof ComoFuncionaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -365,8 +445,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AdminblogRoute: AdminblogRoute,
   BlogRoute: BlogRouteWithChildren,
+  ComoFuncionaRoute: ComoFuncionaRoute,
   CuponsRoute: CuponsRoute,
+  FaleConoscoRoute: FaleConoscoRoute,
   LojasRoute: LojasRoute,
+  PerguntasFrequentesRoute: PerguntasFrequentesRoute,
+  QuemSomosRoute: QuemSomosRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
   DescontoSlugRoute: DescontoSlugRoute,
 }
