@@ -18,6 +18,8 @@ CREATE INDEX IF NOT EXISTS banner_clicks_created_at_idx ON public.banner_clicks(
 -- RLS
 ALTER TABLE public.banner_clicks ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "public_insert_banner_clicks" ON public.banner_clicks;
+
 -- Any visitor can log a click (fire-and-forget tracking)
 CREATE POLICY "public_insert_banner_clicks"
   ON public.banner_clicks FOR INSERT
