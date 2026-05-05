@@ -78,7 +78,12 @@ const Footer = () => (
       <div className="grid gap-6 border-t border-[#333] pt-8 lg:grid-cols-2">
         <section id="quem-somos" className="scroll-mt-24 rounded-3xl border border-[#2d2d2d] bg-[#202020] p-6">
           <h2 className="mb-4 text-lg font-black text-white">Quem somos nós</h2>
-          <div className="space-y-3 text-sm leading-relaxed text-[#b8b8b8]">
+          <div className="space-y-git apply --3way --ignore-space-change --ignore-whitespace changes.patch
+git status
+git add .
+git commit -m "descrição do que você fez"
+git push origin main
+3 text-sm leading-relaxed text-[#b8b8b8]">
             <p>
               O cuponito nasceu de uma frustração muito simples: a gente clicava num cupom, colava no carrinho e… nada. Expirado. Inválido. Já usado.
             </p>
