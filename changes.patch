@@ -1,0 +1,55 @@
+diff --git a/index.html b/index.html
+index a5ca4482eac8742979d166516dbc79114a64bdc8..81e71251fa6da3fe8e2e35e17990750284bf8f65 100644
+--- a/index.html
++++ b/index.html
+@@ -1,30 +1,30 @@
+ <!DOCTYPE html>
+ <html lang="pt-BR">
+   <head>
+     <meta charset="UTF-8" />
+-    <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
++    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <meta name="lomadee" content="2324685" />
+     <title>Cuponito - Cupons de Desconto Verificados</title>
+     <meta
+       name="description"
+       content="Encontre cupons de desconto atualizados diariamente para Amazon, Shopee, Mercado Livre e centenas de outras lojas. Economia real e verificada."
+     />
+     <link rel="preconnect" href="https://fonts.googleapis.com" />
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link rel="preconnect" href="https://jyvmrkykukialdbcebei.supabase.co" />
+     <link rel="dns-prefetch" href="https://jyvmrkykukialdbcebei.supabase.co" />
+     <link
+       href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lexend:wght@700&display=swap"
+       rel="stylesheet"
+     />
+     <style>
+       body { margin: 0; background-color: #F5F3EF; }
+       .initial-loader {
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         height: 100vh;
+         width: 100%;
+       }
+       .spinner {
+diff --git a/public/favicon.svg b/public/favicon.svg
+new file mode 100644
+index 0000000000000000000000000000000000000000..88df62bd9229fc1d8c782e5d07b3b352191c6304
+--- /dev/null
++++ b/public/favicon.svg
+@@ -0,0 +1,13 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Cuponito favicon">
++  <rect width="256" height="256" rx="25" fill="#ff4d00"/>
++  <text
++    x="58"
++    y="161"
++    fill="#ffffff"
++    font-family="Inter, Arial, Helvetica, sans-serif"
++    font-size="116"
++    font-weight="800"
++    letter-spacing="-7"
++  >c</text>
++  <circle cx="174.5" cy="149.5" r="14.5" fill="#ffd16a"/>
++</svg>

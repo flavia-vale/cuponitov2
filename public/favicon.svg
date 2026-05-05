@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Cuponito favicon">
+  <rect width="256" height="256" rx="25" fill="#ff4d00"/>
+  <text
+    x="58"
+    y="161"
+    fill="#ffffff"
+    font-family="Inter, Arial, Helvetica, sans-serif"
+    font-size="116"
+    font-weight="800"
+    letter-spacing="-7"
+  >c</text>
+  <circle cx="174.5" cy="149.5" r="14.5" fill="#ffd16a"/>
+</svg>
