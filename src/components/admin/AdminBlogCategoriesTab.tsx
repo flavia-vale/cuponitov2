@@ -8,10 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useBlogCategories, type BlogCategory } from '@/hooks/useBlog';
-
-function slugify(text: string) {
-  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
+import { slugify } from '@/lib/slugify';
 
 interface FormState { name: string; slug: string; description: string; color_hex: string; }
 const EMPTY: FormState = { name: '', slug: '', description: '', color_hex: '#FF4D00' };

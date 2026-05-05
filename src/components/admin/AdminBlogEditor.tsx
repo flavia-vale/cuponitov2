@@ -11,6 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { TipTapEditor } from './TipTapEditor';
 import { useBlogCategories, useBlogAuthors, type BlogPost } from '@/hooks/useBlog';
 import { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
+import { getErrorMessage } from '@/lib/errors';
+import { slugify } from '@/lib/slugify';
+import type { Database, Json } from '@/integrations/supabase/types';
 
 interface Props {
   post?: BlogPost | null;
@@ -18,14 +21,6 @@ interface Props {
   onCancel: () => void;
 }
 
-function slugify(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
 
 async function uploadToBlog(file: File, folder: 'covers' | 'content' | 'logos'): Promise<string> {
   const ext = file.name.split('.').pop();
@@ -72,8 +67,8 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       const url = await uploadToBlog(file, 'covers');
       setCoverImage(url);
       toast({ title: 'Capa enviada!' });
-    } catch (e: any) {
-      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
+    } catch (error) {
+      toast({ title: 'Erro no upload', description: getErrorMessage(error), variant: 'destructive' });
     } finally {
       setUploadingCover(false);
     }
@@ -84,9 +79,9 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       const url = await uploadToBlog(file, 'content');
       toast({ title: 'Imagem inserida!' });
       return url;
-    } catch (e: any) {
-      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
-      throw e;
+    } catch (error) {
+      toast({ title: 'Erro no upload', description: getErrorMessage(error), variant: 'destructive' });
+      throw error;
     }
   };
 
@@ -96,8 +91,8 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       const url = await uploadToBlog(file, 'logos');
       setCta('logo_url', url);
       toast({ title: 'Logo enviada!' });
-    } catch (e: any) {
-      toast({ title: 'Erro no upload', description: e.message, variant: 'destructive' });
+    } catch (error) {
+      toast({ title: 'Erro no upload', description: getErrorMessage(error), variant: 'destructive' });
     } finally {
       setUploadingCtaLogo(false);
     }
@@ -117,6 +112,8 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       return;
     }
     setSaving(true);
+    const ctaConfigValue: Json = hasCta && Object.values(ctaConfig).some(Boolean) ? { ...ctaConfig } : null;
+    const status: Database['public']['Enums']['blog_post_status'] = isPublished ? 'published' : 'draft';
     const payload = {
       title,
       slug,
@@ -125,11 +122,11 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       cover_image: coverImage,
       category_id: categoryId || null,
       author_id: authorId || null,
-      status: isPublished ? 'published' : 'draft',
+      status,
       featured,
       meta_title: metaTitle,
       meta_description: metaDescription,
-      cta_config: hasCta && Object.keys(ctaConfig).some(k => (ctaConfig as any)[k]) ? ctaConfig : null,
+      cta_config: ctaConfigValue,
       updated_at: new Date().toISOString(),
       published_at: isPublished && !post?.published_at ? new Date().toISOString() : post?.published_at,
     };

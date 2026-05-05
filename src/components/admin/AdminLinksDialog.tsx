@@ -16,9 +16,10 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { usePredefinedLinks, useUpdatePredefinedLinks, type PredefinedLink } from '@/hooks/usePredefinedLinks';
-import { Trash2, Plus, Link as LinkIcon, Save } from 'lucide-react';
+import { Trash2, Plus, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Tables } from '@/integrations/supabase/types';
+import { getErrorMessage } from '@/lib/errors';
 
 interface Props {
   open: boolean;
@@ -50,7 +51,9 @@ export function AdminLinksDialog({ open, onOpenChange, stores }: Props) {
       await updateMutation.mutateAsync(updatedLinks);
       setNewLink({ name: '', url: '', store: '' });
       toast.success('Link adicionado!');
-    } catch (error) {}
+    } catch (error) {
+      toast.error(`Erro ao adicionar link: ${getErrorMessage(error)}`);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -58,7 +61,9 @@ export function AdminLinksDialog({ open, onOpenChange, stores }: Props) {
     try {
       await updateMutation.mutateAsync(updatedLinks);
       toast.success('Link removido!');
-    } catch (error) {}
+    } catch (error) {
+      toast.error(`Erro ao remover link: ${getErrorMessage(error)}`);
+    }
   };
 
   return (
