@@ -1,3 +1,11 @@
+diff --git a/public/_redirects b/public/_redirects
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca5df6bc458f991e1021450415ac45b8c030b892
+--- /dev/null
++++ b/public/_redirects
+@@ -0,0 +1,2 @@
++# SPA fallback: serve o app React para qualquer rota não encontrada.
++/* /index.html 200
 diff --git a/src/components/Footer.tsx b/src/components/Footer.tsx
 index 515e87f028f4bb63ee4a72a09965bda80677b43d..fdfa8adc25113824ce70aa29e33c7d8b4c479453 100644
 --- a/src/components/Footer.tsx
@@ -675,3 +683,111 @@ index 0000000000000000000000000000000000000000..536ddb4b861bc4adecfa44a63e94f621
 +export const Route = createFileRoute('/quem-somos')({
 +  component: AboutPage,
 +});
+diff --git a/vercel.json b/vercel.json
+index dabd33977eb48e7f1ef1b658f366a4bb14fab07a..1d7cfb62bb1db25f97ee54dea8a07a65b9ddbb9a 100644
+--- a/vercel.json
++++ b/vercel.json
+@@ -1,37 +1,90 @@
+ {
+   "cleanUrls": true,
+   "rewrites": [
+-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+-    { "source": "/api/(.*)", "destination": "/api/$1" },
+-    { "source": "/(.*)", "destination": "/index.html" }
++    {
++      "source": "/sitemap.xml",
++      "destination": "/api/sitemap"
++    },
++    {
++      "source": "/api/(.*)",
++      "destination": "/api/$1"
++    },
++    {
++      "source": "/quem-somos",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/como-funciona",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/fale-conosco",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/perguntas-frequentes",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/(.*)",
++      "destination": "/index.html"
++    }
+   ],
+   "functions": {
+-    "api/sync-lomadee.ts": { "maxDuration": 300 },
+-    "api/sitemap.ts": { "maxDuration": 10 }
++    "api/sync-lomadee.ts": {
++      "maxDuration": 300
++    },
++    "api/sitemap.ts": {
++      "maxDuration": 10
++    }
+   },
+   "headers": [
+     {
+       "source": "/assets/(.*)",
+       "headers": [
+-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
++        {
++          "key": "Cache-Control",
++          "value": "public, max-age=31536000, immutable"
++        }
+       ]
+     },
+     {
+       "source": "/index.html",
+       "headers": [
+-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
++        {
++          "key": "Cache-Control",
++          "value": "public, max-age=0, must-revalidate"
++        }
+       ]
+     },
+     {
+       "source": "/(.*)",
+       "headers": [
+-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+-        { "key": "X-Content-Type-Options", "value": "nosniff" },
+-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
++        {
++          "key": "X-Frame-Options",
++          "value": "SAMEORIGIN"
++        },
++        {
++          "key": "X-Content-Type-Options",
++          "value": "nosniff"
++        },
++        {
++          "key": "X-XSS-Protection",
++          "value": "1; mode=block"
++        },
++        {
++          "key": "Referrer-Policy",
++          "value": "strict-origin-when-cross-origin"
++        },
++        {
++          "key": "Permissions-Policy",
++          "value": "camera=(), microphone=(), geolocation=()"
++        },
++        {
++          "key": "Strict-Transport-Security",
++          "value": "max-age=63072000; includeSubDomains; preload"
++        }
+       ]
+     }
+   ]
+ }

@@ -1,0 +1,2 @@
+# SPA fallback: serve o app React para qualquer rota não encontrada.
+/* /index.html 200
