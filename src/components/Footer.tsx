@@ -34,6 +34,7 @@ const faqs = [
 ];
 
 const Footer = () => (
+<<<<<<< ours
   <footer className="mt-10 bg-[#1a1a1a] px-5 py-[30px]">
     <div className="mx-auto max-w-[1100px] space-y-10">
       <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 md:grid-cols-4">
@@ -42,6 +43,24 @@ const Footer = () => (
           <p className="text-xs leading-relaxed text-[#8a8a8a]">
             O site de cupons de desconto mais confiável do Brasil. Todos os cupons são verificados diariamente pela nossa equipe.
           </p>
+=======
+  <footer className="bg-[#1a1a1a] py-[30px] px-5 mt-10">
+    <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[30px]">
+      <div>
+        <div className="text-xl font-bold text-[#FF6B35] mb-2">cuponito.</div>
+        <p className="text-xs text-[#666] leading-relaxed">
+          O site de cupons de desconto mais confiável do Brasil. Todos os cupons são verificados diariamente pela nossa equipe.
+        </p>
+      </div>
+      
+      <div className="footer-col">
+        <h3 className="text-xs font-bold text-white mb-3">Cuponito</h3>
+        <div className="flex flex-col gap-1.5">
+          <Link to="/quem-somos" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Quem somos nós</Link>
+          <Link to="/blog" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Blog</Link>
+          <Link to="/fale-conosco" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Fale conosco</Link>
+          <Link to="/lojas" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Para lojas</Link>
+>>>>>>> theirs
         </div>
 
         <div className="footer-col">
@@ -64,6 +83,7 @@ const Footer = () => (
           </div>
         </div>
 
+<<<<<<< ours
         <div className="footer-col">
           <h3 className="mb-3 text-xs font-bold text-white">Ajuda</h3>
           <div className="flex flex-col gap-1.5">
@@ -72,6 +92,15 @@ const Footer = () => (
             <a href="#fale-conosco" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Contato</a>
             <Link to="/" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Termos de uso</Link>
           </div>
+=======
+      <div className="footer-col">
+        <h3 className="text-xs font-bold text-white mb-3">Ajuda</h3>
+        <div className="flex flex-col gap-1.5">
+          <Link to="/perguntas-frequentes" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Perguntas frequentes</Link>
+          <Link to="/como-funciona" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Como funciona</Link>
+          <Link to="/fale-conosco" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Contato</Link>
+          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Termos de uso</Link>
+>>>>>>> theirs
         </div>
       </div>
 
