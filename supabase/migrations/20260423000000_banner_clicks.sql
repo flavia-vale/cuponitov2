@@ -18,14 +18,18 @@ CREATE INDEX IF NOT EXISTS banner_clicks_created_at_idx ON public.banner_clicks(
 -- RLS
 ALTER TABLE public.banner_clicks ENABLE ROW LEVEL SECURITY;
 
+-- 1. Limpa as políticas se elas já existirem para evitar erro SQLSTATE 42710
 DROP POLICY IF EXISTS "public_insert_banner_clicks" ON public.banner_clicks;
+DROP POLICY IF EXISTS "admin_select_banner_clicks" ON public.banner_clicks;
 
+-- 2. Criação da política de INSERT (Público)
 -- Any visitor can log a click (fire-and-forget tracking)
 CREATE POLICY "public_insert_banner_clicks"
   ON public.banner_clicks FOR INSERT
   TO anon, authenticated
   WITH CHECK (true);
 
+-- 3. Criação da política de SELECT (Admin)
 -- Only blog_admin / super_admin can read analytics
 CREATE POLICY "admin_select_banner_clicks"
   ON public.banner_clicks FOR SELECT
