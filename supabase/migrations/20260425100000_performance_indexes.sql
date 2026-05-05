@@ -13,10 +13,11 @@ CREATE INDEX IF NOT EXISTS idx_coupons_store
   ON public.coupons(store)
   WHERE status = true;
 
+-- CORRIGIDO: Removido o comparison com string vazia
 -- Used by expiry filtering (exclude expired)
 CREATE INDEX IF NOT EXISTS idx_coupons_expiry
   ON public.coupons(expiry)
-  WHERE status = true AND expiry IS NOT NULL AND expiry != '';
+  WHERE status = true AND expiry IS NOT NULL;
 
 -- Covering index for the main home page coupon list query
 CREATE INDEX IF NOT EXISTS idx_stores_featured
