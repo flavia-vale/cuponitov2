@@ -1,0 +1,848 @@
+diff --git a/public/_redirects b/public/_redirects
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca5df6bc458f991e1021450415ac45b8c030b892
+--- /dev/null
++++ b/public/_redirects
+@@ -0,0 +1,2 @@
++# SPA fallback: serve o app React para qualquer rota não encontrada.
++/* /index.html 200
+diff --git a/src/components/Footer.tsx b/src/components/Footer.tsx
+index 515e87f028f4bb63ee4a72a09965bda80677b43d..a3799b3f630c021e36e2ac83b58195a4f5331f12 100644
+--- a/src/components/Footer.tsx
++++ b/src/components/Footer.tsx
+@@ -1,50 +1,72 @@
+ import { Link } from '@tanstack/react-router';
+ 
+-const Footer = () => (
+-  <footer className="bg-[#1a1a1a] py-[30px] px-5 mt-10">
+-    <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[30px]">
+-      <div>
+-        <div className="text-xl font-bold text-[#FF6B35] mb-2">cuponito.</div>
+-        <p className="text-xs text-[#666] leading-relaxed">
+-          O site de cupons de desconto mais confiável do Brasil. Todos os cupons são verificados diariamente pela nossa equipe.
+-        </p>
+-      </div>
+-      
+-      <div className="footer-col">
+-        <h3 className="text-xs font-bold text-white mb-3">Cuponito</h3>
+-        <div className="flex flex-col gap-1.5">
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Sobre nós</Link>
+-          <Link to="/blog" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Blog</Link>
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Contato</Link>
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Para lojas</Link>
++function Footer() {
++  return (
++    <footer className="bg-[#1a1a1a] py-[30px] px-5 mt-10">
++      <div className="max-w-[1100px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[30px]">
++        <div>
++          <Link to="/" className="text-xl font-bold text-[#FF6B35] transition-colors hover:text-[#FF4D00]">
++            cuponito.
++          </Link>
+         </div>
+-      </div>
+ 
+-      <div className="footer-col">
+-        <h3 className="text-xs font-bold text-white mb-3">Lojas populares</h3>
+-        <div className="flex flex-col gap-1.5">
+-          <Link to="/desconto/$slug" params={{ slug: 'amazon' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Amazon</Link>
+-          <Link to="/desconto/$slug" params={{ slug: 'shopee' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Shopee</Link>
+-          <Link to="/desconto/$slug" params={{ slug: 'shein' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">SHEIN</Link>
+-          <Link to="/desconto/$slug" params={{ slug: 'ifood' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">iFood</Link>
++        <div className="footer-col">
++          <h3 className="text-xs font-bold text-white mb-3">Cuponito</h3>
++          <div className="flex flex-col gap-1.5">
++            <Link to="/quem-somos" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Quem somos nós
++            </Link>
++            <Link to="/blog" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Blog
++            </Link>
++            <Link to="/fale-conosco" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Fale conosco
++            </Link>
++            <Link to="/lojas" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Para lojas
++            </Link>
++          </div>
+         </div>
+-      </div>
+ 
+-      <div className="footer-col">
+-        <h3 className="text-xs font-bold text-white mb-3">Ajuda</h3>
+-        <div className="flex flex-col gap-1.5">
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">FAQ</Link>
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Como usar cupons</Link>
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Privacidade</Link>
+-          <Link to="/" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">Termos de uso</Link>
++        <div className="footer-col">
++          <h3 className="text-xs font-bold text-white mb-3">Lojas populares</h3>
++          <div className="flex flex-col gap-1.5">
++            <Link to="/desconto/$slug" params={{ slug: 'amazon' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Amazon
++            </Link>
++            <Link to="/desconto/$slug" params={{ slug: 'shopee' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Shopee
++            </Link>
++            <Link to="/desconto/$slug" params={{ slug: 'shein' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              SHEIN
++            </Link>
++            <Link to="/desconto/$slug" params={{ slug: 'ifood' }} className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              iFood
++            </Link>
++          </div>
+         </div>
++
++        <div className="footer-col">
++          <h3 className="text-xs font-bold text-white mb-3">Ajuda</h3>
++          <div className="flex flex-col gap-1.5">
++            <Link to="/perguntas-frequentes" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Perguntas frequentes
++            </Link>
++            <Link to="/como-funciona" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Como funciona
++            </Link>
++            <Link to="/fale-conosco" className="text-xs text-[#666] hover:text-[#FF4D00] transition-colors">
++              Contato
++            </Link>
++          </div>
++        </div>
++      </div>
++
++      <div className="border-t border-[#333] mt-6 pt-4 text-center text-[11px] text-[#555]">
++        © {new Date().getFullYear()} Cuponito · Todos os direitos reservados · Os preços e condições podem variar sem aviso prévio
+       </div>
+-    </div>
+-    
+-    <div className="border-t border-[#333] mt-6 pt-4 text-center text-[11px] text-[#555]">
+-      © {new Date().getFullYear()} Cuponito · Todos os direitos reservados · Os preços e condições podem variar sem aviso prévio
+-    </div>
+-  </footer>
+-);
++    </footer>
++  );
++}
+ 
+-export default Footer;
+\ No newline at end of file
++export default Footer;
+diff --git a/src/pages/institutional/AboutPage.tsx b/src/pages/institutional/AboutPage.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..7524a603ad6ac2478ea9b739d176acbdf146b012
+--- /dev/null
++++ b/src/pages/institutional/AboutPage.tsx
+@@ -0,0 +1,21 @@
++import InstitutionalLayout from './InstitutionalLayout';
++
++export default function AboutPage() {
++  return (
++    <InstitutionalLayout
++      title="Quem somos nós"
++      description="Conheça a história do Cuponito e nossa missão de encontrar cupons testados e descontos bons no Brasil."
++      canonical="https://www.cuponito.com.br/quem-somos"
++    >
++      <p>
++        O cuponito nasceu de uma frustração muito simples: a gente clicava num cupom, colava no carrinho e… nada. Expirado. Inválido. Já usado.
++      </p>
++      <p>
++        Então resolvemos criar o que nós gostaríamos de encontrar: um lugar onde os cupons são testados de verdade, atualizados todo dia, e organizados de um jeito que qualquer pessoa consiga usar: sem precisar de tutorial, sem cadastro, sem enrolação.
++      </p>
++      <p className="font-bold text-foreground">
++        Somos um time pequeno com uma missão simples: se tem desconto bom no Brasil, o cuponito acha pra você.
++      </p>
++    </InstitutionalLayout>
++  );
++}
+diff --git a/src/pages/institutional/ContactPage.tsx b/src/pages/institutional/ContactPage.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..3025de535ed072bc7d65792f325a3370fbbfcb72
+--- /dev/null
++++ b/src/pages/institutional/ContactPage.tsx
+@@ -0,0 +1,21 @@
++import InstitutionalLayout from './InstitutionalLayout';
++
++export default function ContactPage() {
++  return (
++    <InstitutionalLayout
++      title="Fale conosco"
++      description="Entre em contato com o time do Cuponito para avisar sobre cupons, sugerir lojas ou tirar dúvidas."
++      canonical="https://www.cuponito.com.br/fale-conosco"
++    >
++      <p>Encontrou um cupom que não funcionou? Quer sugerir uma loja? Tem alguma dúvida que não está no FAQ?</p>
++      <p>Manda mensagem aqui embaixo. O time do Cuponito lê tudo e te responde o mais rápido possível.</p>
++      <p className="font-bold text-foreground">Adoramos ouvir, de verdade.</p>
++      <a
++        href="mailto:contato@cuponito.com.br?subject=Contato%20pelo%20Cuponito"
++        className="inline-flex rounded-full bg-[#FF6B35] px-6 py-3 text-sm font-black text-white transition-colors hover:bg-[#FF4D00]"
++      >
++        Enviar mensagem
++      </a>
++    </InstitutionalLayout>
++  );
++}
+diff --git a/src/pages/institutional/FaqPage.tsx b/src/pages/institutional/FaqPage.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..b64fbf1384b0989249eaae0dd57446f70167dc2f
+--- /dev/null
++++ b/src/pages/institutional/FaqPage.tsx
+@@ -0,0 +1,21 @@
++import InstitutionalLayout from './InstitutionalLayout';
++import { faqs } from './content';
++
++export default function FaqPage() {
++  return (
++    <InstitutionalLayout
++      title="Perguntas frequentes"
++      description="Tire dúvidas sobre cupons, cadastro, custo, atualização dos descontos e sugestões de lojas no Cuponito."
++      canonical="https://www.cuponito.com.br/perguntas-frequentes"
++    >
++      <div className="space-y-6">
++        {faqs.map((faq) => (
++          <section key={faq.question} className="rounded-2xl border border-border bg-[#f8f9fa] p-5">
++            <h2 className="text-lg font-black text-foreground">{faq.question}</h2>
++            <p className="mt-2">{faq.answer}</p>
++          </section>
++        ))}
++      </div>
++    </InstitutionalLayout>
++  );
++}
+diff --git a/src/pages/institutional/HowItWorksPage.tsx b/src/pages/institutional/HowItWorksPage.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..1ea08bf1f5ec4dd4f2a884c766bd441cbed4da0a
+--- /dev/null
++++ b/src/pages/institutional/HowItWorksPage.tsx
+@@ -0,0 +1,28 @@
++import InstitutionalLayout from './InstitutionalLayout';
++import { howItWorksSteps } from './content';
++
++export default function HowItWorksPage() {
++  return (
++    <InstitutionalLayout
++      title="Como funciona"
++      description="Veja como usar o Cuponito para buscar lojas, copiar cupons verificados e economizar no carrinho."
++      canonical="https://www.cuponito.com.br/como-funciona"
++    >
++      <p className="font-bold text-foreground">Economizar com o cuponito é simples assim:</p>
++      <ol className="space-y-3">
++        {howItWorksSteps.map((step, index) => (
++          <li key={step} className="flex gap-3">
++            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FF6B35] text-sm font-black text-white">
++              {index + 1}
++            </span>
++            <span>{step}</span>
++          </li>
++        ))}
++      </ol>
++      <p>
++        O que faz o cuponito diferente é que a gente só publica cupom que funciona. Cada código é verificado antes de ir pro ar e a lista é atualizada todos os dias.
++      </p>
++      <p className="font-bold text-foreground">Sem cadastro. Sem taxa. Sem pegadinha. Só desconto de verdade.</p>
++    </InstitutionalLayout>
++  );
++}
+diff --git a/src/pages/institutional/InstitutionalLayout.tsx b/src/pages/institutional/InstitutionalLayout.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..3e501ecc1ab614228b84f9f03fce8ab41de602be
+--- /dev/null
++++ b/src/pages/institutional/InstitutionalLayout.tsx
+@@ -0,0 +1,46 @@
++import { lazy, Suspense, type ReactNode } from 'react';
++import { Link } from '@tanstack/react-router';
++import { ArrowLeft } from 'lucide-react';
++import Header from '@/components/Header';
++import SEOHead from '@/components/SEOHead';
++
++const Footer = lazy(() => import('@/components/Footer'));
++
++interface InstitutionalLayoutProps {
++  title: string;
++  description: string;
++  canonical: string;
++  eyebrow?: string;
++  children: ReactNode;
++}
++
++export default function InstitutionalLayout({
++  title,
++  description,
++  canonical,
++  eyebrow = 'Cuponito',
++  children,
++}: InstitutionalLayoutProps) {
++  return (
++    <div className="min-h-screen bg-[#f8f9fa] font-sans">
++      <SEOHead title={`${title} | Cuponito`} description={description} canonical={canonical} jsonLdRoute={{ type: 'generic' }} />
++      <Header />
++
++      <main className="mx-auto max-w-4xl px-4 py-8 md:py-12">
++        <Link to="/" className="mb-6 inline-flex items-center gap-1 text-sm font-bold text-[#ff5200] hover:underline">
++          <ArrowLeft size={14} /> Início
++        </Link>
++
++        <article className="rounded-[2rem] border border-border bg-white p-6 shadow-sm md:p-10">
++          <p className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-[#ff5200]">{eyebrow}</p>
++          <h1 className="mb-6 text-3xl font-black tracking-tight text-foreground md:text-5xl">{title}</h1>
++          <div className="space-y-5 text-base leading-relaxed text-muted-foreground md:text-lg">{children}</div>
++        </article>
++      </main>
++
++      <Suspense fallback={null}>
++        <Footer />
++      </Suspense>
++    </div>
++  );
++}
+diff --git a/src/pages/institutional/content.ts b/src/pages/institutional/content.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..bae63d10ee1e376deb1d2dc97187e4c692d28793
+--- /dev/null
++++ b/src/pages/institutional/content.ts
+@@ -0,0 +1,32 @@
++export const howItWorksSteps = [
++  'Busque a loja onde você quer comprar',
++  'Escolha o cupom ou a oferta que mais te interessa',
++  'Clique em "copiar código" e cole no carrinho da loja na hora de fechar o pedido.',
++  'Pronto, o desconto já aparece!',
++];
++
++export const faqs = [
++  {
++    question: 'Por que meu cupom não funcionou?',
++    answer:
++      'A maioria dos cupons têm regras: valor mínimo de compra, produto específico, prazo de validade ou limite de uso por CPF. A gente sempre tenta deixar isso claro na descrição.',
++  },
++  {
++    question: 'Preciso me cadastrar para usar os cupons?',
++    answer: 'Não. Nenhum cadastro, nenhuma assinatura, nenhum custo. É só clicar e copiar.',
++  },
++  {
++    question: 'O cuponito cobra alguma coisa?',
++    answer:
++      'Nunca. O site é 100% gratuito pra você. A gente recebe uma comissão das lojas quando uma compra é finalizada, sem nenhum custo adicional para quem compra.',
++  },
++  {
++    question: 'Com que frequência os cupons são atualizados?',
++    answer:
++      'Todo dia. A equipe verifica os cupons ativos e remove os que venceram. Se você encontrar um que não funciona, fique a vontade para avisar a gente.',
++  },
++  {
++    question: 'Posso sugerir uma loja ou um cupom?',
++    answer: 'Pode sim! Usa o formulário da página de contato e a gente analisa.',
++  },
++];
+diff --git a/src/routeTree.gen.ts b/src/routeTree.gen.ts
+index 00ffd275b1996152aee0408467d6e4706b38fd90..57be2498d5f6aa0eab2cfad4152859b104ad3a1e 100644
+--- a/src/routeTree.gen.ts
++++ b/src/routeTree.gen.ts
+@@ -1,62 +1,86 @@
+ /* eslint-disable */
+ 
+ // @ts-nocheck
+ 
+ // noinspection JSUnusedGlobalSymbols
+ 
+ // This file was automatically generated by TanStack Router.
+ // You should NOT make any changes in this file as it will be overwritten.
+ // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
+ 
+ import { Route as rootRouteImport } from './routes/__root'
++import { Route as QuemSomosRouteImport } from './routes/quem-somos'
++import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
+ import { Route as LojasRouteImport } from './routes/lojas'
++import { Route as FaleConoscoRouteImport } from './routes/fale-conosco'
+ import { Route as CuponsRouteImport } from './routes/cupons'
++import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
+ import { Route as BlogRouteImport } from './routes/blog'
+ import { Route as AdminblogRouteImport } from './routes/adminblog'
+ import { Route as AdminRouteImport } from './routes/admin'
+ import { Route as IndexRouteImport } from './routes/index'
+ import { Route as BlogIndexRouteImport } from './routes/blog.index'
+ import { Route as AdminIndexRouteImport } from './routes/admin.index'
+ import { Route as DescontoSlugRouteImport } from './routes/desconto.$slug'
+ import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
+ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+ import { Route as AdminLoginRouteImport } from './routes/admin.login'
+ import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
+ import { Route as AdminBlogRouteImport } from './routes/admin.blog'
+ import { Route as AdminAccessDeniedRouteImport } from './routes/admin.access-denied'
+ 
++const QuemSomosRoute = QuemSomosRouteImport.update({
++  id: '/quem-somos',
++  path: '/quem-somos',
++  getParentRoute: () => rootRouteImport,
++} as any)
++const PerguntasFrequentesRoute = PerguntasFrequentesRouteImport.update({
++  id: '/perguntas-frequentes',
++  path: '/perguntas-frequentes',
++  getParentRoute: () => rootRouteImport,
++} as any)
+ const LojasRoute = LojasRouteImport.update({
+   id: '/lojas',
+   path: '/lojas',
+   getParentRoute: () => rootRouteImport,
+ } as any).lazy(() => import('./routes/lojas.lazy').then((d) => d.Route))
++const FaleConoscoRoute = FaleConoscoRouteImport.update({
++  id: '/fale-conosco',
++  path: '/fale-conosco',
++  getParentRoute: () => rootRouteImport,
++} as any)
+ const CuponsRoute = CuponsRouteImport.update({
+   id: '/cupons',
+   path: '/cupons',
+   getParentRoute: () => rootRouteImport,
+ } as any).lazy(() => import('./routes/cupons.lazy').then((d) => d.Route))
++const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
++  id: '/como-funciona',
++  path: '/como-funciona',
++  getParentRoute: () => rootRouteImport,
++} as any)
+ const BlogRoute = BlogRouteImport.update({
+   id: '/blog',
+   path: '/blog',
+   getParentRoute: () => rootRouteImport,
+ } as any)
+ const AdminblogRoute = AdminblogRouteImport.update({
+   id: '/adminblog',
+   path: '/adminblog',
+   getParentRoute: () => rootRouteImport,
+ } as any).lazy(() => import('./routes/adminblog.lazy').then((d) => d.Route))
+ const AdminRoute = AdminRouteImport.update({
+   id: '/admin',
+   path: '/admin',
+   getParentRoute: () => rootRouteImport,
+ } as any)
+ const IndexRoute = IndexRouteImport.update({
+   id: '/',
+   path: '/',
+   getParentRoute: () => rootRouteImport,
+ } as any)
+ const BlogIndexRoute = BlogIndexRouteImport.update({
+   id: '/',
+   path: '/',
+   getParentRoute: () => BlogRoute,
+ } as any).lazy(() => import('./routes/blog.index.lazy').then((d) => d.Route))
+@@ -90,174 +114,230 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
+   getParentRoute: () => AdminRoute,
+ } as any).lazy(() => import('./routes/admin.login.lazy').then((d) => d.Route))
+ const AdminCouponsRoute = AdminCouponsRouteImport.update({
+   id: '/coupons',
+   path: '/coupons',
+   getParentRoute: () => AdminRoute,
+ } as any).lazy(() => import('./routes/admin.coupons.lazy').then((d) => d.Route))
+ const AdminBlogRoute = AdminBlogRouteImport.update({
+   id: '/blog',
+   path: '/blog',
+   getParentRoute: () => AdminRoute,
+ } as any).lazy(() => import('./routes/admin.blog.lazy').then((d) => d.Route))
+ const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
+   id: '/access-denied',
+   path: '/access-denied',
+   getParentRoute: () => AdminRoute,
+ } as any).lazy(() =>
+   import('./routes/admin.access-denied.lazy').then((d) => d.Route),
+ )
+ 
+ export interface FileRoutesByFullPath {
+   '/': typeof IndexRoute
+   '/admin': typeof AdminRouteWithChildren
+   '/adminblog': typeof AdminblogRoute
+   '/blog': typeof BlogRouteWithChildren
++  '/como-funciona': typeof ComoFuncionaRoute
+   '/cupons': typeof CuponsRoute
++  '/fale-conosco': typeof FaleConoscoRoute
+   '/lojas': typeof LojasRoute
++  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
++  '/quem-somos': typeof QuemSomosRoute
+   '/admin/access-denied': typeof AdminAccessDeniedRoute
+   '/admin/blog': typeof AdminBlogRoute
+   '/admin/coupons': typeof AdminCouponsRoute
+   '/admin/login': typeof AdminLoginRoute
+   '/blog/$slug': typeof BlogSlugRoute
+   '/categoria/$slug': typeof CategoriaSlugRoute
+   '/desconto/$slug': typeof DescontoSlugRoute
+   '/admin/': typeof AdminIndexRoute
+   '/blog/': typeof BlogIndexRoute
+ }
+ export interface FileRoutesByTo {
+   '/': typeof IndexRoute
+   '/adminblog': typeof AdminblogRoute
++  '/como-funciona': typeof ComoFuncionaRoute
+   '/cupons': typeof CuponsRoute
++  '/fale-conosco': typeof FaleConoscoRoute
+   '/lojas': typeof LojasRoute
++  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
++  '/quem-somos': typeof QuemSomosRoute
+   '/admin/access-denied': typeof AdminAccessDeniedRoute
+   '/admin/blog': typeof AdminBlogRoute
+   '/admin/coupons': typeof AdminCouponsRoute
+   '/admin/login': typeof AdminLoginRoute
+   '/blog/$slug': typeof BlogSlugRoute
+   '/categoria/$slug': typeof CategoriaSlugRoute
+   '/desconto/$slug': typeof DescontoSlugRoute
+   '/admin': typeof AdminIndexRoute
+   '/blog': typeof BlogIndexRoute
+ }
+ export interface FileRoutesById {
+   __root__: typeof rootRouteImport
+   '/': typeof IndexRoute
+   '/admin': typeof AdminRouteWithChildren
+   '/adminblog': typeof AdminblogRoute
+   '/blog': typeof BlogRouteWithChildren
++  '/como-funciona': typeof ComoFuncionaRoute
+   '/cupons': typeof CuponsRoute
++  '/fale-conosco': typeof FaleConoscoRoute
+   '/lojas': typeof LojasRoute
++  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
++  '/quem-somos': typeof QuemSomosRoute
+   '/admin/access-denied': typeof AdminAccessDeniedRoute
+   '/admin/blog': typeof AdminBlogRoute
+   '/admin/coupons': typeof AdminCouponsRoute
+   '/admin/login': typeof AdminLoginRoute
+   '/blog/$slug': typeof BlogSlugRoute
+   '/categoria/$slug': typeof CategoriaSlugRoute
+   '/desconto/$slug': typeof DescontoSlugRoute
+   '/admin/': typeof AdminIndexRoute
+   '/blog/': typeof BlogIndexRoute
+ }
+ export interface FileRouteTypes {
+   fileRoutesByFullPath: FileRoutesByFullPath
+   fullPaths:
+     | '/'
+     | '/admin'
+     | '/adminblog'
+     | '/blog'
++    | '/como-funciona'
+     | '/cupons'
++    | '/fale-conosco'
+     | '/lojas'
++    | '/perguntas-frequentes'
++    | '/quem-somos'
+     | '/admin/access-denied'
+     | '/admin/blog'
+     | '/admin/coupons'
+     | '/admin/login'
+     | '/blog/$slug'
+     | '/categoria/$slug'
+     | '/desconto/$slug'
+     | '/admin/'
+     | '/blog/'
+   fileRoutesByTo: FileRoutesByTo
+   to:
+     | '/'
+     | '/adminblog'
++    | '/como-funciona'
+     | '/cupons'
++    | '/fale-conosco'
+     | '/lojas'
++    | '/perguntas-frequentes'
++    | '/quem-somos'
+     | '/admin/access-denied'
+     | '/admin/blog'
+     | '/admin/coupons'
+     | '/admin/login'
+     | '/blog/$slug'
+     | '/categoria/$slug'
+     | '/desconto/$slug'
+     | '/admin'
+     | '/blog'
+   id:
+     | '__root__'
+     | '/'
+     | '/admin'
+     | '/adminblog'
+     | '/blog'
++    | '/como-funciona'
+     | '/cupons'
++    | '/fale-conosco'
+     | '/lojas'
++    | '/perguntas-frequentes'
++    | '/quem-somos'
+     | '/admin/access-denied'
+     | '/admin/blog'
+     | '/admin/coupons'
+     | '/admin/login'
+     | '/blog/$slug'
+     | '/categoria/$slug'
+     | '/desconto/$slug'
+     | '/admin/'
+     | '/blog/'
+   fileRoutesById: FileRoutesById
+ }
+ export interface RootRouteChildren {
+   IndexRoute: typeof IndexRoute
+   AdminRoute: typeof AdminRouteWithChildren
+   AdminblogRoute: typeof AdminblogRoute
+   BlogRoute: typeof BlogRouteWithChildren
++  ComoFuncionaRoute: typeof ComoFuncionaRoute
+   CuponsRoute: typeof CuponsRoute
++  FaleConoscoRoute: typeof FaleConoscoRoute
+   LojasRoute: typeof LojasRoute
++  PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
++  QuemSomosRoute: typeof QuemSomosRoute
+   CategoriaSlugRoute: typeof CategoriaSlugRoute
+   DescontoSlugRoute: typeof DescontoSlugRoute
+ }
+ 
+ declare module '@tanstack/react-router' {
+   interface FileRoutesByPath {
++    '/quem-somos': {
++      id: '/quem-somos'
++      path: '/quem-somos'
++      fullPath: '/quem-somos'
++      preLoaderRoute: typeof QuemSomosRouteImport
++      parentRoute: typeof rootRouteImport
++    }
++    '/perguntas-frequentes': {
++      id: '/perguntas-frequentes'
++      path: '/perguntas-frequentes'
++      fullPath: '/perguntas-frequentes'
++      preLoaderRoute: typeof PerguntasFrequentesRouteImport
++      parentRoute: typeof rootRouteImport
++    }
+     '/lojas': {
+       id: '/lojas'
+       path: '/lojas'
+       fullPath: '/lojas'
+       preLoaderRoute: typeof LojasRouteImport
+       parentRoute: typeof rootRouteImport
+     }
++    '/fale-conosco': {
++      id: '/fale-conosco'
++      path: '/fale-conosco'
++      fullPath: '/fale-conosco'
++      preLoaderRoute: typeof FaleConoscoRouteImport
++      parentRoute: typeof rootRouteImport
++    }
+     '/cupons': {
+       id: '/cupons'
+       path: '/cupons'
+       fullPath: '/cupons'
+       preLoaderRoute: typeof CuponsRouteImport
+       parentRoute: typeof rootRouteImport
+     }
++    '/como-funciona': {
++      id: '/como-funciona'
++      path: '/como-funciona'
++      fullPath: '/como-funciona'
++      preLoaderRoute: typeof ComoFuncionaRouteImport
++      parentRoute: typeof rootRouteImport
++    }
+     '/blog': {
+       id: '/blog'
+       path: '/blog'
+       fullPath: '/blog'
+       preLoaderRoute: typeof BlogRouteImport
+       parentRoute: typeof rootRouteImport
+     }
+     '/adminblog': {
+       id: '/adminblog'
+       path: '/adminblog'
+       fullPath: '/adminblog'
+       preLoaderRoute: typeof AdminblogRouteImport
+       parentRoute: typeof rootRouteImport
+     }
+     '/admin': {
+       id: '/admin'
+       path: '/admin'
+       fullPath: '/admin'
+       preLoaderRoute: typeof AdminRouteImport
+       parentRoute: typeof rootRouteImport
+     }
+     '/': {
+       id: '/'
+       path: '/'
+       fullPath: '/'
+@@ -343,33 +423,37 @@ const AdminRouteChildren: AdminRouteChildren = {
+   AdminBlogRoute: AdminBlogRoute,
+   AdminCouponsRoute: AdminCouponsRoute,
+   AdminLoginRoute: AdminLoginRoute,
+   AdminIndexRoute: AdminIndexRoute,
+ }
+ 
+ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+ 
+ interface BlogRouteChildren {
+   BlogSlugRoute: typeof BlogSlugRoute
+   BlogIndexRoute: typeof BlogIndexRoute
+ }
+ 
+ const BlogRouteChildren: BlogRouteChildren = {
+   BlogSlugRoute: BlogSlugRoute,
+   BlogIndexRoute: BlogIndexRoute,
+ }
+ 
+ const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+ 
+ const rootRouteChildren: RootRouteChildren = {
+   IndexRoute: IndexRoute,
+   AdminRoute: AdminRouteWithChildren,
+   AdminblogRoute: AdminblogRoute,
+   BlogRoute: BlogRouteWithChildren,
++  ComoFuncionaRoute: ComoFuncionaRoute,
+   CuponsRoute: CuponsRoute,
++  FaleConoscoRoute: FaleConoscoRoute,
+   LojasRoute: LojasRoute,
++  PerguntasFrequentesRoute: PerguntasFrequentesRoute,
++  QuemSomosRoute: QuemSomosRoute,
+   CategoriaSlugRoute: CategoriaSlugRoute,
+   DescontoSlugRoute: DescontoSlugRoute,
+ }
+ export const routeTree = rootRouteImport
+   ._addFileChildren(rootRouteChildren)
+   ._addFileTypes<FileRouteTypes>()
+diff --git a/src/routes/como-funciona.tsx b/src/routes/como-funciona.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..84846127830f9788f193eba19d3747283cfa33ab
+--- /dev/null
++++ b/src/routes/como-funciona.tsx
+@@ -0,0 +1,6 @@
++import { createFileRoute } from '@tanstack/react-router';
++import HowItWorksPage from '@/pages/institutional/HowItWorksPage';
++
++export const Route = createFileRoute('/como-funciona')({
++  component: HowItWorksPage,
++});
+diff --git a/src/routes/fale-conosco.tsx b/src/routes/fale-conosco.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..eeff4e09ed0d099e3378c27a6c3e66ceff2a4002
+--- /dev/null
++++ b/src/routes/fale-conosco.tsx
+@@ -0,0 +1,6 @@
++import { createFileRoute } from '@tanstack/react-router';
++import ContactPage from '@/pages/institutional/ContactPage';
++
++export const Route = createFileRoute('/fale-conosco')({
++  component: ContactPage,
++});
+diff --git a/src/routes/perguntas-frequentes.tsx b/src/routes/perguntas-frequentes.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..c5426f367dc6821607825492f9d97a6c60a22b84
+--- /dev/null
++++ b/src/routes/perguntas-frequentes.tsx
+@@ -0,0 +1,6 @@
++import { createFileRoute } from '@tanstack/react-router';
++import FaqPage from '@/pages/institutional/FaqPage';
++
++export const Route = createFileRoute('/perguntas-frequentes')({
++  component: FaqPage,
++});
+diff --git a/src/routes/quem-somos.tsx b/src/routes/quem-somos.tsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..536ddb4b861bc4adecfa44a63e94f621af5ac3a9
+--- /dev/null
++++ b/src/routes/quem-somos.tsx
+@@ -0,0 +1,6 @@
++import { createFileRoute } from '@tanstack/react-router';
++import AboutPage from '@/pages/institutional/AboutPage';
++
++export const Route = createFileRoute('/quem-somos')({
++  component: AboutPage,
++});
+diff --git a/vercel.json b/vercel.json
+index dabd33977eb48e7f1ef1b658f366a4bb14fab07a..1d7cfb62bb1db25f97ee54dea8a07a65b9ddbb9a 100644
+--- a/vercel.json
++++ b/vercel.json
+@@ -1,37 +1,90 @@
+ {
+   "cleanUrls": true,
+   "rewrites": [
+-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+-    { "source": "/api/(.*)", "destination": "/api/$1" },
+-    { "source": "/(.*)", "destination": "/index.html" }
++    {
++      "source": "/sitemap.xml",
++      "destination": "/api/sitemap"
++    },
++    {
++      "source": "/api/(.*)",
++      "destination": "/api/$1"
++    },
++    {
++      "source": "/quem-somos",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/como-funciona",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/fale-conosco",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/perguntas-frequentes",
++      "destination": "/index.html"
++    },
++    {
++      "source": "/(.*)",
++      "destination": "/index.html"
++    }
+   ],
+   "functions": {
+-    "api/sync-lomadee.ts": { "maxDuration": 300 },
+-    "api/sitemap.ts": { "maxDuration": 10 }
++    "api/sync-lomadee.ts": {
++      "maxDuration": 300
++    },
++    "api/sitemap.ts": {
++      "maxDuration": 10
++    }
+   },
+   "headers": [
+     {
+       "source": "/assets/(.*)",
+       "headers": [
+-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
++        {
++          "key": "Cache-Control",
++          "value": "public, max-age=31536000, immutable"
++        }
+       ]
+     },
+     {
+       "source": "/index.html",
+       "headers": [
+-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
++        {
++          "key": "Cache-Control",
++          "value": "public, max-age=0, must-revalidate"
++        }
+       ]
+     },
+     {
+       "source": "/(.*)",
+       "headers": [
+-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+-        { "key": "X-Content-Type-Options", "value": "nosniff" },
+-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
++        {
++          "key": "X-Frame-Options",
++          "value": "SAMEORIGIN"
++        },
++        {
++          "key": "X-Content-Type-Options",
++          "value": "nosniff"
++        },
++        {
++          "key": "X-XSS-Protection",
++          "value": "1; mode=block"
++        },
++        {
++          "key": "Referrer-Policy",
++          "value": "strict-origin-when-cross-origin"
++        },
++        {
++          "key": "Permissions-Policy",
++          "value": "camera=(), microphone=(), geolocation=()"
++        },
++        {
++          "key": "Strict-Transport-Security",
++          "value": "max-age=63072000; includeSubDomains; preload"
++        }
+       ]
+     }
+   ]
+ }
