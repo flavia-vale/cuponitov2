@@ -8,15 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCouponCategories, type CouponCategory } from '@/hooks/useCouponCategories';
-
-function slugify(text: string) {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
+import { getErrorMessage } from '@/lib/errors';
+import { slugify } from '@/lib/slugify';
 
 interface FormState {
   name: string;
@@ -111,8 +104,8 @@ export function AdminCouponCategoriesTab() {
       }
 
       cancelEdit();
-    } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+    } catch (error) {
+      toast({ title: 'Erro', description: getErrorMessage(error), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
