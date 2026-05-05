@@ -37,3 +37,5 @@ CREATE POLICY "admin_select_banner_clicks"
   USING (
     (auth.jwt() ->> 'user_role') IN ('blog_admin', 'super_admin')
   );
+
+-- sadas
