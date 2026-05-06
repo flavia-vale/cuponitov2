@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminCouponIntelligenceControl } from '@/components/admin/AdminCouponIntelligenceControl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +64,18 @@ interface SyncLog {
   error_message: string | null;
 }
 
+interface EnrichStoreResponse {
+  results?: { updated?: boolean }[];
+}
+
+interface ExpireCouponsResponse {
+  deleted_count?: number;
+  disabled_count?: number;
+}
+
+function getErrorMessage(err: unknown) {
+  return err instanceof Error ? err.message : 'Erro desconhecido';
+}
 
 const EMPTY_ACCOUNT = { name: '', publisher_id: '', api_token: '', provider_id: '', active: true };
 
@@ -78,6 +91,7 @@ export function AdminIntegrationsTab() {
   const [enriching, setEnriching] = useState(false);
   const [expiringCoupons, setExpiringCoupons] = useState(false);
   const [expandedLogs, setExpandedLogs] = useState<string | null>(null);
+  const [activeIntegrationView, setActiveIntegrationView] = useState<'affiliate' | 'coupon-intelligence'>('affiliate');
 
   // Utility routines state (persisted via localStorage)
   const [enrichInterval, setEnrichInterval] = useState(24);
@@ -135,8 +149,8 @@ export function AdminIntegrationsTab() {
       }
       toast.success(`${account.name}: ${inserted} novos, ${updated} atualizados`);
       await load();
-    } catch (err: any) {
-      toast.error(`Erro ao sincronizar: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao sincronizar: ${getErrorMessage(err)}`);
     } finally {
       setSyncing(null);
     }
@@ -171,14 +185,15 @@ export function AdminIntegrationsTab() {
     try {
       const { data, error } = await supabase.functions.invoke('enrich-store', { body: { force } });
       if (error) throw error;
-      const updated = data?.results?.filter((r: any) => r.updated).length ?? 0;
-      const total = data?.results?.length ?? 0;
+      const enrichData = data as EnrichStoreResponse | null;
+      const updated = enrichData?.results?.filter((result) => result.updated).length ?? 0;
+      const total = enrichData?.results?.length ?? 0;
       const now = new Date().toISOString();
       setEnrichLastRun(now);
       saveUtilPref('enrich_last_run', now);
       toast.success(`${updated} de ${total} lojas enriquecidas com logo e cor`);
-    } catch (err: any) {
-      toast.error(`Erro ao enriquecer lojas: ${err.message}`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao enriquecer lojas: ${getErrorMessage(err)}`);
     } finally {
       setEnriching(false);
     }
@@ -192,9 +207,10 @@ export function AdminIntegrationsTab() {
       const now = new Date().toISOString();
       setExpireLastRun(now);
       saveUtilPref('expire_last_run', now);
-      toast.success(`${data?.deleted_count ?? 0} cupons vencidos excluídos`);
-    } catch (err: any) {
-      toast.error(`Erro ao expirar cupons: ${err.message}`);
+      const expireData = data as ExpireCouponsResponse | null;
+      toast.success(`${expireData?.deleted_count ?? expireData?.disabled_count ?? 0} cupons vencidos processados`);
+    } catch (err: unknown) {
+      toast.error(`Erro ao expirar cupons: ${getErrorMessage(err)}`);
     } finally {
       setExpiringCoupons(false);
     }
@@ -273,9 +289,11 @@ export function AdminIntegrationsTab() {
           <h2 className="text-xl font-bold">Integrações</h2>
           <p className="text-sm text-muted-foreground">Gerencie provedores de afiliados, contas e sincronizações</p>
         </div>
-        <Button onClick={openNewAccount} size="sm" className="gap-2">
-          <Plus className="h-4 w-4" /> Nova Conta
-        </Button>
+        {activeIntegrationView === 'affiliate' && (
+          <Button onClick={openNewAccount} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" /> Nova Conta
+          </Button>
+        )}
       </div>
 
       {/* ── Provedores ── */}
@@ -287,6 +305,27 @@ export function AdminIntegrationsTab() {
         ))}
       </div>
 
+      <div className="flex flex-wrap gap-2 rounded-lg border bg-muted/30 p-1">
+        <Button
+          type="button"
+          size="sm"
+          variant={activeIntegrationView === 'affiliate' ? 'secondary' : 'ghost'}
+          onClick={() => setActiveIntegrationView('affiliate')}
+        >
+          Afiliados & Rotinas
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={activeIntegrationView === 'coupon-intelligence' ? 'secondary' : 'ghost'}
+          onClick={() => setActiveIntegrationView('coupon-intelligence')}
+        >
+          Inteligência de Cupons
+        </Button>
+      </div>
+
+      {activeIntegrationView === 'affiliate' ? (
+        <>
       {/* ── Rotinas ── */}
       <div className="space-y-3">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rotinas</h3>
@@ -534,6 +573,11 @@ export function AdminIntegrationsTab() {
           );
         })}
       </div>
+
+        </>
+      ) : (
+        <AdminCouponIntelligenceControl />
+      )}
 
       {/* ── Dialog: Nova/Editar Conta ── */}
       <Dialog open={accountDialog} onOpenChange={setAccountDialog}>
