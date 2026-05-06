@@ -204,3 +204,15 @@ Após a confirmação, a primeira entrega técnica deve ser mantida pequena, aud
    - O job retorna “nenhuma fonte habilitada” enquanto o admin não ativar explicitamente uma origem.
    - Erros por fonte são gravados em `last_error`, e a próxima varredura respeita `scan_interval_minutes`.
    - A publicação continua dependendo de revisão/validação posterior.
+
+
+## Expansão de fontes seed — Amazon Brasil e Shopee Brasil
+
+Foram adicionadas duas novas fontes iniciais na tabela `coupon_sources`, ambas com `enabled = false` por padrão:
+
+| Marketplace | Fonte | Intervalo inicial | Risco | Observação |
+| --- | --- | --- | --- | --- |
+| Amazon Brasil | `https://www.amazon.com.br/coupons` | 60 minutos | 7/10 | Confirmar public availability, termos e robots antes de habilitar. |
+| Shopee Brasil | `https://shopee.com.br/m/cupom-de-desconto-v37` | 30 minutos | 6/10 | Página pública de cupons diários identificada em resultados indexados; confirmar termos/robots antes de habilitar. |
+
+As duas fontes seguem o mesmo padrão operacional do Mercado Livre: cadastro auditável, baixa frequência inicial, `compliance_status = pending_review`, e nenhuma varredura automática até habilitação manual no Admin.
