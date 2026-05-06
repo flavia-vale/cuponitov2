@@ -350,6 +350,339 @@ export type Database = {
           },
         ]
       }
+      coupon_categories: {
+        Row: {
+          color_hex: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color_hex?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupon_sources: {
+        Row: {
+          allowed_paths: string[]
+          created_at: string
+          enabled: boolean
+          id: string
+          keywords: string[]
+          last_error: string | null
+          last_scan_at: string | null
+          last_status: string
+          marketplace_slug: string
+          metadata: Json
+          name: string
+          next_scan_at: string
+          risk_level: number
+          scan_interval_minutes: number
+          selectors: Json
+          source_type: string
+          source_url: string
+          updated_at: string
+        }
+        Insert: {
+          allowed_paths?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          keywords?: string[]
+          last_error?: string | null
+          last_scan_at?: string | null
+          last_status?: string
+          marketplace_slug: string
+          metadata?: Json
+          name: string
+          next_scan_at?: string
+          risk_level?: number
+          scan_interval_minutes?: number
+          selectors?: Json
+          source_type?: string
+          source_url: string
+          updated_at?: string
+        }
+        Update: {
+          allowed_paths?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          keywords?: string[]
+          last_error?: string | null
+          last_scan_at?: string | null
+          last_status?: string
+          marketplace_slug?: string
+          metadata?: Json
+          name?: string
+          next_scan_at?: string
+          risk_level?: number
+          scan_interval_minutes?: number
+          selectors?: Json
+          source_type?: string
+          source_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coupon_evidence: {
+        Row: {
+          confidence_score: number
+          content_hash: string
+          coupon_id: string | null
+          created_at: string
+          description: string
+          evidence_type: string
+          expires_at: string | null
+          extracted_payload: Json
+          id: string
+          marketplace_slug: string
+          normalized_code: string
+          observed_at: string
+          raw_code: string
+          source_id: string | null
+          source_type: string
+          source_url: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          confidence_score?: number
+          content_hash?: string
+          coupon_id?: string | null
+          created_at?: string
+          description?: string
+          evidence_type?: string
+          expires_at?: string | null
+          extracted_payload?: Json
+          id?: string
+          marketplace_slug: string
+          normalized_code?: string
+          observed_at?: string
+          raw_code?: string
+          source_id?: string | null
+          source_type?: string
+          source_url: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          confidence_score?: number
+          content_hash?: string
+          coupon_id?: string | null
+          created_at?: string
+          description?: string
+          evidence_type?: string
+          expires_at?: string | null
+          extracted_payload?: Json
+          id?: string
+          marketplace_slug?: string
+          normalized_code?: string
+          observed_at?: string
+          raw_code?: string
+          source_id?: string | null
+          source_type?: string
+          source_url?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_evidence_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_evidence_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_submissions: {
+        Row: {
+          code: string
+          coupon_id: string | null
+          created_at: string
+          description: string
+          evidence_url: string
+          expires_at: string | null
+          id: string
+          ip_hash: string
+          metadata: Json
+          min_order_value: number | null
+          moderation_notes: string
+          normalized_code: string
+          screenshot_url: string
+          source_url: string
+          spam_score: number
+          status: string
+          store_slug: string
+          submitter_email: string
+          submitter_user_id: string | null
+          title: string
+          trust_score: number
+          updated_at: string
+          user_agent_hash: string
+        }
+        Insert: {
+          code?: string
+          coupon_id?: string | null
+          created_at?: string
+          description?: string
+          evidence_url?: string
+          expires_at?: string | null
+          id?: string
+          ip_hash?: string
+          metadata?: Json
+          min_order_value?: number | null
+          moderation_notes?: string
+          normalized_code?: string
+          screenshot_url?: string
+          source_url?: string
+          spam_score?: number
+          status?: string
+          store_slug: string
+          submitter_email?: string
+          submitter_user_id?: string | null
+          title?: string
+          trust_score?: number
+          updated_at?: string
+          user_agent_hash?: string
+        }
+        Update: {
+          code?: string
+          coupon_id?: string | null
+          created_at?: string
+          description?: string
+          evidence_url?: string
+          expires_at?: string | null
+          id?: string
+          ip_hash?: string
+          metadata?: Json
+          min_order_value?: number | null
+          moderation_notes?: string
+          normalized_code?: string
+          screenshot_url?: string
+          source_url?: string
+          spam_score?: number
+          status?: string
+          store_slug?: string
+          submitter_email?: string
+          submitter_user_id?: string | null
+          title?: string
+          trust_score?: number
+          updated_at?: string
+          user_agent_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_submissions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_validation_events: {
+        Row: {
+          coupon_id: string | null
+          created_at: string
+          event_type: string
+          evidence_id: string | null
+          id: string
+          message: string
+          metadata: Json
+          score_delta: number
+          signal_source: string
+          submission_id: string | null
+          success: boolean | null
+          validation_status: string
+        }
+        Insert: {
+          coupon_id?: string | null
+          created_at?: string
+          event_type: string
+          evidence_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json
+          score_delta?: number
+          signal_source?: string
+          submission_id?: string | null
+          success?: boolean | null
+          validation_status?: string
+        }
+        Update: {
+          coupon_id?: string | null
+          created_at?: string
+          event_type?: string
+          evidence_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json
+          score_delta?: number
+          signal_source?: string
+          submission_id?: string | null
+          success?: boolean | null
+          validation_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_validation_events_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_validation_events_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_validation_events_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_providers: {
         Row: {
           active: boolean
@@ -502,7 +835,7 @@ export type Database = {
       stores: {
         Row: {
           active: boolean | null
-          awin_advertiser_id: number | null
+          awin_advertiser_id: string | null
           brand_color: string
           created_at: string
           description: string
@@ -514,12 +847,12 @@ export type Database = {
           meta_description: string
           name: string
           slug: string
-          store_id: number
+          store_id: string
           updated_at: string
         }
         Insert: {
           active?: boolean | null
-          awin_advertiser_id?: number | null
+          awin_advertiser_id?: string | null
           brand_color?: string
           created_at?: string
           description?: string
@@ -531,12 +864,12 @@ export type Database = {
           meta_description?: string
           name: string
           slug: string
-          store_id: number
+          store_id: string
           updated_at?: string
         }
         Update: {
           active?: boolean | null
-          awin_advertiser_id?: number | null
+          awin_advertiser_id?: string | null
           brand_color?: string
           created_at?: string
           description?: string
@@ -548,7 +881,7 @@ export type Database = {
           meta_description?: string
           name?: string
           slug?: string
-          store_id?: number
+          store_id?: string
           updated_at?: string
         }
         Relationships: []
