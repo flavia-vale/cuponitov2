@@ -23,7 +23,7 @@ export default function InstitutionalLayout({
 }: InstitutionalLayoutProps) {
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">
-      <SEOHead title={`${title} | Cuponito`} description={description} canonical={canonical} />
+      <SEOHead title={`${title} | Cuponito`} description={description} canonical={canonical} jsonLdRoute={{ type: 'generic' }} />
       <Header />
 
       <main className="mx-auto max-w-4xl px-4 py-8 md:py-12">
