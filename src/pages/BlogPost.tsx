@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { Clock, User, Share2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import Header from '@/components/Header';
 import { useBlogPost, useBlogAuthors, useBlogCategories, useIncrementBlogViews, useRelatedBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
@@ -133,8 +135,18 @@ export default function BlogPost() {
                   prose-strong:text-[#1a1a1a] prose-strong:font-black
                   prose-a:text-primary prose-a:font-black prose-a:no-underline hover:prose-a:underline
                   prose-img:rounded-xl prose-img:shadow-xl prose-img:my-8 md:prose-img:rounded-[2rem] md:prose-img:my-12"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
+              >
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    a: ({ href, children }) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+                    ),
+                  }}
+                >
+                  {post.content}
+                </ReactMarkdown>
+              </div>
               {post.cta_config && typeof post.cta_config === 'object' && (
                 <InlineCouponBox config={post.cta_config as InlineCouponConfig} />
               )}

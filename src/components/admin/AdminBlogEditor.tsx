@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { TipTapEditor } from './TipTapEditor';
+import { MarkdownEditor } from './MarkdownEditor';
 import { useBlogCategories, useBlogAuthors, type BlogPost } from '@/hooks/useBlog';
 import { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import { getErrorMessage } from '@/lib/errors';
@@ -106,7 +106,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       toast({ title: 'Título e slug são obrigatórios', variant: 'destructive' });
       return;
     }
-    const plainContent = content.replace(/<[^>]*>/g, '').trim();
+    const plainContent = content.trim();
     if (!plainContent) {
       toast({ title: 'O conteúdo do post não pode estar vazio', variant: 'destructive' });
       return;
@@ -188,7 +188,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
           <Card>
             <CardHeader className="pb-2"><CardTitle className="text-sm font-bold uppercase text-muted-foreground">Conteúdo</CardTitle></CardHeader>
             <CardContent>
-              <TipTapEditor content={content} onChange={setContent} onImageUpload={handleContentImageUpload} />
+              <MarkdownEditor content={content} onChange={setContent} onImageUpload={handleContentImageUpload} />
             </CardContent>
           </Card>
         </div>
