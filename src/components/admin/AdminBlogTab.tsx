@@ -6,6 +6,7 @@ import { useAdminBlogPosts, type BlogPost } from '@/hooks/useBlog';
 import { AdminBlogDashboard } from './AdminBlogDashboard';
 import { AdminBlogPostList } from './AdminBlogPostList';
 import { AdminBlogEditor } from './AdminBlogEditor';
+import { AdminBlogStats } from './AdminBlogStats';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function AdminBlogTab() {
@@ -29,10 +30,17 @@ export function AdminBlogTab() {
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold text-foreground">Blog</h1><p className="text-sm text-muted-foreground">Gerencie artigos, categorias e autores</p></div>
       <Tabs defaultValue="dashboard">
-        <TabsList><TabsTrigger value="dashboard">Dashboard</TabsTrigger><TabsTrigger value="posts">Posts</TabsTrigger></TabsList>
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="posts">Posts</TabsTrigger>
+          <TabsTrigger value="banners">Banners</TabsTrigger>
+        </TabsList>
         <TabsContent value="dashboard" className="mt-4"><AdminBlogDashboard posts={posts} /></TabsContent>
         <TabsContent value="posts" className="mt-4">
           {isLoading ? <p className="py-8 text-center text-sm text-muted-foreground">Carregando posts...</p> : <AdminBlogPostList posts={posts} onEdit={(p) => setEditingPost(p)} onNew={() => setEditingPost(null)} onDelete={handleDelete} />}
+        </TabsContent>
+        <TabsContent value="banners" className="mt-4">
+          <AdminBlogStats posts={posts} />
         </TabsContent>
       </Tabs>
     </div>
