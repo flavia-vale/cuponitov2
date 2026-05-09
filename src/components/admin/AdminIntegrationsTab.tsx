@@ -90,6 +90,7 @@ export function AdminIntegrationsTab() {
   const [syncing, setSyncing] = useState<string | null>(null);
   const [enriching, setEnriching] = useState(false);
   const [expiringCoupons, setExpiringCoupons] = useState(false);
+  const [syncingCasasBahiaSheet, setSyncingCasasBahiaSheet] = useState(false);
   const [expandedLogs, setExpandedLogs] = useState<string | null>(null);
   const [activeIntegrationView, setActiveIntegrationView] = useState<'affiliate' | 'coupon-intelligence'>('affiliate');
 
@@ -213,6 +214,25 @@ export function AdminIntegrationsTab() {
       toast.error(`Erro ao expirar cupons: ${getErrorMessage(err)}`);
     } finally {
       setExpiringCoupons(false);
+    }
+  };
+
+  const runCasasBahiaSheetSync = async () => {
+    setSyncingCasasBahiaSheet(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-casas-bahia', {});
+      if (error) throw error;
+
+      if (data?.skipped) {
+        toast.warning(`Casas Bahia (Planilha): sincronização ignorada — ${data.reason ?? 'sem detalhes'}`);
+      } else {
+        toast.success(`Casas Bahia (Planilha): ${data?.inserted_or_updated ?? 0} sincronizados, ${data?.deactivated ?? 0} desativados`);
+      }
+      await load();
+    } catch (err: unknown) {
+      toast.error(`Erro ao sincronizar Casas Bahia (Planilha): ${getErrorMessage(err)}`);
+    } finally {
+      setSyncingCasasBahiaSheet(false);
     }
   };
 
@@ -430,6 +450,35 @@ export function AdminIntegrationsTab() {
               >
                 {expiringCoupons ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                 Apagar cupons vencidos agora
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Casas Bahia via Planilha */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <RefreshCcw className="h-4 w-4 text-primary" />
+              Casas Bahia (Planilha)
+            </CardTitle>
+            <CardDescription>
+              Sincroniza ofertas da planilha pública da Casas Bahia, converte os links para afiliado AWIN e atualiza a tabela de cupons.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="gap-2"
+                disabled={syncingCasasBahiaSheet}
+                onClick={runCasasBahiaSheetSync}
+              >
+                {syncingCasasBahiaSheet
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  : <Play className="h-3.5 w-3.5" />}
+                Sincronizar planilha agora
               </Button>
             </div>
           </CardContent>
