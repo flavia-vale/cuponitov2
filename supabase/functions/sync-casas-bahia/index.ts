@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ir70CyrHHSB_P56nlYNzqmrTGM7fZKICcwcKH4vMva0/export?format=csv&gid=1935674487'
 const STORE_NAME = 'Casas Bahia'
+const DEFAULT_PUBLISHER_ID = '2740940'
 
 function parseCsvLine(line: string): string[] {
   const out: string[] = []
@@ -143,8 +144,41 @@ serve(async (req) => {
       throw new Error(`Loja ${STORE_NAME} não encontrada em stores.`)
     }
 
-    const advertiserId = String(storeRow.awin_advertiser_id || storeRow.store_id || '').trim()
-    const publisherId = (Deno.env.get('AWIN_PUBLISHER_ID') || '').trim()
+    const { data: awinProvider } = await supabase
+      .from('integration_providers')
+      .select('id')
+      .eq('slug', 'awin')
+      .maybeSingle()
+
+    let accountPublisherId = ''
+    let accountAdvertiserId = ''
+
+    if (awinProvider?.id) {
+      const { data: casasAccount } = await supabase
+        .from('affiliate_accounts')
+        .select('publisher_id, extra_config')
+        .eq('provider_id', awinProvider.id)
+        .ilike('name', '%casas bahia%')
+        .eq('active', true)
+        .maybeSingle()
+
+      accountPublisherId = String(casasAccount?.publisher_id || '').trim()
+      accountAdvertiserId = String(casasAccount?.extra_config?.awin_advertiser_id || '').trim()
+    }
+
+    const advertiserId = String(
+      storeRow.awin_advertiser_id
+      || storeRow.store_id
+      || accountAdvertiserId
+      || Deno.env.get('AWIN_CASAS_BAHIA_ADVERTISER_ID')
+      || ''
+    ).trim()
+
+    const publisherId = String(
+      Deno.env.get('AWIN_PUBLISHER_ID')
+      || accountPublisherId
+      || DEFAULT_PUBLISHER_ID
+    ).trim()
 
     if (!advertiserId || !publisherId) {
       throw new Error('AWIN_PUBLISHER_ID e awin_advertiser_id/store_id são obrigatórios para converter link em afiliado.')
