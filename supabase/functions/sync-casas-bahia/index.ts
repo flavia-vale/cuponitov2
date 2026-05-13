@@ -10,6 +10,24 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ir70CyrHHSB_P56nl
 const STORE_NAME = 'Casas Bahia'
 const DEFAULT_PUBLISHER_ID = '2740940'
 
+type CouponUpsert = {
+  awin_promotion_id: string
+  store_id: string
+  store: string
+  publisher_id: string
+  title: string
+  description: string
+  code: string
+  type: string
+  link: string
+  discount: string
+  category: string
+  expiry: string | null
+  expiry_text: string
+  status: boolean
+  updated_at: string
+}
+
 function parseCsvLine(line: string): string[] {
   const out: string[] = []
   let cur = ''
@@ -117,6 +135,23 @@ function mapCategory(raw: string): string {
   return base[key] || value
 }
 
+
+function valueOrDefault(value: string | undefined, fallback: string): string {
+  const clean = (value || '').trim()
+  return clean || fallback
+}
+
+function formatExpiryText(expiryIso: string | null): string {
+  return expiryIso
+    ? new Date(expiryIso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+    : ''
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  return String(err || 'erro desconhecido')
+}
+
 function buildAwinTrackingUrl(destinationUrl: string, publisherId: string, advertiserId: string): string {
   const base = 'https://www.awin1.com/cread.php'
   const params = new URLSearchParams({
@@ -214,7 +249,7 @@ serve(async (req) => {
 
     const now = new Date().toISOString()
     const seen = new Set<string>()
-    const couponsToUpsert: any[] = []
+    const couponsToUpsert: CouponUpsert[] = []
 
     for (const row of rows) {
       const sku = (row['SKU'] || '').trim()
@@ -232,22 +267,26 @@ serve(async (req) => {
 
       const promotionId = `sheet_casasbahia_${btoa(dedupeKey).replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_')}`
 
+      const benefit = valueOrDefault(row['Benefício'], 'Oferta')
+      const description = [row['Vantagem'], row['Benefício']]
+        .map((value) => (value || '').trim())
+        .filter(Boolean)
+        .join(' • ') || 'Oferta válida na Casas Bahia'
+
       couponsToUpsert.push({
         awin_promotion_id: promotionId,
         store_id: storeRow.id,
         store: STORE_NAME,
         publisher_id: publisherId,
         title,
-        description: [row['Vantagem'], row['Benefício']].filter(Boolean).join(' • ') || 'Oferta válida na Casas Bahia',
-        code: null,
+        description,
+        code: '',
         type: 'offer',
         link: buildAwinTrackingUrl(originalUrl, publisherId, advertiserId),
-        discount: (row['Benefício'] || '').trim() || null,
+        discount: benefit,
         category: mapCategory(row['Categoria'] || ''),
         expiry: expiryIso,
-        expiry_text: expiryIso
-          ? new Date(expiryIso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-          : null,
+        expiry_text: formatExpiryText(expiryIso),
         status,
         updated_at: now,
       })
@@ -285,12 +324,13 @@ serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
-  } catch (err: any) {
-    console.error(`[sync-casas-bahia] Erro:`, err?.message ?? err)
+  } catch (err: unknown) {
+    const reason = getErrorMessage(err)
+    console.error(`[sync-casas-bahia] Erro:`, reason)
     return new Response(JSON.stringify({
       success: false,
       skipped: true,
-      reason: err?.message ?? 'erro desconhecido',
+      reason,
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
