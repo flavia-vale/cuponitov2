@@ -270,7 +270,8 @@ serve(async (req) => {
     const { data: deactivatedRows, error: deactivateError } = await supabase
       .from('coupons')
       .update({ status: false, updated_at: now })
-      .eq('store', STORE_NAME)
+      .eq('store_id', storeRow.id)
+      .like('awin_promotion_id', 'sheet_casasbahia_%')
       .not('awin_promotion_id', 'in', `(${activeIds.map((id) => `"${id}"`).join(',')})`)
       .select('id')
 

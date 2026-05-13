@@ -1,7 +1,7 @@
 import { useState, useMemo, lazy } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import Header from '@/components/Header';
-import { useCoupons } from '@/hooks/useCoupons';
+import { useStoreCoupons } from '@/hooks/useStoreCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useSettings } from '@/hooks/useSettings';
 import SEOHead from '@/components/SEOHead';
@@ -21,7 +21,6 @@ type FilterType = 'all' | 'code' | 'offer' | 'free';
 
 export default function StorePage() {
   const { slug } = useParams({ strict: false });
-  const { data: coupons, isLoading: couponsLoading } = useCoupons();
   const { data: storeBrands, isLoading: storesLoading } = useStoreBrands();
   const { data: settings } = useSettings();
   const [filter, setFilter] = useState<FilterType>('all');
@@ -33,14 +32,12 @@ export default function StorePage() {
     return storeBrands.find((b) => b.slug === slug);
   }, [storeBrands, slug]);
 
+  const { data: storeCouponsData, isLoading: couponsLoading } = useStoreCoupons(storeBrand?.id);
   const storeName = storeBrand?.name || slug?.replace(/cupom-desconto-/g, '').replace(/-/g, ' ') || '';
   const brandColor = storeBrand?.brand_color || '#FF4D00';
   const whatsappLink = settings?.global_links.whatsapp_group || '#';
 
-  const storeCoupons = useMemo(() => {
-    if (!coupons || !storeBrand?.name) return [];
-    return coupons.filter(c => c.store === storeBrand.name);
-  }, [coupons, storeBrand?.name]);
+  const storeCoupons = useMemo(() => storeCouponsData ?? [], [storeCouponsData]);
 
   const lastUpdated = useMemo(() => {
     if (!storeCoupons.length) return null;
