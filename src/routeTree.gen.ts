@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as QuemSomosRouteImport } from './routes/quem-somos'
 import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
 import { Route as LojasRouteImport } from './routes/lojas'
@@ -29,6 +30,11 @@ import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminBlogRouteImport } from './routes/admin.blog'
 import { Route as AdminAccessDeniedRouteImport } from './routes/admin.access-denied'
 
+const TermosDeUsoRoute = TermosDeUsoRouteImport.update({
+  id: '/termos-de-uso',
+  path: '/termos-de-uso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuemSomosRoute = QuemSomosRouteImport.update({
   id: '/quem-somos',
   path: '/quem-somos',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/lojas': typeof LojasRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/quem-somos': typeof QuemSomosRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin/access-denied': typeof AdminAccessDeniedRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/lojas': typeof LojasRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/quem-somos': typeof QuemSomosRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin/access-denied': typeof AdminAccessDeniedRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/lojas': typeof LojasRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/quem-somos': typeof QuemSomosRoute
+  '/termos-de-uso': typeof TermosDeUsoRoute
   '/admin/access-denied': typeof AdminAccessDeniedRoute
   '/admin/blog': typeof AdminBlogRoute
   '/admin/coupons': typeof AdminCouponsRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/lojas'
     | '/perguntas-frequentes'
     | '/quem-somos'
+    | '/termos-de-uso'
     | '/admin/access-denied'
     | '/admin/blog'
     | '/admin/coupons'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/lojas'
     | '/perguntas-frequentes'
     | '/quem-somos'
+    | '/termos-de-uso'
     | '/admin/access-denied'
     | '/admin/blog'
     | '/admin/coupons'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/lojas'
     | '/perguntas-frequentes'
     | '/quem-somos'
+    | '/termos-de-uso'
     | '/admin/access-denied'
     | '/admin/blog'
     | '/admin/coupons'
@@ -268,12 +280,20 @@ export interface RootRouteChildren {
   LojasRoute: typeof LojasRoute
   PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
   QuemSomosRoute: typeof QuemSomosRoute
+  TermosDeUsoRoute: typeof TermosDeUsoRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
   DescontoSlugRoute: typeof DescontoSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/termos-de-uso': {
+      id: '/termos-de-uso'
+      path: '/termos-de-uso'
+      fullPath: '/termos-de-uso'
+      preLoaderRoute: typeof TermosDeUsoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quem-somos': {
       id: '/quem-somos'
       path: '/quem-somos'
@@ -451,6 +471,7 @@ const rootRouteChildren: RootRouteChildren = {
   LojasRoute: LojasRoute,
   PerguntasFrequentesRoute: PerguntasFrequentesRoute,
   QuemSomosRoute: QuemSomosRoute,
+  TermosDeUsoRoute: TermosDeUsoRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
   DescontoSlugRoute: DescontoSlugRoute,
 }

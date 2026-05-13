@@ -49,6 +49,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     urlEntry(`${BASE_URL}/cupons`, today, 'daily', 0.9),
     urlEntry(`${BASE_URL}/lojas`, today, 'weekly', 0.8),
     urlEntry(`${BASE_URL}/blog`, today, 'weekly', 0.7),
+    urlEntry(`${BASE_URL}/quem-somos`, today, 'monthly', 0.5),
+    urlEntry(`${BASE_URL}/como-funciona`, today, 'monthly', 0.5),
+    urlEntry(`${BASE_URL}/fale-conosco`, today, 'monthly', 0.5),
+    urlEntry(`${BASE_URL}/perguntas-frequentes`, today, 'monthly', 0.5),
+    urlEntry(`${BASE_URL}/termos-de-uso`, today, 'monthly', 0.4),
     ...CATEGORY_SLUGS.map(slug => urlEntry(`${BASE_URL}/categoria/${slug}`, today, 'daily', 0.7)),
   ].join('\n')
 

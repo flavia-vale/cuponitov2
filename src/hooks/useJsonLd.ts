@@ -257,33 +257,37 @@ export type JsonLdRoute =
   | CategoriaRoute
   | GenericRoute;
 
-export function useJsonLd(route: JsonLdRoute): object[] {
+const DEFAULT_JSON_LD_ROUTE: JsonLdRoute = { type: 'generic' };
+
+export function useJsonLd(route?: JsonLdRoute | null): object[] {
+  const safeRoute = route ?? DEFAULT_JSON_LD_ROUTE;
+
   return useMemo(() => {
-    switch (route.type) {
+    switch (safeRoute.type) {
       case 'home':
         return [
           websiteSchema(),
           orgSchema(),
           breadcrumbHome(),
-          ...(route.coupons.length > 0
-            ? [couponItemList("Top Cupons de Desconto", route.coupons)]
+          ...(safeRoute.coupons.length > 0
+            ? [couponItemList("Top Cupons de Desconto", safeRoute.coupons)]
             : []),
         ];
       case 'store':
         return [
-          { ...orgSchema(route.storeName, `${SITE_URL}/desconto/${route.slug}`) },
-          breadcrumbStore(route.storeName, route.slug),
-          faqPageSchema(route.storeName),
-          howToSchema(route.storeName),
-          ...(route.coupons.length > 0
-            ? [couponItemList(`Cupons de Desconto ${route.storeName}`, route.coupons)]
+          { ...orgSchema(safeRoute.storeName, `${SITE_URL}/desconto/${safeRoute.slug}`) },
+          breadcrumbStore(safeRoute.storeName, safeRoute.slug),
+          faqPageSchema(safeRoute.storeName),
+          howToSchema(safeRoute.storeName),
+          ...(safeRoute.coupons.length > 0
+            ? [couponItemList(`Cupons de Desconto ${safeRoute.storeName}`, safeRoute.coupons)]
             : []),
         ];
       case 'blog':
         return [
           orgSchema(),
-          breadcrumbBlog(route.article.title, route.article.slug),
-          blogPostingSchema(route.article),
+          breadcrumbBlog(safeRoute.article.title, safeRoute.article.slug),
+          blogPostingSchema(safeRoute.article),
         ];
       case 'lojas':
         return [orgSchema(), breadcrumbLojas()];
@@ -300,16 +304,16 @@ export function useJsonLd(route: JsonLdRoute): object[] {
             itemListElement: [
               { "@type": "ListItem", position: 1, name: "Página Inicial", item: `${SITE_URL}/` },
               { "@type": "ListItem", position: 2, name: "Cupons", item: `${SITE_URL}/cupons` },
-              { "@type": "ListItem", position: 3, name: route.categoryName, item: `${SITE_URL}/categoria/${route.slug}` },
+              { "@type": "ListItem", position: 3, name: safeRoute.categoryName, item: `${SITE_URL}/categoria/${safeRoute.slug}` },
             ],
           },
-          ...(route.coupons.length > 0
-            ? [couponItemList(`Cupons de ${route.categoryName}`, route.coupons)]
+          ...(safeRoute.coupons.length > 0
+            ? [couponItemList(`Cupons de ${safeRoute.categoryName}`, safeRoute.coupons)]
             : []),
         ];
       case 'generic':
       default:
         return [orgSchema()];
     }
-  }, [route]);
+  }, [safeRoute]);
 }
