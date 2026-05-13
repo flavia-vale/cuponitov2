@@ -10,6 +10,32 @@ const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ir70CyrHHSB_P56nl
 const STORE_NAME = 'Casas Bahia'
 const DEFAULT_PUBLISHER_ID = '2740940'
 
+type CouponUpsert = {
+  awin_promotion_id: string
+  store_id: string
+  store: string
+  publisher_id: string
+  title: string
+  description: string
+  code: string
+  type: string
+  link: string
+  discount: string
+  category: string
+  expiry: string | null
+  expiry_text: string
+  status: boolean
+  updated_at: string
+}
+
+type AwinLinkBuilderResponse = {
+  url?: string
+  shortUrl?: string
+  description?: string
+  message?: string
+  error?: string
+}
+
 function parseCsvLine(line: string): string[] {
   const out: string[] = []
   let cur = ''
@@ -117,15 +143,83 @@ function mapCategory(raw: string): string {
   return base[key] || value
 }
 
-function buildAwinTrackingUrl(destinationUrl: string, publisherId: string, advertiserId: string): string {
-  const base = 'https://www.awin1.com/cread.php'
-  const params = new URLSearchParams({
-    awinaffid: publisherId,
-    awinmid: advertiserId,
-    clickref: 'cuponito-casas-bahia-sheet',
-    ued: destinationUrl,
-  })
-  return `${base}?${params.toString()}`
+
+function valueOrDefault(value: string | undefined, fallback: string): string {
+  const clean = (value || '').trim()
+  return clean || fallback
+}
+
+function formatExpiryText(expiryIso: string | null): string {
+  return expiryIso
+    ? new Date(expiryIso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+    : ''
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  return String(err || 'erro desconhecido')
+}
+
+function readStringConfig(config: unknown, key: string): string {
+  if (!config || typeof config !== 'object') return ''
+  const value = (config as Record<string, unknown>)[key]
+  return String(value || '').trim()
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function buildAwinTrackingUrl(
+  destinationUrl: string,
+  publisherId: string,
+  advertiserId: string,
+  apiToken: string,
+): Promise<string> {
+  const advertiserIdNumber = Number(advertiserId)
+  if (!Number.isFinite(advertiserIdNumber)) {
+    throw new Error(`awin_advertiser_id inválido para ${STORE_NAME}: ${advertiserId}`)
+  }
+
+  const endpoint = `https://api.awin.com/publishers/${encodeURIComponent(publisherId)}/linkbuilder/generate?accessToken=${encodeURIComponent(apiToken)}`
+  const body = {
+    advertiserId: advertiserIdNumber,
+    destinationUrl,
+    parameters: {
+      clickref: 'cuponito-casas-bahia-sheet',
+    },
+    shorten: false,
+  }
+
+  let lastError = ''
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    const responseText = await response.text()
+    let payload: AwinLinkBuilderResponse | null = null
+    try {
+      payload = responseText ? JSON.parse(responseText) as AwinLinkBuilderResponse : null
+    } catch (_parseError) {
+      payload = null
+    }
+
+    if (response.ok && payload?.url?.startsWith('https://')) {
+      return payload.url
+    }
+
+    lastError = payload?.description || payload?.message || payload?.error || responseText || `${response.status} ${response.statusText}`
+    if (response.status !== 429 && response.status < 500) break
+    await sleep(500 * attempt)
+  }
+
+  throw new Error(`Link Builder AWIN não gerou link para ${destinationUrl}: ${lastError}`)
 }
 
 serve(async (req) => {
@@ -152,18 +246,20 @@ serve(async (req) => {
 
     let accountPublisherId = ''
     let accountAdvertiserId = ''
+    let casasAccount: { publisher_id?: string | null; api_token?: string | null; extra_config?: unknown } | null = null
 
     if (awinProvider?.id) {
-      const { data: casasAccount } = await supabase
+      const { data: casasAccountRow } = await supabase
         .from('affiliate_accounts')
-        .select('publisher_id, extra_config')
+        .select('publisher_id, api_token, extra_config')
         .eq('provider_id', awinProvider.id)
         .ilike('name', '%casas bahia%')
         .eq('active', true)
         .maybeSingle()
 
+      casasAccount = casasAccountRow
       accountPublisherId = String(casasAccount?.publisher_id || '').trim()
-      accountAdvertiserId = String(casasAccount?.extra_config?.awin_advertiser_id || '').trim()
+      accountAdvertiserId = readStringConfig(casasAccount?.extra_config, 'awin_advertiser_id')
     }
 
     const advertiserId = String(
@@ -180,8 +276,20 @@ serve(async (req) => {
       || DEFAULT_PUBLISHER_ID
     ).trim()
 
+    const tokenEnvSecret = readStringConfig(casasAccount?.extra_config, 'env_secret')
+    const apiToken = String(
+      casasAccount?.api_token
+      || (tokenEnvSecret ? Deno.env.get(tokenEnvSecret) : '')
+      || Deno.env.get('AWIN_API_TOKEN')
+      || ''
+    ).trim()
+
     if (!advertiserId || !publisherId) {
       throw new Error('AWIN_PUBLISHER_ID e awin_advertiser_id/store_id são obrigatórios para converter link em afiliado.')
+    }
+
+    if (!apiToken) {
+      throw new Error('AWIN_API_TOKEN ou api_token da conta Casas Bahia é obrigatório para converter links via Link Builder AWIN.')
     }
 
     const csvResponse = await fetch(SHEET_CSV_URL)
@@ -214,7 +322,8 @@ serve(async (req) => {
 
     const now = new Date().toISOString()
     const seen = new Set<string>()
-    const couponsToUpsert: any[] = []
+    const couponsToUpsert: CouponUpsert[] = []
+    const linkConversionErrors: string[] = []
 
     for (const row of rows) {
       const sku = (row['SKU'] || '').trim()
@@ -232,29 +341,50 @@ serve(async (req) => {
 
       const promotionId = `sheet_casasbahia_${btoa(dedupeKey).replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_')}`
 
+      const benefit = valueOrDefault(row['Benefício'], 'Oferta')
+      const description = [row['Vantagem'], row['Benefício']]
+        .map((value) => (value || '').trim())
+        .filter(Boolean)
+        .join(' • ') || 'Oferta válida na Casas Bahia'
+
+      let affiliateLink = ''
+      try {
+        affiliateLink = await buildAwinTrackingUrl(originalUrl, publisherId, advertiserId, apiToken)
+      } catch (err: unknown) {
+        linkConversionErrors.push(`${sku}: ${getErrorMessage(err)}`)
+        continue
+      }
+
       couponsToUpsert.push({
         awin_promotion_id: promotionId,
         store_id: storeRow.id,
         store: STORE_NAME,
         publisher_id: publisherId,
         title,
-        description: [row['Vantagem'], row['Benefício']].filter(Boolean).join(' • ') || 'Oferta válida na Casas Bahia',
-        code: null,
+        description,
+        code: '',
         type: 'offer',
-        link: buildAwinTrackingUrl(originalUrl, publisherId, advertiserId),
-        discount: (row['Benefício'] || '').trim() || null,
+        link: affiliateLink,
+        discount: benefit,
         category: mapCategory(row['Categoria'] || ''),
         expiry: expiryIso,
-        expiry_text: expiryIso
-          ? new Date(expiryIso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
-          : null,
+        expiry_text: formatExpiryText(expiryIso),
         status,
         updated_at: now,
       })
     }
 
     if (couponsToUpsert.length === 0) {
-      return new Response(JSON.stringify({ success: true, store: STORE_NAME, inserted_or_updated: 0, deactivated: 0 }), {
+      const hasConversionErrors = linkConversionErrors.length > 0
+      return new Response(JSON.stringify({
+        success: !hasConversionErrors,
+        skipped: hasConversionErrors,
+        reason: hasConversionErrors ? `Link Builder AWIN falhou para ${linkConversionErrors.length} ofertas` : undefined,
+        store: STORE_NAME,
+        inserted_or_updated: 0,
+        deactivated: 0,
+        link_conversion_errors: linkConversionErrors.slice(0, 10),
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -267,29 +397,41 @@ serve(async (req) => {
 
     if (upsertError) throw upsertError
 
-    const { data: deactivatedRows, error: deactivateError } = await supabase
-      .from('coupons')
-      .update({ status: false, updated_at: now })
-      .eq('store', STORE_NAME)
-      .not('awin_promotion_id', 'in', `(${activeIds.map((id) => `"${id}"`).join(',')})`)
-      .select('id')
+    let deactivated = 0
+    let deactivationSkipped = false
 
-    if (deactivateError) throw deactivateError
+    if (linkConversionErrors.length === 0) {
+      const { data: deactivatedRows, error: deactivateError } = await supabase
+        .from('coupons')
+        .update({ status: false, updated_at: now })
+        .eq('store_id', storeRow.id)
+        .like('awin_promotion_id', 'sheet_casasbahia_%')
+        .not('awin_promotion_id', 'in', `(${activeIds.map((id) => `"${id}"`).join(',')})`)
+        .select('id')
+
+      if (deactivateError) throw deactivateError
+      deactivated = deactivatedRows?.length ?? 0
+    } else {
+      deactivationSkipped = true
+    }
 
     return new Response(JSON.stringify({
       success: true,
       store: STORE_NAME,
       inserted_or_updated: couponsToUpsert.length,
-      deactivated: deactivatedRows?.length ?? 0,
+      deactivated,
+      deactivation_skipped: deactivationSkipped,
+      link_conversion_errors: linkConversionErrors.slice(0, 10),
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
-  } catch (err: any) {
-    console.error(`[sync-casas-bahia] Erro:`, err?.message ?? err)
+  } catch (err: unknown) {
+    const reason = getErrorMessage(err)
+    console.error(`[sync-casas-bahia] Erro:`, reason)
     return new Response(JSON.stringify({
       success: false,
       skipped: true,
-      reason: err?.message ?? 'erro desconhecido',
+      reason,
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
