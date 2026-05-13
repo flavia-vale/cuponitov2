@@ -4,7 +4,7 @@ import type { Tables } from '@/integrations/supabase/types';
 
 export type Coupon = Tables<'coupons'>;
 
-const COUPON_COLUMNS = 'id, code, title, description, discount, link, store, store_id, category, expiry, expiry_text, is_flash, is_featured, status, success_rate, updated_at, created_at';
+export const COUPON_COLUMNS = 'id, code, title, description, discount, link, store, store_id, category, expiry, expiry_text, is_flash, is_featured, status, success_rate, updated_at, created_at';
 
 export function useCoupons() {
   return useQuery<Coupon[]>({
