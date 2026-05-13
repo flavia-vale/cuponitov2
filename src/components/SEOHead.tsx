@@ -12,8 +12,10 @@ interface SEOHeadProps {
   ogType?: string;
   ogImage?: string;
   robots?: string;
-  jsonLdRoute: JsonLdRoute;
+  jsonLdRoute?: JsonLdRoute;
 }
+
+const DEFAULT_JSON_LD_ROUTE: JsonLdRoute = { type: 'generic' };
 
 const SEOHead = ({
   title,
@@ -22,7 +24,7 @@ const SEOHead = ({
   ogType = 'website',
   ogImage,
   robots,
-  jsonLdRoute,
+  jsonLdRoute = DEFAULT_JSON_LD_ROUTE,
 }: SEOHeadProps) => {
   const jsonLd = useJsonLd(jsonLdRoute);
   const canonicalUrl = canonical ?? SITE_URL;
