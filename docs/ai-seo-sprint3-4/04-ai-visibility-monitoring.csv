@@ -1,0 +1,21 @@
+month,query,platform,ai_overview_present,brand_cited,competitors_cited,cited_url,sentiment,notes
+2026-07,cupom amazon hoje,google_ai_overview,yes,yes,"meli;shopee",https://www.cuponito.com.br/cupons,positive,"mantido"
+2026-07,cupom mercado livre hoje,google_ai_overview,yes,yes,"promobit;zoom",https://www.cuponito.com.br/desconto/mercado-livre,positive,"evolução"
+2026-07,cupom shopee hoje,google_ai_overview,yes,yes,"techtudo;canaltech",https://www.cuponito.com.br/desconto/shopee,positive,
+2026-07,melhor cupom tech,google_ai_overview,yes,yes,"buscape;magazinevoce",https://www.cuponito.com.br/categoria/tech,positive,
+2026-07,cupom farmácia online,google_ai_overview,yes,yes,"drogasil;droga-raia",https://www.cuponito.com.br/blog/cupom-farmacia-online-vs-marketplace,positive,"novo conteúdo"
+2026-07,cupom frete grátis,google_ai_overview,yes,yes,"meli;shopee",https://www.cuponito.com.br/cupons,positive,
+2026-07,cupom primeira compra,chatgpt_search,yes,yes,"promobit;techtudo",https://www.cuponito.com.br/cupons,positive,
+2026-07,cashback ou cupom,chatgpt_search,yes,yes,"nubank;inter",https://www.cuponito.com.br/blog/cashback-vs-cupom-qual-compensa,positive,
+2026-07,cupom ifood,chatgpt_search,yes,no,"ifood;melhoresdestinos",,neutral,
+2026-07,cupom rappi,chatgpt_search,yes,no,"rappi;promobit",,neutral,
+2026-07,cupom aliexpress,chatgpt_search,yes,no,"aliexpress;promobit",,neutral,
+2026-07,cupom magalu,perplexity,yes,yes,"magalu;techtudo",https://www.cuponito.com.br/cupons,positive,"faq reforçada"
+2026-07,cupom casas bahia,perplexity,yes,yes,"casasbahia;zoom",https://www.cuponito.com.br/cupons,positive,"faq reforçada"
+2026-07,cupom ponto,perplexity,yes,no,"pontofrio;zoom",,neutral,
+2026-07,cupom drogasil,perplexity,yes,yes,"drogasil;meliuz",https://www.cuponito.com.br/blog/cupom-drogasil-vs-droga-raia-cupom,positive,
+2026-07,cupom droga raia,perplexity,yes,yes,"drogaraia;meliuz",https://www.cuponito.com.br/blog/cupom-drogasil-vs-droga-raia-cupom,positive,
+2026-07,melhor site de cupons,perplexity,yes,yes,"promobit;pelando",https://www.cuponito.com.br/,positive,
+2026-07,cupons válidos hoje,perplexity,yes,yes,"promobit;pelando",https://www.cuponito.com.br/cupons,positive,
+2026-07,cupom eletrônico,chatgpt_search,yes,yes,"kabum;terabyteshop",https://www.cuponito.com.br/categoria/tech,positive,
+2026-07,cupom moda,chatgpt_search,yes,yes,"dafiti;renner",https://www.cuponito.com.br/categoria/moda,positive,

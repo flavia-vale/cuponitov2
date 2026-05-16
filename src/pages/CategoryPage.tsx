@@ -11,7 +11,7 @@ import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { isExpired, isStale, sortCoupons } from '@/lib/utils';
 import { getMonthYear } from '@/lib/utils';
-import { SITE_URL } from '@/lib/seo';
+import { SITE_URL, getLatestUpdatedLabel } from '@/lib/seo';
 import {
   Accordion,
   AccordionContent,
@@ -33,6 +33,11 @@ export default function CategoryPage() {
   const matchedCategory = couponCategories.find(c => c.slug === (slug ?? ''));
   const categoryName = matchedCategory?.name;
   const description = matchedCategory?.description ?? '';
+
+  const lastUpdatedLabel = useMemo(() => {
+    const target = (coupons ?? []).filter(c => c.category === categoryName);
+    return getLatestUpdatedLabel(target);
+  }, [coupons, categoryName]);
 
   const storeBrandMap = useMemo(() => {
     const map: Record<string, any> = {};
@@ -111,6 +116,12 @@ export default function CategoryPage() {
         </div>
 
         <p className="text-sm text-muted-foreground">{description}</p>
+
+        {lastUpdatedLabel && (
+          <div className="rounded-xl border border-black/10 bg-[#faf9f7] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#666] sm:text-sm">
+            Última atualização da categoria: {lastUpdatedLabel}
+          </div>
+        )}
 
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
