@@ -58,6 +58,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
 export function useSettings() {
   return useQuery({
     queryKey: ['site-settings'],
+    initialData: DEFAULT_SETTINGS,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('site_settings')
