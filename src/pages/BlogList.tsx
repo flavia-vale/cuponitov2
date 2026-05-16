@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import { Link } from '@tanstack/react-router';
 import { Search, Sparkles, TrendingUp } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPosts, useBlogCategories } from '@/hooks/useBlog';
+import { useSettings } from '@/hooks/useSettings';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogCategoryFilter from '@/components/blog/BlogCategoryFilter';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
@@ -13,12 +15,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/EmptyState';
 import SEOHead from '@/components/SEOHead';
+import { trackEvent } from '@/lib/analytics';
 
 export default function BlogList() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const { data: allPosts, isLoading: postsLoading } = useBlogPosts();
   const { data: categories } = useBlogCategories();
+  const { data: settings } = useSettings();
 
   const filtered = useMemo(() => {
     if (!allPosts) return [];
@@ -40,6 +44,15 @@ export default function BlogList() {
   const featuredPost = useMemo(() => filtered.find(p => p.featured) || filtered[0], [filtered]);
   const latestPosts = useMemo(() => filtered.slice(0, 6), [filtered]);
   const mostRead = useMemo(() => [...(allPosts || [])].sort((a, b) => b.views_count - a.views_count).slice(0, 3), [allPosts]);
+
+  const selectedCategoryMeta = useMemo(() => {
+    if (!selectedCategory || !categories) return null;
+    return categories.find((category) => category.slug === selectedCategory) ?? null;
+  }, [selectedCategory, categories]);
+
+  const contextualCouponQuery = selectedCategoryMeta?.name ?? (search.trim() || 'cupom');
+  const whatsappLink = settings?.global_links.whatsapp_group || '#';
+
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f5f3ef]">
@@ -113,14 +126,63 @@ export default function BlogList() {
                 </div>
 
                 <div className="rounded-3xl bg-white border border-black/5 p-6 shadow-sm">
-                  <h3 className="text-sm font-black mb-2">Precisa de ajuda?</h3>
-                  <p className="text-xs text-[#888] leading-relaxed mb-4">Nossos especialistas selecionam os melhores cupons todos os dias.</p>
-                  <Button variant="outline" className="w-full rounded-xl border-primary text-primary font-bold hover:bg-primary/5">Falar com o time</Button>
+                  <h3 className="text-sm font-black mb-2">Quer economizar agora?</h3>
+                  <p className="text-xs text-[#888] leading-relaxed mb-4">
+                    Vá direto para os cupons mais relevantes desta categoria ou receba alertas no WhatsApp.
+                  </p>
+                  <div className="space-y-2">
+                    <Link
+                      to="/cupons"
+                      search={{ q: contextualCouponQuery }}
+                      onClick={() =>
+                        trackEvent('blog_coupon_cta_click', {
+                          source: 'blog_sidebar',
+                          context: selectedCategoryMeta?.name ?? 'geral',
+                          query: contextualCouponQuery,
+                        })
+                      }
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+                    >
+                      Ver cupons de {selectedCategoryMeta?.name ?? 'hoje'}
+                    </Link>
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="nofollow noopener noreferrer"
+                      onClick={() =>
+                        trackEvent('whatsapp_click', {
+                          source: 'blog_sidebar',
+                          context: selectedCategoryMeta?.name ?? 'geral',
+                        })
+                      }
+                      className="inline-flex w-full items-center justify-center rounded-xl border border-primary px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-primary/5"
+                    >
+                      Receber cupons no WhatsApp
+                    </a>
+                  </div>
                 </div>
               </section>
             </div>
 
-            <BlogWhatsAppCTA />
+            <div className="xl:hidden rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+              <p className="mb-3 text-xs font-semibold text-[#666]">Prefere ir direto ao desconto?</p>
+              <Link
+                to="/cupons"
+                search={{ q: contextualCouponQuery }}
+                onClick={() =>
+                  trackEvent('blog_coupon_cta_click', {
+                    source: 'blog_mobile_inline',
+                    context: selectedCategoryMeta?.name ?? 'geral',
+                    query: contextualCouponQuery,
+                  })
+                }
+                className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+              >
+                Ver cupons de {selectedCategoryMeta?.name ?? 'hoje'}
+              </Link>
+            </div>
+
+            <BlogWhatsAppCTA source="blog_list_footer" context={selectedCategoryMeta?.name ?? null} />
           </>
         )}
       </main>

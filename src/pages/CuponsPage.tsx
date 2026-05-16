@@ -90,7 +90,7 @@ export default function CuponsPage() {
         <div className="flex items-center gap-2 rounded-xl border bg-white p-2 shadow-sm">
           <Search className="ml-2 h-4 w-4 text-muted-foreground shrink-0" />
           <Input
-            placeholder="Buscar por loja, título ou código..."
+            placeholder="Digite a loja e encontre um cupom válido em segundos"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="border-0 bg-transparent shadow-none focus-visible:ring-0 h-10"
@@ -121,7 +121,18 @@ export default function CuponsPage() {
         ) : active.length === 0 && potentiallyExpired.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
             <p className="text-lg font-bold">Nenhum cupom encontrado</p>
-            <p className="text-sm mt-1">Tente outro termo ou categoria</p>
+            <p className="text-sm mt-1">Tente outro termo ou escolha uma das sugestões abaixo</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {CATEGORIES.slice(1, 5).map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className="rounded-full border border-border bg-white px-3 py-1 text-xs font-semibold text-foreground hover:bg-muted"
+                >
+                  Ver {cat}
+                </button>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="space-y-10">

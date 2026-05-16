@@ -1,5 +1,6 @@
 import { MessageCircle, Users, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { trackEvent } from '@/lib/analytics';
 import { useSettings } from '@/hooks/useSettings';
 
 type Variant = 'urgency' | 'social-proof' | 'store';
@@ -50,7 +51,12 @@ const WhatsAppCTA = ({ variant, storeName }: WhatsAppCTAProps) => {
             {text}
           </p>
 
-          <a href={whatsappLink} target="_blank" rel="nofollow noopener noreferrer">
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+            onClick={() => trackEvent('whatsapp_click', { source: variant, store: storeName ?? null })}
+          >
             <Button className="gap-2 rounded-full bg-[oklch(0.55_0.17_150)] px-4 py-2 text-sm md:px-6 md:text-base font-semibold text-white shadow-md hover:bg-[oklch(0.48_0.17_150)] hover:shadow-lg transition-all">
               <Icon className="h-5 w-5" />
               {buttonText}
