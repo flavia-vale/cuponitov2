@@ -19,6 +19,21 @@ function severityClass(severity: string) {
   return 'border-border';
 }
 
+function normalizeErrorMessage(error: unknown) {
+  if (!error || typeof error !== 'object' || !('message' in error)) return 'Erro desconhecido';
+  const message = String((error as { message?: string }).message || 'Erro desconhecido');
+
+  if (message.includes('permission denied') || message.includes('42501')) {
+    return 'Permissão negada (RLS): confira policies SELECT para anon/authenticated.';
+  }
+
+  if (message.includes('does not exist') || message.includes('42P01')) {
+    return 'Tabela não encontrada: aplique as migrations de observabilidade no Supabase.';
+  }
+
+  return message;
+}
+
 export function AdminMarketingObservabilityTab() {
   const { data: overview, isLoading: overviewLoading, error: overviewError } = useMarketingObservabilityOverview();
   const { data: trend = [], isLoading: trendLoading, error: trendError } = useMarketingObservabilityTrend();
@@ -36,7 +51,16 @@ export function AdminMarketingObservabilityTab() {
 
 
 
-  const hasAnyError = overviewError || trendError || seoError || funnelError || alertsError || hypothesesError;
+  const errors = [
+    ['overview', overviewError],
+    ['trend', trendError],
+    ['seo', seoError],
+    ['funnel', funnelError],
+    ['alerts', alertsError],
+    ['hypotheses', hypothesesError],
+  ].filter(([, error]) => Boolean(error)) as Array<[string, unknown]>;
+
+  const hasAnyError = errors.length > 0;
 
   const topOpportunity = funnel.length > 0
     ? [...funnel].sort((a, b) => b.sessions - a.sessions).find((item) => item.sessionToSignupRate < 1.5)
@@ -52,7 +76,13 @@ export function AdminMarketingObservabilityTab() {
       {hasAnyError ? (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-sm text-red-600">Algumas métricas falharam ao carregar. Verifique permissões RLS e dados das tabelas de observabilidade.</p>
+            <p className="text-sm font-medium text-red-700">Algumas métricas falharam ao carregar.</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-red-700">
+              {errors.map(([scope, error]) => (
+                <li key={scope}><strong>{scope}:</strong> {normalizeErrorMessage(error)}</li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">Dica: aplique as migrations de observabilidade e valide as policies RLS de leitura antes de testar novamente.</p>
           </CardContent>
         </Card>
       ) : null}
