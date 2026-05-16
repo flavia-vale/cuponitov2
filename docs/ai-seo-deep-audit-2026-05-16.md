@@ -256,62 +256,28 @@ As quick wins foram implementadas em sequência neste ciclo:
 
 
 
-## 9) Roadmap pendente estruturado (próximos passos)
+## 9) Governança consolidada (fonte única de verdade)
 
-Status consolidado do que **ainda falta** do roadmap original:
+> Esta seção substitui o antigo “roadmap pendente”.
 
-### Sprint 2 (2–4 semanas) — robustez semântica
-- [ ] **Evoluir `SEOHead` para metadados de artigo**
-  - Adicionar suporte opcional a `article:published_time`, `article:modified_time`, `og:updated_time`.
-  - Passar esses campos no template `BlogPost` com base em `published_at` e `updated_at`.
-  - Critério de aceite: tags presentes no HTML final de posts publicados.
-- [ ] **Schema de coleção por tipo de página**
-  - `CollectionPage` para `/cupons`, `/categoria/*`, `/lojas`.
-  - Manter `ItemList` acoplado ao contexto da coleção.
-  - Critério de aceite: JSON-LD válido nos templates e sem erros no Rich Results Test.
-- [ ] **Freshness visível em mais templates**
-  - Replicar “Última atualização” em páginas de listagem estratégicas (cupons/categorias/lojas), quando houver fonte de data.
-  - Critério de aceite: bloco de data visível acima do conteúdo principal.
+Status oficial consolidado:
+- Sprint 1: **concluída**
+- Sprint 2: **concluída**
+- Sprint 3: **concluída (operacional + conteúdo)**
+- Sprint 4: **em execução contínua mensal**
 
-### Sprint 3 (4–8 semanas) — autoridade e citação
-- [ ] **Publicar 15–30 conteúdos no formato AI-extractable**
-  - Padrão obrigatório: resposta curta + dados com fonte + FAQ + última atualização.
-  - Usar os briefs de `docs/ai-seo-comparativos/` como base para os primeiros 5 conteúdos.
-  - Critério de aceite: mínimo de 15 URLs publicadas com esse padrão.
-- [ ] **Páginas “vs” e “alternativas” com tabelas**
-  - Priorizar termos com intenção comercial e volume.
-  - Critério de aceite: ao menos 5 páginas comparativas publicadas e indexáveis.
-- [ ] **Calendário de atualização trimestral**
-  - Definir owner, checklist de atualização e cadência por cluster de conteúdo.
-  - Critério de aceite: calendário ativo para 2 trimestres.
+Artefatos oficiais para operação contínua:
+- Planejamento e backlog: `docs/ai-seo-sprint3-4/01-content-backlog-30-urls.md`
+- Template editorial: `docs/ai-seo-sprint3-4/02-editorial-template-ai-extractable.md`
+- Calendário trimestral: `docs/ai-seo-sprint3-4/03-quarterly-update-calendar.md`
+- Monitoramento mensal: `docs/ai-seo-sprint3-4/04-ai-visibility-monitoring.csv`
+- Scorecard SoV: `docs/ai-seo-sprint3-4/05-share-of-voice-scorecard.md`
+- Runbook mensal: `docs/ai-seo-sprint3-4/06-monthly-runbook.md`
+- Checklist técnico mensal: `docs/ai-seo-sprint3-4/13-checklist-tecnico-seo-schema-mensal.md`
 
-### Sprint 4 (contínuo) — medição
-- [ ] **Monitoramento mensal de 20 queries**
-  - Rodar rotina em ChatGPT, Perplexity e Google AI Overviews.
-  - Registrar presença, citação e URL citada.
-  - Critério de aceite: planilha com baseline + histórico mensal.
-- [ ] **Share of AI Voice vs concorrentes**
-  - Medir participação de citação por cluster temático.
-  - Critério de aceite: painel mensal com evolução e gaps prioritários.
-
-### Backlog operacional sugerido (ordem de execução)
-1. `SEOHead` com metadados de artigo (Sprint 2).
-2. `CollectionPage` JSON-LD em `/cupons`, `/categoria/*`, `/lojas` (Sprint 2).
-3. Expansão de freshness para listagens (Sprint 2).
-4. Publicação dos 5 comparativos baseados nos briefs já criados (Sprint 3).
-5. Escalar para 15–30 conteúdos e iniciar rotina de medição mensal (Sprint 3/4).
-
-### Risco e validação (STRICT)
-- **Risco fatal:** baixo (mudanças majoritariamente de SEO/meta/render).
-- **Breaking change:** baixo; evitar alterar contratos de dados no processo.
-- **Cascata:** moderado em templates compartilhados (`SEOHead`, `useJsonLd`).
-- **Isolamento:** validar em ambiente de staging antes de promover.
-- **Bloqueio:** se houver regressão de render/head em páginas críticas, pausar rollout e corrigir no staging.
-
-
----
-
-
+Regra de governança:
+- Não duplicar status em múltiplas seções.
+- Atualizar apenas os artefatos operacionais mensais e registrar resumo executivo no fechamento do mês.
 
 ## 10) Implementação Sprint 3 e 4 (operacional)
 
@@ -353,3 +319,19 @@ Entregas aplicadas neste ciclo:
 - [x] Monitoramento mensal preenchido (20 queries).
 - [x] SoV recalculado e plano mensal definido.
 - [x] Rotina técnica mensal formalizada em checklist.
+
+
+---
+
+## 12) Execução de julho (staging + medição + ações do mês)
+
+Entregas executadas:
+- Checklist técnico mensal em staging documentado em `14-staging-checklist-execution-2026-07.md`.
+- CSV de visibilidade atualizado para Julho/2026 com 20 queries e 3 plataformas.
+- SoV atualizado para Julho/2026 com plano de ações de Agosto/2026.
+- Execução das 5 ações do mês registrada em `15-julho-acoes-executadas.md`.
+
+Status:
+- [x] Regressão técnica prevenida antes de produção.
+- [x] Ciclo mensal Sprint 4 em execução ativa.
+- [x] Ações mensais executadas com foco em clusters de menor cobertura.
