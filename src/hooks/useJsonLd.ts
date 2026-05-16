@@ -180,6 +180,22 @@ function faqPageSchema(storeName: string) {
   };
 }
 
+
+function collectionPageSchema(name: string, description: string, path: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name,
+    description,
+    url: `${SITE_URL}${path}`,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Cuponito",
+      url: SITE_URL,
+    },
+  };
+}
+
 function couponItemList(listName: string, coupons: Coupon[]) {
   const fallback = fallbackValidThrough();
   return {
@@ -290,9 +306,17 @@ export function useJsonLd(route?: JsonLdRoute | null): object[] {
           blogPostingSchema(safeRoute.article),
         ];
       case 'lojas':
-        return [orgSchema(), breadcrumbLojas()];
+        return [
+          orgSchema(),
+          breadcrumbLojas(),
+          collectionPageSchema('Todas as Lojas com Cupons', 'Lista de lojas parceiras com cupons e ofertas.', '/lojas'),
+        ];
       case 'cupons':
-        return [orgSchema(), breadcrumbCupons()];
+        return [
+          orgSchema(),
+          breadcrumbCupons(),
+          collectionPageSchema('Todos os Cupons de Desconto', 'Lista atualizada de cupons de desconto verificados.', '/cupons'),
+        ];
       case 'blog-list':
         return [orgSchema(), breadcrumbBlogList()];
       case 'categoria':
@@ -307,6 +331,7 @@ export function useJsonLd(route?: JsonLdRoute | null): object[] {
               { "@type": "ListItem", position: 3, name: safeRoute.categoryName, item: `${SITE_URL}/categoria/${safeRoute.slug}` },
             ],
           },
+          collectionPageSchema(`Cupons de ${safeRoute.categoryName}`, `Lista de cupons da categoria ${safeRoute.categoryName}.`, `/categoria/${safeRoute.slug}`),
           ...(safeRoute.coupons.length > 0
             ? [couponItemList(`Cupons de ${safeRoute.categoryName}`, safeRoute.coupons)]
             : []),

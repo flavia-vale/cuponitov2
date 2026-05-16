@@ -25,7 +25,7 @@ function urlEntry(loc: string, lastmod: string, changefreq: string, priority: nu
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const today = new Date().toISOString().split('T')[0]
 
-  const [storesResult, postsResult] = await Promise.all([
+  const [storesResult, postsResult, categoriesResult] = await Promise.all([
     supabase
       .from('stores')
       .select('slug, updated_at')
@@ -36,12 +36,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select('slug, updated_at')
       .eq('status', 'published')
       .order('created_at', { ascending: false }),
+    supabase
+      .from('coupon_categories')
+      .select('slug, updated_at')
+      .order('sort_order')
+      .order('name'),
   ])
 
   const stores = storesResult.data ?? []
   const posts = postsResult.data ?? []
-
-  const CATEGORY_SLUGS = ['moda', 'tech', 'delivery', 'frete-gratis', 'beleza', 'viagens', 'geral'];
+  const categories = categoriesResult.data ?? []
 
   // Páginas estáticas — ordem reflete importância para crawlers
   const staticUrls = [
@@ -54,7 +58,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     urlEntry(`${BASE_URL}/fale-conosco`, today, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/perguntas-frequentes`, today, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/termos-de-uso`, today, 'monthly', 0.4),
-    ...CATEGORY_SLUGS.map(slug => urlEntry(`${BASE_URL}/categoria/${slug}`, today, 'daily', 0.7)),
+    ...categories.map(category =>
+      urlEntry(
+        `${BASE_URL}/categoria/${category.slug}`,
+        formatDate(category.updated_at),
+        'daily',
+        0.7
+      )
+    ),
   ].join('\n')
 
   // Páginas de loja — core do site, atualizam com frequência
