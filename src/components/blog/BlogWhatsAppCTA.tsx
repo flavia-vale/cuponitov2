@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useSettings } from '@/hooks/useSettings';
+import { trackEvent } from '@/lib/analytics';
 
 const WhatsAppIcon = ({ size = 28 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -9,7 +10,12 @@ const WhatsAppIcon = ({ size = 28 }: { size?: number }) => (
   </svg>
 );
 
-const BlogWhatsAppCTA = () => {
+interface BlogWhatsAppCTAProps {
+  source?: string;
+  context?: string | null;
+}
+
+const BlogWhatsAppCTA = ({ source = 'blog_whatsapp_cta', context = null }: BlogWhatsAppCTAProps) => {
   const { data: settings } = useSettings();
   const whatsappLink = settings?.global_links.whatsapp_group || '#';
 
@@ -31,6 +37,7 @@ const BlogWhatsAppCTA = () => {
           target="_blank"
           rel="nofollow noopener noreferrer"
           className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-black uppercase tracking-wide text-[#128C7E] transition-all hover:scale-105 hover:bg-gray-50 active:scale-95 shadow-md"
+          onClick={() => trackEvent('whatsapp_click', { source, context })}
         >
           <WhatsAppIcon size={16} /> Entrar no Grupo
         </a>

@@ -34,7 +34,7 @@ const Header = () => {
           </Link>
           <Link
             to="/blog"
-            className="flex items-center gap-1.5 bg-white text-[#FF5500] rounded-[8px] px-[15px] py-[7px] font-semibold hover:bg-white/[0.92] transition-colors"
+            className="flex items-center gap-1.5 rounded-[8px] px-[15px] py-[7px] font-semibold text-white/[0.9] hover:bg-white/15 transition-colors"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 19l7-7 3 3-7 7-3-3z"/>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, lazy, Suspense, useState } from 'react';
+import { useEffect, useMemo, lazy, Suspense, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import HeroBanner from '@/components/HeroBanner';
@@ -15,6 +15,7 @@ import { useCouponCategories } from '@/hooks/useCouponCategories';
 import { getMonthYear, isExpired, isStale, sortCoupons } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import HowItWorks from '@/components/HowItWorks';
+import { getVariant, trackExposure } from '@/lib/experiments';
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 const Footer = lazy(() => import('@/components/Footer'));
@@ -29,6 +30,14 @@ export default function Home() {
   const { data: couponCategories = [] } = useCouponCategories();
   const monthYear = getMonthYear();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const whatsappPosition = getVariant('whatsapp_position_v1');
+  const couponCtaVariant = getVariant('coupon_cta_v1');
+
+
+  useEffect(() => {
+    trackExposure('coupon_cta_v1', couponCtaVariant);
+    trackExposure('whatsapp_position_v1', whatsappPosition);
+  }, [couponCtaVariant, whatsappPosition]);
 
   const validCoupons = useMemo(() => {
     if (!coupons) return [];
@@ -102,7 +111,7 @@ export default function Home() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Destaques do dia</h2>
             <Link to="/cupons" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
-              Ver todos <ArrowRight size={14} />
+              Ver todos os cupons verificados <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -118,7 +127,7 @@ export default function Home() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Cupons populares</h2>
             <Link to="/cupons" className="flex items-center gap-1 text-xs font-bold text-[#ff5200]">
-              Ver todos <ArrowRight size={14} />
+              Ver todos os cupons verificados <ArrowRight size={14} />
             </Link>
           </div>
           <div className="space-y-3">
@@ -147,6 +156,14 @@ export default function Home() {
         </section>
 
         <HowItWorks />
+
+        {whatsappPosition === 'mid_and_footer' && (
+          <Suspense fallback={null}>
+            <div className="mx-auto max-w-6xl px-4">
+              <WhatsAppCTA variant="social-proof" />
+            </div>
+          </Suspense>
+        )}
 
         <Suspense fallback={null}>
           <div className="mx-auto max-w-6xl px-4">

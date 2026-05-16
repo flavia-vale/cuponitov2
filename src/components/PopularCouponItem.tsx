@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { trackEvent } from '@/lib/analytics';
 import type { Coupon } from '@/hooks/useCoupons';
 import type { StoreBrand } from '@/lib/storeBranding';
 import StoreIcon from './StoreIcon';
@@ -18,11 +19,13 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
   const handleAction = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (coupon.code) {
+      trackEvent('coupon_copy', { source: 'popular_coupon_item', store: coupon.store });
       navigator.clipboard.writeText(coupon.code);
       setCopied(true);
       toast({ title: 'Código copiado!', description: 'Use no carrinho para economizar.' });
       setTimeout(() => setCopied(false), 2000);
     }
+    trackEvent('coupon_click', { source: 'popular_coupon_item', store: coupon.store });
     window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
   };
 

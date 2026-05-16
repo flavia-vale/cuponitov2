@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Copy, ExternalLink, CheckCircle2, Zap, Clock, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { trackEvent } from '@/lib/analytics';
 import type { Tables } from '@/integrations/supabase/types';
 import type { StoreBrand } from '@/lib/storeBranding';
 import {
@@ -34,9 +35,11 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
 
   const copyAndGo = () => {
     if (coupon.code) {
+      trackEvent('coupon_copy', { source: 'coupon_card', store: coupon.store });
       navigator.clipboard.writeText(coupon.code);
       toast({ title: 'Cupom copiado!', description: 'Agora é só colar no carrinho.' });
     }
+    trackEvent('coupon_click', { source: 'coupon_card', store: coupon.store });
     window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
   };
 
