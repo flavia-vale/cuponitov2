@@ -1,6 +1,8 @@
 import StoreIcon from './StoreIcon';
 import type { Coupon } from '@/hooks/useCoupons';
 import type { StoreBrand } from '@/lib/storeBranding';
+import { trackEvent } from '@/lib/analytics';
+import { getVariant } from '@/lib/experiments';
 
 interface FeaturedStoreCardProps {
   coupon: Coupon;
@@ -8,9 +10,12 @@ interface FeaturedStoreCardProps {
 }
 
 const FeaturedStoreCard = ({ coupon, storeBrand }: FeaturedStoreCardProps) => {
+  const ctaVariant = getVariant('coupon_cta_v1');
+
   const brandColor = storeBrand?.brand_color || '#94a3b8';
 
   const handleOpen = () => {
+    trackEvent('coupon_click', { source: 'featured_store_card', store: coupon.store });
     window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
   };
 
@@ -45,7 +50,7 @@ const FeaturedStoreCard = ({ coupon, storeBrand }: FeaturedStoreCardProps) => {
       <button 
         className="mt-auto h-12 w-full rounded-2xl border-2 border-border font-bold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
       >
-        Pegar cupom
+        {ctaVariant === 'action' ? 'Copiar cupom agora' : 'Copiar e ir para loja'}
       </button>
     </div>
   );
