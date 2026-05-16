@@ -1,0 +1,33 @@
+# Cuponito (www.cuponito.com.br)
+
+Cuponito é uma plataforma brasileira de cupons de desconto e ofertas para e-commerce.
+A missão é ajudar consumidores a economizar com cupons atualizados para lojas como Amazon, Shopee e Mercado Livre.
+
+## Público-alvo
+- Consumidores no Brasil buscando cupons válidos e ofertas atualizadas.
+- Usuários que querem comparar lojas e encontrar melhores descontos por categoria.
+
+## Páginas canônicas
+- Home: https://www.cuponito.com.br/
+- Cupons: https://www.cuponito.com.br/cupons
+- Lojas: https://www.cuponito.com.br/lojas
+- Blog: https://www.cuponito.com.br/blog
+
+## Páginas institucionais
+- Quem somos: https://www.cuponito.com.br/quem-somos
+- Como funciona: https://www.cuponito.com.br/como-funciona
+- Contato: https://www.cuponito.com.br/fale-conosco
+- FAQ: https://www.cuponito.com.br/perguntas-frequentes
+- Termos: https://www.cuponito.com.br/termos-de-uso
+
+## Estruturas relevantes
+- Categorias de cupons: /categoria/{slug}
+- Página de loja: /desconto/{slug}
+- Artigo de blog: /blog/{slug}
+
+## Atualização de conteúdo
+- Cupons e ofertas são revisados e atualizados regularmente.
+- Posts de blog seguem trilhas de educação financeira e economia em compras online.
+
+## Contato
+- Site oficial: https://www.cuponito.com.br

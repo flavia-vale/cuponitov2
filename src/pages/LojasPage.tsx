@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
+import { getLatestUpdatedLabel } from '@/lib/seo';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useCoupons } from '@/hooks/useCoupons';
 import PartnerStoreCard from '@/components/PartnerStoreCard';
@@ -16,6 +17,8 @@ export default function LojasPage() {
   const [search, setSearch] = useState('');
   const { data: storeBrands, isLoading } = useStoreBrands();
   const { data: coupons } = useCoupons();
+
+  const lastUpdatedLabel = useMemo(() => getLatestUpdatedLabel(coupons), [coupons]);
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase().trim();
@@ -46,6 +49,12 @@ export default function LojasPage() {
           </Link>
           <h1 className="text-xl font-bold text-foreground">Todas as lojas</h1>
         </div>
+
+        {lastUpdatedLabel && (
+          <div className="rounded-xl border border-black/10 bg-[#faf9f7] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#666] sm:text-sm">
+            Última atualização da listagem: {lastUpdatedLabel}
+          </div>
+        )}
 
         <div className="flex items-center gap-2 rounded-xl border bg-white p-2 shadow-sm">
           <Search className="ml-2 h-4 w-4 text-muted-foreground shrink-0" />

@@ -13,6 +13,9 @@ interface SEOHeadProps {
   ogImage?: string;
   robots?: string;
   jsonLdRoute?: JsonLdRoute;
+  articlePublishedTime?: string;
+  articleModifiedTime?: string;
+  ogUpdatedTime?: string;
 }
 
 const DEFAULT_JSON_LD_ROUTE: JsonLdRoute = { type: 'generic' };
@@ -25,6 +28,9 @@ const SEOHead = ({
   ogImage,
   robots,
   jsonLdRoute = DEFAULT_JSON_LD_ROUTE,
+  articlePublishedTime,
+  articleModifiedTime,
+  ogUpdatedTime,
 }: SEOHeadProps) => {
   const jsonLd = useJsonLd(jsonLdRoute);
   const canonicalUrl = canonical ?? SITE_URL;
@@ -51,6 +57,9 @@ const SEOHead = ({
       <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content="Cuponito" />
       <meta property="og:locale" content="pt_BR" />
+      {articlePublishedTime && <meta property="article:published_time" content={articlePublishedTime} />}
+      {articleModifiedTime && <meta property="article:modified_time" content={articleModifiedTime} />}
+      {ogUpdatedTime && <meta property="og:updated_time" content={ogUpdatedTime} />}
 
       {/* Twitter / X Cards */}
       <meta name="twitter:card" content="summary_large_image" />
