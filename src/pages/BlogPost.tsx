@@ -34,6 +34,9 @@ export default function BlogPost() {
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
     : null;
   const readingTime = post?.content ? calcReadingTime(post.content) : 1;
+  const updatedDate = post?.updated_at
+    ? new Date(post.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : publishedDate;
 
   // SEO sempre presente para o Googlebot, mesmo durante o loading
   const seoTitle = post
@@ -49,6 +52,9 @@ export default function BlogPost() {
         canonical={`${SITE_URL}/blog/${slug}`}
         ogType="article"
         ogImage={post?.cover_image || undefined}
+        articlePublishedTime={post?.published_at || post?.created_at || undefined}
+        articleModifiedTime={post?.updated_at || post?.published_at || post?.created_at || undefined}
+        ogUpdatedTime={post?.updated_at || post?.published_at || post?.created_at || undefined}
         jsonLdRoute={post ? {
           type: 'blog',
           article: {
@@ -123,10 +129,22 @@ export default function BlogPost() {
           <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12 overflow-x-hidden">
             <article>
               {post.excerpt && (
-                <p className="mb-6 border-l-4 border-primary bg-primary/5 py-2 pl-4 pr-3 text-sm font-medium italic leading-relaxed text-[#444] rounded-r-xl sm:mb-10 sm:pl-6 sm:text-base sm:rounded-r-2xl">
-                  {post.excerpt}
-                </p>
+                <>
+                  <div className="mb-4 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:mb-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Resposta rápida</p>
+                    <p className="mt-2 text-sm font-medium leading-relaxed text-[#333] sm:text-base">
+                      {post.excerpt}
+                    </p>
+                  </div>
+                  <p className="mb-6 border-l-4 border-primary bg-primary/5 py-2 pl-4 pr-3 text-sm font-medium italic leading-relaxed text-[#444] rounded-r-xl sm:mb-8 sm:pl-6 sm:text-base sm:rounded-r-2xl">
+                    {post.excerpt}
+                  </p>
+                </>
               )}
+
+              <div className="mb-8 rounded-xl border border-black/10 bg-[#faf9f7] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#666] sm:text-sm">
+                Última atualização: {updatedDate || 'Data indisponível'}
+              </div>
               <div
                 className="prose prose-neutral max-w-none text-[#444] leading-[1.8] text-sm sm:text-base md:text-lg
                   prose-headings:text-[#1a1a1a] prose-headings:font-black

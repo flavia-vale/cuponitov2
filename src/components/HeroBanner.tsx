@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Check, Search } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { trackEvent } from '@/lib/analytics';
+import { getVariant, trackExposure } from '@/lib/experiments';
 
 const HeroBanner = () => {
   const navigate = useNavigate();
@@ -11,8 +13,15 @@ const HeroBanner = () => {
   const { data: settings } = useSettings();
 
   const heroContent = settings?.hero_content;
-  const title = heroContent?.hero_title || "Economize em cada compra";
-  const subtitle = heroContent?.hero_subtitle || "+3.000 cupons verificados todos os dias";
+
+  const heroHeadlineVariant = getVariant('hero_headline_v1');
+
+  useEffect(() => {
+    trackExposure('hero_headline_v1', heroHeadlineVariant);
+  }, [heroHeadlineVariant]);
+
+  const title = heroContent?.hero_title || (heroHeadlineVariant === 'benefit' ? "Ganhe tempo: cupons validados para economizar em segundos" : "Cupons testados hoje para você economizar de verdade");
+  const subtitle = heroContent?.hero_subtitle || "Ofertas e códigos atualizados diariamente nas lojas que você já compra";
   const badges = [
     heroContent?.trust_badge_1 || "Verificados hoje",
     heroContent?.trust_badge_2 || "100% gratuito",
@@ -23,6 +32,8 @@ const HeroBanner = () => {
     e.preventDefault();
     const term = query.trim();
     if (!term) return;
+
+    trackEvent('search_submit', { source: 'hero_banner', term_length: term.length });
 
     navigate({ 
       to: '/cupons', 
@@ -51,7 +62,7 @@ const HeroBanner = () => {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Qual loja você está procurando?"
+              placeholder="Digite a loja e pegue um cupom válido em segundos"
               className="border-0 bg-transparent text-lg text-[#1a1a1a] shadow-none focus-visible:ring-0 placeholder:text-[#aaa]"
             />
             <Button 
