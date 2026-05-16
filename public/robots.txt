@@ -4,6 +4,28 @@ Disallow: /admin
 Disallow: /admin/*
 Disallow: /404
 
+# Política explícita para bots de IA (citação e descoberta)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 # Limita bots de SEO agressivos para não sobrecarregar o servidor
 User-agent: AhrefsBot
 Crawl-delay: 10

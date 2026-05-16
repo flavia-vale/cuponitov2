@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Search, ArrowLeft, ChevronDown, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { isExpired, isStale, sortCoupons, cn } from '@/lib/utils';
+import { getLatestUpdatedLabel } from '@/lib/seo';
 import {
   Accordion,
   AccordionContent,
@@ -30,6 +31,8 @@ export default function CuponsPage() {
   const { data: coupons, isLoading } = useCoupons();
   const { data: storeBrands } = useStoreBrands();
   const { data: couponCategories = [] } = useCouponCategories();
+
+  const lastUpdatedLabel = useMemo(() => getLatestUpdatedLabel(coupons), [coupons]);
   const CATEGORIES = ['Todos', ...couponCategories.map(c => c.name)];
   const debouncedSearch = useDebounce(search, 250);
 
@@ -77,6 +80,12 @@ export default function CuponsPage() {
           </Link>
           <h1 className="text-xl font-bold text-foreground">Todos os cupons</h1>
         </div>
+
+        {lastUpdatedLabel && (
+          <div className="rounded-xl border border-black/10 bg-[#faf9f7] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#666] sm:text-sm">
+            Última atualização da listagem: {lastUpdatedLabel}
+          </div>
+        )}
 
         <div className="flex items-center gap-2 rounded-xl border bg-white p-2 shadow-sm">
           <Search className="ml-2 h-4 w-4 text-muted-foreground shrink-0" />
