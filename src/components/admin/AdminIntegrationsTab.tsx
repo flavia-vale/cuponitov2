@@ -99,6 +99,8 @@ export function AdminIntegrationsTab() {
   const [enrichLastRun, setEnrichLastRun] = useState<string | null>(null);
   const [expireInterval, setExpireInterval] = useState(24);
   const [expireLastRun, setExpireLastRun] = useState<string | null>(null);
+  const [casasBahiaInterval, setCasasBahiaInterval] = useState(6);
+  const [casasBahiaLastRun, setCasasBahiaLastRun] = useState<string | null>(null);
 
   const [accountDialog, setAccountDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Partial<typeof EMPTY_ACCOUNT> & { id?: string }>(EMPTY_ACCOUNT);
@@ -126,6 +128,8 @@ export function AdminIntegrationsTab() {
     if (prefs.enrich_last_run) setEnrichLastRun(prefs.enrich_last_run);
     if (prefs.expire_interval) setExpireInterval(prefs.expire_interval);
     if (prefs.expire_last_run) setExpireLastRun(prefs.expire_last_run);
+    if (prefs.casas_bahia_interval) setCasasBahiaInterval(prefs.casas_bahia_interval);
+    if (prefs.casas_bahia_last_run) setCasasBahiaLastRun(prefs.casas_bahia_last_run);
   }, []);
 
   // ── Sync manual ─────────────────────────────────────────────────────────────
@@ -223,6 +227,9 @@ export function AdminIntegrationsTab() {
       const { data, error } = await supabase.functions.invoke('sync-casas-bahia', {});
       if (error) throw error;
 
+      const now = new Date().toISOString();
+      setCasasBahiaLastRun(now);
+      saveUtilPref('casas_bahia_last_run', now);
       if (data?.skipped) {
         toast.warning(`Casas Bahia (Planilha): sincronização ignorada — ${data.reason ?? 'sem detalhes'}`);
       } else {
@@ -466,7 +473,33 @@ export function AdminIntegrationsTab() {
               Sincroniza ofertas da planilha pública da Casas Bahia, converte os links para afiliado AWIN e atualiza a tabela de cupons.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center gap-4 rounded-lg bg-muted/40 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">A cada</span>
+                <Select
+                  value={String(casasBahiaInterval)}
+                  onValueChange={(v) => {
+                    const h = Number(v);
+                    setCasasBahiaInterval(h);
+                    saveUtilPref('casas_bahia_interval', h);
+                  }}
+                >
+                  <SelectTrigger className="h-7 w-24 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 6, 12, 24, 48].map(h => (
+                      <SelectItem key={h} value={String(h)}>{h}h</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="ml-auto text-xs text-muted-foreground">
+                <span>Última: {fmtDate(casasBahiaLastRun)}</span>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
