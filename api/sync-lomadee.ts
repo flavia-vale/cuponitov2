@@ -165,17 +165,38 @@ export default async function handler(req: any, res: any): Promise<void> {
   const apiHeaders = { 'x-api-key': lomadeeApiKey };
   const brandCache: Record<string, any> = {};
 
+  // Time budget: para antes do Vercel matar a função (maxDuration=300s).
+  // Margem de ~30s para finalizar logs e persistir state.
+  const startedAt = Date.now();
+  const TIME_BUDGET_MS = 270_000;
+
   for (const account of accounts) {
     const baseUrl = (account.integration_providers?.base_url || 'https://api-beta.lomadee.com.br').replace(/\/+$/, '');
     let logId: string | null = null;
     try { const log = await db.insert<{ id: string }>('sync_logs', { account_id: account.id, status: 'running' }); logId = log?.id ?? null; } catch { }
 
-    const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0, skipped_no_url: 0, skipped_no_store: 0, skipped_db_error: 0, shortener_errors: 0, offer_types: {} as Record<string, number>, sample_errors: [] as string[], sample_payload: null as any };
+    // Retoma de onde parou (sync_schedules.state.next_page)
+    let resumePage = 1;
+    let scheduleId: string | null = null;
+    try {
+      const sched = await db.select<{ id: string; state: any }>('sync_schedules', `account_id=eq.${account.id}&select=id,state`);
+      if (sched[0]) {
+        scheduleId = sched[0].id;
+        const nextPage = Number(sched[0].state?.next_page);
+        if (Number.isFinite(nextPage) && nextPage > 1) resumePage = nextPage;
+      }
+    } catch { }
+
+    const stats = { inserted: 0, updated: 0, skipped: 0, stores_created: 0, skipped_no_url: 0, skipped_no_store: 0, skipped_db_error: 0, shortener_errors: 0, offer_types: {} as Record<string, number>, sample_errors: [] as string[], sample_payload: null as any, started_page: resumePage, last_page: resumePage, partial: false };
     const errors: string[] = [];
-    let page = 1;
+    let page = resumePage;
     let hasMore = true;
 
     while (hasMore) {
+      if (Date.now() - startedAt > TIME_BUDGET_MS) {
+        stats.partial = true;
+        break;
+      }
       try {
         const qs = new URLSearchParams({
           page: String(page),
@@ -327,11 +348,20 @@ export default async function handler(req: any, res: any): Promise<void> {
           } catch (e: any) { errors.push(e.message); stats.skipped++; }
         }
 
+        stats.last_page = page;
         page++;
       } catch (e: any) { errors.push(e.message); break; }
     }
 
-    const finalStatus = errors.length > 0 && stats.inserted + stats.updated === 0 ? 'error' : 'success';
+    // Persiste paginação para retomar na próxima execução (ou reseta ao concluir)
+    if (scheduleId) {
+      try {
+        const newState = stats.partial && hasMore ? { next_page: page, total_pages: stats.last_page } : {};
+        await db.update('sync_schedules', { state: newState }, `id=eq.${scheduleId}`);
+      } catch { }
+    }
+
+    const finalStatus = errors.length > 0 && stats.inserted + stats.updated === 0 ? 'error' : (stats.partial ? 'partial' : 'success');
     if (logId) {
       try {
         await db.update('sync_logs', {
