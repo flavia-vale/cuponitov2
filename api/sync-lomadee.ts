@@ -149,13 +149,14 @@ export default async function handler(req: any, res: any): Promise<void> {
   let accounts: any[];
   try {
     if (accountId) {
-      accounts = await db.select('affiliate_accounts', `id=eq.${accountId}&active=eq.true&select=*,integration_providers(slug,base_url)`);
+      accounts = await db.select('affiliate_accounts', `id=eq.${accountId}&active=eq.true&select=*,integration_providers(slug,base_url,active)`);
     } else {
-      const providers = await db.select('integration_providers', 'slug=eq.lomadee&select=id');
+      const providers = await db.select('integration_providers', 'slug=eq.lomadee&active=eq.true&select=id');
       const providerId = providers[0]?.id;
-      if (!providerId) { res.status(200).json({ message: 'Provider Lomadee não encontrado' }); return; }
-      accounts = await db.select('affiliate_accounts', `provider_id=eq.${providerId}&active=eq.true&select=*,integration_providers(slug,base_url)`);
+      if (!providerId) { res.status(200).json({ message: 'Provider Lomadee não encontrado ou inativo' }); return; }
+      accounts = await db.select('affiliate_accounts', `provider_id=eq.${providerId}&active=eq.true&select=*,integration_providers(slug,base_url,active)`);
     }
+    accounts = accounts.filter(a => a.integration_providers?.active !== false);
   } catch (e: any) { res.status(500).json({ error: e.message }); return; }
 
   if (!accounts || accounts.length === 0) { res.status(200).json({ message: 'Nenhuma conta Lomadee ativa' }); return; }
@@ -165,6 +166,7 @@ export default async function handler(req: any, res: any): Promise<void> {
   const brandCache: Record<string, any> = {};
 
   for (const account of accounts) {
+    const baseUrl = (account.integration_providers?.base_url || 'https://api-beta.lomadee.com.br').replace(/\/+$/, '');
     let logId: string | null = null;
     try { const log = await db.insert<{ id: string }>('sync_logs', { account_id: account.id, status: 'running' }); logId = log?.id ?? null; } catch { }
 
@@ -182,7 +184,7 @@ export default async function handler(req: any, res: any): Promise<void> {
           status: 'onTime',
         }).toString();
 
-        const { ok, status, text } = await httpsGetJson(`https://api-beta.lomadee.com.br/affiliate/campaigns?${qs}`, apiHeaders);
+        const { ok, status, text } = await httpsGetJson(`${baseUrl}/affiliate/campaigns?${qs}`, apiHeaders);
 
         if (!ok) {
           errors.push(`API error p${page}: ${status} ${text.slice(0, 200)}`);
@@ -208,7 +210,7 @@ export default async function handler(req: any, res: any): Promise<void> {
         await Promise.allSettled(
           uncachedOrgIds.map(async (orgId: any) => {
             try {
-              const { ok: brandOk, text: brandText } = await httpsGetJson(`https://api-beta.lomadee.com.br/affiliate/brands/${orgId}`, apiHeaders);
+              const { ok: brandOk, text: brandText } = await httpsGetJson(`${baseUrl}/affiliate/brands/${orgId}`, apiHeaders);
               if (brandOk) {
                 const brandData = JSON.parse(brandText);
                 brandCache[orgId] = { name: brandData.data?.name ?? 'Loja Lomadee', logo: brandData.data?.logo ?? '' };
@@ -261,7 +263,7 @@ export default async function handler(req: any, res: any): Promise<void> {
             if (!linkUrl && campaign.offerType === 'Spreadsheet') {
               try {
                 const shortenerRes = await httpsPostJson(
-                  'https://api-beta.lomadee.com.br/affiliate/shortener/url',
+                  `${baseUrl}/affiliate/shortener/url`,
                   JSON.stringify({ organizationId: orgId, type: 'Coupon', featureId: campaign.id }),
                   apiHeaders
                 );
