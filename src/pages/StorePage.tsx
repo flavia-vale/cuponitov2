@@ -32,7 +32,7 @@ export default function StorePage() {
     return storeBrands.find((b) => b.slug === slug);
   }, [storeBrands, slug]);
 
-  const { data: storeCouponsData, isLoading: couponsLoading } = useStoreCoupons(storeBrand?.id);
+  const { data: storeCouponsData, isLoading: couponsLoading } = useStoreCoupons(storeBrand?.id, storeBrand?.name);
   const storeName = storeBrand?.name || slug?.replace(/cupom-desconto-/g, '').replace(/-/g, ' ') || '';
   const brandColor = storeBrand?.brand_color || '#FF4D00';
   const whatsappLink = settings?.global_links.whatsapp_group || '#';
