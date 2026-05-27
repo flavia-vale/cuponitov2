@@ -20,9 +20,9 @@ export function isExpired(expiry: string | null): boolean {
 
 export function isStale(updatedAt: string, successRate: number = 0): boolean {
   const updateDate = new Date(updatedAt);
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  return updateDate < sixMonthsAgo && successRate === 0;
+  const threshold = new Date();
+  threshold.setMonth(threshold.getMonth() - 18);
+  return updateDate < threshold && successRate === 0;
 }
 
 export function getDiscountValue(discount: string): number {
