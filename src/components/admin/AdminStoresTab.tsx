@@ -10,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import type { StoreBrand } from '@/lib/storeBranding';
 
 interface Props { stores: StoreBrand[] | undefined; refetchStores: () => void; }
-interface StoreForm { name: string; slug: string; icon_emoji: string; brand_color: string; fallback_color: string; logo_url: string; description: string; meta_description: string; store_id?: string; }
-const emptyForm: StoreForm = { name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf', logo_url: '', description: '', meta_description: '' };
+interface StoreForm { name: string; slug: string; icon_emoji: string; brand_color: string; fallback_color: string; logo_url: string; description: string; meta_description: string; website_url: string; store_id?: string; }
+const emptyForm: StoreForm = { name: '', slug: '', icon_emoji: '🏷️', brand_color: '#575ecf', fallback_color: '#575ecf', logo_url: '', description: '', meta_description: '', website_url: '' };
 
 export function AdminStoresTab({ stores, refetchStores }: Props) {
   const queryClient = useQueryClient();
@@ -43,7 +43,8 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
       logo_url: form.logo_url || null,
       description: form.description || '', // Nunca enviar null para coluna NOT NULL
       meta_description: form.meta_description || '', // Nunca enviar null para coluna NOT NULL
-      store_id: form.store_id || String(Math.floor(Math.random() * 8999999 + 1000000))
+      store_id: form.store_id || String(Math.floor(Math.random() * 8999999 + 1000000)),
+      website_url: form.website_url.trim() || null,
     };
 
     if (editingId) {
@@ -79,6 +80,7 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
       logo_url: store.logo_url || '',
       description: store.description || '',
       meta_description: store.meta_description || '',
+      website_url: store.website_url || '',
       store_id: String(store.store_id)
     });
   };
@@ -125,6 +127,11 @@ export function AdminStoresTab({ stores, refetchStores }: Props) {
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Meta Description (SEO — até 160 caracteres)</label>
                 <Input value={form.meta_description} onChange={(e) => setForm((p) => ({ ...p, meta_description: e.target.value }))} placeholder="Ex: Cupom Amazon válido hoje: até 80% OFF verificado pelo Cuponito." maxLength={160} />
                 <p className="mt-0.5 text-[10px] text-muted-foreground">{form.meta_description.length}/160 caracteres</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Link da Loja (botão "Visitar Loja")</label>
+                <Input value={form.website_url} onChange={(e) => setForm((p) => ({ ...p, website_url: e.target.value }))} placeholder="https://www.amazon.com.br" type="url" />
+                <p className="mt-0.5 text-[10px] text-muted-foreground">Se vazio, usa o link do primeiro cupom como fallback</p>
               </div>
             </div>
             <div className="space-y-3">

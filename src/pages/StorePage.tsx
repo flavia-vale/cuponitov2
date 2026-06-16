@@ -77,7 +77,7 @@ export default function StorePage() {
   }, [activeCoupons, filter]);
 
   const handleVisit = () => {
-    const link = storeCoupons[0]?.link || '/';
+    const link = storeBrand?.website_url || storeCoupons[0]?.link || '/';
     window.open(link, '_blank', 'nofollow sponsored noopener noreferrer');
   };
 
