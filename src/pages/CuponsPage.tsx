@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Search, ArrowLeft, ChevronDown, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { isExpired, isStale, sortCoupons, cn } from '@/lib/utils';
-import { getLatestUpdatedLabel } from '@/lib/seo';
+import { SITE_URL, getLatestUpdatedLabel } from '@/lib/seo';
 import {
   Accordion,
   AccordionContent,
@@ -68,7 +68,7 @@ export default function CuponsPage() {
       <SEOHead
         title="Cupons de Desconto Verificados {month_year} | Cuponito"
         description="Encontre cupons e ofertas verificados das melhores lojas. Códigos atualizados hoje — Amazon, Shopee, Mercado Livre e muito mais."
-        canonical="https://www.cuponito.com.br/cupons"
+        canonical={`${SITE_URL}/cupons`}
         jsonLdRoute={{ type: 'cupons' }}
       />
       <Header />

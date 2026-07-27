@@ -1,4 +1,5 @@
 import InstitutionalLayout from './InstitutionalLayout';
+import { SITE_URL } from '@/lib/seo';
 
 const termsSections = [
   {
@@ -33,7 +34,7 @@ export default function TermsPage() {
     <InstitutionalLayout
       title="Termos de uso"
       description="Confira as condições de uso do Cuponito, incluindo validade de cupons, responsabilidade das lojas e links de afiliados."
-      canonical="https://www.cuponito.com.br/termos-de-uso"
+      canonical={`${SITE_URL}/termos-de-uso`}
     >
       <p>
         Estes termos explicam como usar o Cuponito de forma simples e transparente. Ao navegar pelo site, você concorda com as condições abaixo.

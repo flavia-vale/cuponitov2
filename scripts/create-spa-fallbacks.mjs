@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 const distDir = 'dist';
@@ -6,6 +6,11 @@ const indexFile = join(distDir, 'index.html');
 
 if (!existsSync(indexFile)) {
   throw new Error('dist/index.html não encontrado. Execute o build do Vite antes de criar os fallbacks da SPA.');
+}
+
+// Fora de produção (staging/preview), bloqueia indexação para não canibalizar o SEO do domínio principal.
+if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') {
+  writeFileSync(join(distDir, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 }
 
 const spaFallbackPaths = [

@@ -2,7 +2,7 @@ name: Deploy Supabase Edge Functions
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
     paths:
       - 'supabase/functions/**'
       - '.github/workflows/deploy-supabase-functions.yml'
@@ -22,20 +22,29 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_REF: jyvmrkykukialdbcebei
+      SUPABASE_PROJECT_REF: ${{ github.ref == 'refs/heads/main' && 'jyvmrkykukialdbcebei' || vars.SUPABASE_PROJECT_REF_STAGING }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
+      - name: Verifica project ref
+        run: |
+          if [ -z "$SUPABASE_PROJECT_REF" ]; then
+            echo "::warning::Branch '${{ github.ref_name }}' sem SUPABASE_PROJECT_REF_STAGING configurado (Settings > Secrets and variables > Actions > Variables). Deploy pulado até o projeto Supabase de staging existir."
+            echo "SKIP_DEPLOY=true" >> "$GITHUB_ENV"
+          fi
+
       - name: Setup Supabase CLI
+        if: env.SKIP_DEPLOY != 'true'
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
       - name: Determina funções a deployar
         id: fns
+        if: env.SKIP_DEPLOY != 'true'
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -60,7 +69,7 @@ jobs:
           fi
 
       - name: Deploy
-        if: steps.fns.outputs.fns != ''
+        if: env.SKIP_DEPLOY != 'true' && steps.fns.outputs.fns != ''
         run: |
           set -euo pipefail
           for fn in ${{ steps.fns.outputs.fns }}; do

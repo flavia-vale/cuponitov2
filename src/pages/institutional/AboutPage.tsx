@@ -1,11 +1,12 @@
 import InstitutionalLayout from './InstitutionalLayout';
+import { SITE_URL } from '@/lib/seo';
 
 export default function AboutPage() {
   return (
     <InstitutionalLayout
       title="Quem somos nós"
       description="Conheça a história do Cuponito e nossa missão de encontrar cupons testados e descontos bons no Brasil."
-      canonical="https://www.cuponito.com.br/quem-somos"
+      canonical={`${SITE_URL}/quem-somos`}
     >
       <p>
         O cuponito nasceu de uma frustração muito simples: a gente clicava num cupom, colava no carrinho e… nada. Expirado. Inválido. Já usado.

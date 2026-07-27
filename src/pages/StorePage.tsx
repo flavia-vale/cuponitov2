@@ -12,6 +12,7 @@ import {
   ChevronRight, 
 } from 'lucide-react';
 import { getMonthYear, cn } from '@/lib/utils';
+import { SITE_URL } from '@/lib/seo';
 import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
 
@@ -88,7 +89,7 @@ export default function StorePage() {
       <SEOHead
         title={`Cupom de Desconto ${storeName} | Até 80% OFF – ${monthYear} | Cuponito`}
         description={storeBrand?.meta_description || `Cupom de desconto ${storeName} válido hoje: até 80% OFF. Códigos verificados e atualizados diariamente pelo Cuponito.`}
-        canonical={`https://www.cuponito.com.br/desconto/${slug}`}
+        canonical={`${SITE_URL}/desconto/${slug}`}
         ogImage={storeBrand?.logo_url || undefined}
         jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filteredCoupons }}
       />

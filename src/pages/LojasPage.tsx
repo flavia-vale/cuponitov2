@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
-import { getLatestUpdatedLabel } from '@/lib/seo';
+import { SITE_URL, getLatestUpdatedLabel } from '@/lib/seo';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useCoupons } from '@/hooks/useCoupons';
 import PartnerStoreCard from '@/components/PartnerStoreCard';
@@ -37,7 +37,7 @@ export default function LojasPage() {
       <SEOHead
         title="Lojas com Cupom de Desconto — {month_year} | Cuponito"
         description="Encontre cupons de desconto das melhores lojas do Brasil. Amazon, Shopee, Mercado Livre e centenas de outras lojas verificadas."
-        canonical="https://www.cuponito.com.br/lojas"
+        canonical={`${SITE_URL}/lojas`}
         jsonLdRoute={{ type: 'lojas' }}
       />
       <Header />

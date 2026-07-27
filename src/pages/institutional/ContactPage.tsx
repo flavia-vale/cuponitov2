@@ -1,11 +1,12 @@
 import InstitutionalLayout from './InstitutionalLayout';
+import { SITE_URL } from '@/lib/seo';
 
 export default function ContactPage() {
   return (
     <InstitutionalLayout
       title="Fale conosco"
       description="Entre em contato com o time do Cuponito para avisar sobre cupons, sugerir lojas ou tirar dúvidas."
-      canonical="https://www.cuponito.com.br/fale-conosco"
+      canonical={`${SITE_URL}/fale-conosco`}
     >
       <p>Encontrou um cupom que não funcionou? Quer sugerir uma loja? Tem alguma dúvida que não está no FAQ?</p>
       <p>Manda mensagem aqui embaixo. O time do Cuponito lê tudo e te responde o mais rápido possível.</p>
