@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/EmptyState';
 import SEOHead from '@/components/SEOHead';
 import { trackEvent } from '@/lib/analytics';
+import { SITE_URL } from '@/lib/seo';
 
 export default function BlogList() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function BlogList() {
       <SEOHead
         title="Blog Cuponito — Guias e Dicas para Economizar | Cuponito"
         description="Guias, comparativos e cupons embutidos para você comprar mais barato. Atualizado diariamente pela equipe Cuponito."
-        canonical="https://www.cuponito.com.br/blog"
+        canonical={`${SITE_URL}/blog`}
         jsonLdRoute={{ type: 'blog-list' }}
       />
       <Header />

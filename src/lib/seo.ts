@@ -1,4 +1,4 @@
-export const SITE_URL = 'https://www.cuponito.com.br';
+export const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://www.cuponito.com.br';
 
 export function getLatestUpdatedLabel(
   items: Array<{ updated_at?: string | null }> | null | undefined,

@@ -9,7 +9,7 @@ export const config = {
 const BOTS =
   /googlebot|google-inspectiontool|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver/i;
 
-const SITE_URL = 'https://www.cuponito.com.br';
+const SITE_URL = process.env.SITE_URL || 'https://www.cuponito.com.br';
 
 function esc(str: string): string {
   return (str || '')
@@ -122,12 +122,15 @@ export default async function middleware(request: Request): Promise<Response | u
 </body>
 </html>`;
 
+    const isProduction = process.env.VERCEL_ENV === 'production';
+
     return new Response(html, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
         'X-Prerendered': 'true',
+        ...(isProduction ? {} : { 'X-Robots-Tag': 'noindex, nofollow' }),
       },
     });
   } catch {

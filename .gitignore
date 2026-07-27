@@ -1,5 +1,10 @@
 .claude/settings.local.json
 
+# Environment variables (segredos por ambiente — nunca versionar)
+.env
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log

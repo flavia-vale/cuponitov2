@@ -1,12 +1,13 @@
 import InstitutionalLayout from './InstitutionalLayout';
 import { howItWorksSteps } from './content';
+import { SITE_URL } from '@/lib/seo';
 
 export default function HowItWorksPage() {
   return (
     <InstitutionalLayout
       title="Como funciona"
       description="Veja como usar o Cuponito para buscar lojas, copiar cupons verificados e economizar no carrinho."
-      canonical="https://www.cuponito.com.br/como-funciona"
+      canonical={`${SITE_URL}/como-funciona`}
     >
       <p className="font-bold text-foreground">Economizar com o cuponito é simples assim:</p>
       <ol className="space-y-3">
