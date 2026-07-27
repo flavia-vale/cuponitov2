@@ -4,8 +4,28 @@
 > (ambiente de testes, acessível por um link próprio) e a branch `main` (produção,
 > `www.cuponito.com.br`).
 
-**Status:** plano aprovado para execução — nenhuma etapa aplicada ainda.
+**Status:** em execução. Ver `## 0. Progresso` abaixo para o que já foi feito e o que falta.
 **Autor:** Claude · **Data:** 2026-07-27
+
+## 0. Progresso
+
+| Fase | O que | Status |
+|---|---|---|
+| 1 | Branch `staging` criada a partir de `main`, pushada para o remoto | ✅ Feito |
+| 1 | Regras de proteção (PR obrigatório, sem force-push) em `main`/`staging` | ⏳ Manual — nenhuma ferramenta com acesso à API de branch protection do GitHub está disponível nesta sessão. Fazer em GitHub → Settings → Branches. |
+| 2 | Domínio `staging.cuponito.com.br` na Vercel | ⏳ Manual — requer acesso à dashboard/DNS da Vercel, que não tenho nesta sessão. |
+| 3 | `SITE_URL` centralizado (código) | ✅ Feito — commit `9c22ec0` na branch `claude/focused-hopper-qln3xo` |
+| 4 | `client.ts` do Supabase lendo de env (código) | ✅ Feito — mesmo commit |
+| 4 | `noindex` automático fora de produção (código) | ✅ Feito — mesmo commit, validado com build simulando `VERCEL_ENV=preview` |
+| 4 | `.env` removido do git + `.env.example` criado | ✅ Feito — mesmo commit |
+| 4 | Rotação das chaves Supabase que estavam no `.env` versionado | ⏳ Manual — requer dashboard do Supabase |
+| 4 | Variáveis de ambiente por escopo (Production/Preview) na Vercel | ⏳ Manual — requer dashboard da Vercel |
+| 5 | Projeto Supabase de staging (novo projeto + migrations + seed) | ⏳ Manual — criação de projeto novo tem implicação de billing/conta; não faço isso sem autorização explícita e acesso |
+| 6 | CI (`deploy-supabase-functions.yml`) por branch | ✅ Feito — mesmo commit. Faz *skip* seguro do deploy em `staging` até a variável `SUPABASE_PROJECT_REF_STAGING` existir |
+
+**Bloqueio para as fases 2 e 5:** preciso de credenciais/acesso que não tenho neste ambiente
+(token da Vercel, ou acesso à conta Supabase para criar o projeto novo). Essas etapas dependem
+de ação manual no navegador — ver os passos exatos nas Fases 2 e 5 abaixo.
 
 ---
 
