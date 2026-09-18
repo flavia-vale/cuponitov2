@@ -12,7 +12,9 @@
     "build": "vite build && node scripts/create-spa-fallbacks.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
-    "build:dev": "vite build"
+    "build:dev": "vite build",
+    "seo:robos": "node scripts/diag-acesso-robos-ia.mjs",
+    "seo:entrega": "node scripts/diag-entrega-seo.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

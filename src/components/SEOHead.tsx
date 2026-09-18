@@ -3,7 +3,7 @@ import { useJsonLd, type JsonLdRoute } from '@/hooks/useJsonLd';
 import { getMonthYear } from '@/lib/utils';
 import { SITE_URL } from '@/lib/seo';
 
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
+const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
 
 interface SEOHeadProps {
   title: string;

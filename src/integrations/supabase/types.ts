@@ -156,6 +156,7 @@ export type Database = {
           meta_description: string
           meta_title: string
           published_at: string | null
+          schema_json: Json | null
           slug: string
           status: Database["public"]["Enums"]["blog_post_status"]
           title: string
@@ -176,6 +177,7 @@ export type Database = {
           meta_description?: string
           meta_title?: string
           published_at?: string | null
+          schema_json?: Json | null
           slug: string
           status?: Database["public"]["Enums"]["blog_post_status"]
           title?: string
@@ -196,6 +198,7 @@ export type Database = {
           meta_description?: string
           meta_title?: string
           published_at?: string | null
+          schema_json?: Json | null
           slug?: string
           status?: Database["public"]["Enums"]["blog_post_status"]
           title?: string

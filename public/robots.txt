@@ -2,10 +2,18 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /admin/*
-Disallow: /404
+Disallow: /adminblog
+Disallow: /login
+Disallow: /access-denied
 
-# Política explícita para bots de IA (citação e descoberta)
+# Política explícita para bots de IA (treino, descoberta e citação em resposta).
+# Os robôs de BUSCA das IAs (OAI-SearchBot, Claude-SearchBot, PerplexityBot) são
+# os que alimentam o índice consultado na hora de responder — sem eles o site
+# não é citado, mesmo com o GPTBot liberado.
 User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
 Allow: /
 
 User-agent: ChatGPT-User
@@ -14,10 +22,31 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
 User-agent: anthropic-ai
 Allow: /
 
 User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: meta-externalagent
 Allow: /
 
 User-agent: Google-Extended

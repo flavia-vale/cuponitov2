@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
+import type { JsonLdRoute } from '@/hooks/useJsonLd';
 
 const Footer = lazy(() => import('@/components/Footer'));
 
@@ -11,6 +12,7 @@ interface InstitutionalLayoutProps {
   description: string;
   canonical: string;
   eyebrow?: string;
+  jsonLdRoute?: JsonLdRoute;
   children: ReactNode;
 }
 
@@ -19,11 +21,17 @@ export default function InstitutionalLayout({
   description,
   canonical,
   eyebrow = 'Cuponito',
+  jsonLdRoute,
   children,
 }: InstitutionalLayoutProps) {
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">
-      <SEOHead title={`${title} | Cuponito`} description={description} canonical={canonical} />
+      <SEOHead
+        title={`${title} | Cuponito`}
+        description={description}
+        canonical={canonical}
+        jsonLdRoute={jsonLdRoute}
+      />
       <Header />
 
       <main className="mx-auto max-w-4xl px-4 py-8 md:py-12">

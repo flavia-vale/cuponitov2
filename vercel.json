@@ -30,6 +30,18 @@
       "destination": "/index.html"
     },
     {
+      "source": "/blog/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/desconto/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/categoria/:slug",
+      "destination": "/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -89,6 +101,19 @@
           "value": "max-age=63072000; includeSubDomains; preload"
         }
       ]
+    }
+  ],
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/stores-2",
+      "destination": "/lojas",
+      "permanent": true
+    },
+    {
+      "source": "/stores-2/:path*",
+      "destination": "/lojas",
+      "permanent": true
     }
   ]
 }

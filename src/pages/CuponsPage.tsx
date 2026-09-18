@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Route } from '@/routes/cupons';
 import Header from '@/components/Header';
+import FeaturedGuidesLinks from '@/components/blog/FeaturedGuidesLinks';
 import SEOHead from '@/components/SEOHead';
 import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
@@ -165,6 +166,8 @@ export default function CuponsPage() {
             )}
           </div>
         )}
+        <FeaturedGuidesLinks className="mt-2" />
+
       </main>
 
       <Suspense fallback={null}>

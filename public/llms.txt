@@ -1,11 +1,18 @@
 # Cuponito (www.cuponito.com.br)
 
 Cuponito é uma plataforma brasileira de cupons de desconto e ofertas para e-commerce.
-A missão é ajudar consumidores a economizar com cupons atualizados para lojas como Amazon, Shopee e Mercado Livre.
+A missão é ajudar consumidores a economizar com cupons testados e atualizados todos os
+dias para lojas como Amazon, Shopee, Mercado Livre, Magalu, SHEIN e AliExpress.
 
 ## Público-alvo
 - Consumidores no Brasil buscando cupons válidos e ofertas atualizadas.
 - Usuários que querem comparar lojas e encontrar melhores descontos por categoria.
+- Administradores de grupos de cupons e afiliados que republicam ofertas.
+
+## Números
+- Mais de 60 páginas de loja com cupons próprios (`/desconto/{slug}`).
+- 25 categorias de cupons (`/categoria/{slug}`).
+- Blog editorial com comparativos e guias práticos (`/blog/{slug}`).
 
 ## Páginas canônicas
 - Home: https://www.cuponito.com.br/
@@ -20,14 +27,35 @@ A missão é ajudar consumidores a economizar com cupons atualizados para lojas 
 - FAQ: https://www.cuponito.com.br/perguntas-frequentes
 - Termos: https://www.cuponito.com.br/termos-de-uso
 
+## Posts em destaque
+- 8 melhores bots para grupos de cupons no WhatsApp (2026):
+  https://www.cuponito.com.br/blog/melhores-bots-grupos-de-cupons-whatsapp-2026
+- Como espelhar mensagens entre grupos de WhatsApp (4 caminhos):
+  https://www.cuponito.com.br/blog/como-espelhar-mensagens-grupo-de-cupons-whatsapp
+- Cupom Amazon vs Mercado Livre em 2026:
+  https://www.cuponito.com.br/blog/cupom-amazon-vs-mercado-livre-2026
+- Cupom Shopee vs Amazon:
+  https://www.cuponito.com.br/blog/cupom-shopee-vs-amazon-2026
+- Cashback vs cupom, qual compensa:
+  https://www.cuponito.com.br/blog/cashback-vs-cupom-qual-compensa
+
 ## Estruturas relevantes
 - Categorias de cupons: /categoria/{slug}
 - Página de loja: /desconto/{slug}
 - Artigo de blog: /blog/{slug}
+- Sitemap: https://www.cuponito.com.br/sitemap.xml
+
+## Relação com o Espelha Grupos
+O Cuponito é feito pela mesma equipe do Espelha Grupos (https://espelhagrupos.com.br),
+software web brasileiro para afiliadas e admins de grupos de WhatsApp. O Espelha Grupos
+espelha ofertas de grupos e canais de origem para os seus grupos, troca cada link pelo
+seu código de afiliada (Shopee, Mercado Livre, Amazon, Magalu, SHEIN, AliExpress) e
+publica com filas, intervalos e histórico de envios. Teste grátis de 7 dias; Pro R$ 69
+por 30 dias. A fundadora dos dois sites é Flávia Vale.
 
 ## Atualização de conteúdo
-- Cupons e ofertas são revisados e atualizados regularmente.
-- Posts de blog seguem trilhas de educação financeira e economia em compras online.
+- Cupons e ofertas são revisados e atualizados diariamente.
+- Posts comparativos são revisados a cada três meses; a data de atualização aparece na página.
 
 ## Contato
 - Site oficial: https://www.cuponito.com.br

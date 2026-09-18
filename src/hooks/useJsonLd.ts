@@ -63,6 +63,17 @@ function breadcrumbCupons() {
   };
 }
 
+function breadcrumbAbout() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Página Inicial", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Quem somos", item: `${SITE_URL}/quem-somos` },
+    ],
+  };
+}
+
 function breadcrumbBlogList() {
   return {
     "@context": "https://schema.org",
@@ -83,7 +94,7 @@ function orgSchema(name = 'Cuponito', url = SITE_URL) {
     name,
     url,
     description: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre.",
-    logo: `${SITE_URL}/og-image.png`,
+    logo: `${SITE_URL}/og-default.png`,
     sameAs: [
       "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
     ],
@@ -92,6 +103,46 @@ function orgSchema(name = 'Cuponito', url = SITE_URL) {
       contactType: "customer support",
       availableLanguage: "Portuguese",
     },
+  };
+}
+
+// Autora com a MESMA descrição usada no Espelha Grupos: é isso que amarra a
+// entidade "Flávia Vale" nos dois domínios para as IAs e para o Google.
+const FLAVIA_VALE_PERSON = {
+  "@type": "Person",
+  "@id": "https://espelhagrupos.com.br/quem-somos#person",
+  name: "Flávia Vale",
+  description:
+    "Fundadora do Espelha Grupos, trabalha com tecnologia e opera grupos de ofertas desde 2023.",
+  url: "https://espelhagrupos.com.br/quem-somos",
+  sameAs: [
+    "https://espelhagrupos.com.br/quem-somos",
+    `${SITE_URL}/quem-somos`,
+  ],
+};
+
+function aboutOrgSchema() {
+  return {
+    ...orgSchema(),
+    founder: FLAVIA_VALE_PERSON,
+    sameAs: [
+      "https://espelhagrupos.com.br/quem-somos",
+      "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
+    ],
+  };
+}
+
+function aboutPageSchema() {
+  const canonicalUrl = `${SITE_URL}/quem-somos`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    name: "Quem somos nós",
+    url: canonicalUrl,
+    inLanguage: "pt-BR",
+    description:
+      "Conheça a história do Cuponito e nossa missão de encontrar cupons testados e descontos bons no Brasil.",
+    mainEntity: aboutOrgSchema(),
   };
 }
 
@@ -261,6 +312,7 @@ type LojasRoute = { type: 'lojas' };
 type CuponsRoute = { type: 'cupons' };
 type BlogListRoute = { type: 'blog-list' };
 type CategoriaRoute = { type: 'categoria'; categoryName: string; slug: string; coupons: Coupon[] };
+type AboutRoute = { type: 'about' };
 type GenericRoute = { type: 'generic' };
 
 export type JsonLdRoute =
@@ -271,6 +323,7 @@ export type JsonLdRoute =
   | CuponsRoute
   | BlogListRoute
   | CategoriaRoute
+  | AboutRoute
   | GenericRoute;
 
 const DEFAULT_JSON_LD_ROUTE: JsonLdRoute = { type: 'generic' };
@@ -316,6 +369,12 @@ export function useJsonLd(route?: JsonLdRoute | null): object[] {
           orgSchema(),
           breadcrumbCupons(),
           collectionPageSchema('Todos os Cupons de Desconto', 'Lista atualizada de cupons de desconto verificados.', '/cupons'),
+        ];
+      case 'about':
+        return [
+          aboutOrgSchema(),
+          breadcrumbAbout(),
+          aboutPageSchema(),
         ];
       case 'blog-list':
         return [orgSchema(), breadcrumbBlogList()];

@@ -13,6 +13,7 @@ import { useBlogCategories, useBlogAuthors, type BlogPost } from '@/hooks/useBlo
 import { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import { getErrorMessage } from '@/lib/errors';
 import { slugify } from '@/lib/slugify';
+import { pingIndexNow } from '@/lib/indexnow';
 import type { Database, Json } from '@/integrations/supabase/types';
 
 interface Props {
@@ -46,6 +47,9 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
   const [featured, setFeatured] = useState(post?.featured ?? false);
   const [metaTitle, setMetaTitle] = useState(post?.meta_title ?? '');
   const [metaDescription, setMetaDescription] = useState(post?.meta_description ?? '');
+  const [schemaJson, setSchemaJson] = useState(
+    post?.schema_json ? JSON.stringify(post.schema_json, null, 2) : ''
+  );
 
   const rawCta = post?.cta_config;
   const initialCta: InlineCouponConfig | null =
@@ -111,6 +115,19 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       toast({ title: 'O conteúdo do post não pode estar vazio', variant: 'destructive' });
       return;
     }
+    let schemaJsonValue: Json = null;
+    if (schemaJson.trim()) {
+      try {
+        schemaJsonValue = JSON.parse(schemaJson) as Json;
+      } catch {
+        toast({
+          title: 'JSON-LD extra inválido',
+          description: 'Corrija o JSON do campo "Schema extra" ou deixe-o vazio.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
     setSaving(true);
     const ctaConfigValue: Json = hasCta && Object.values(ctaConfig).some(Boolean) ? { ...ctaConfig } : null;
     const status: Database['public']['Enums']['blog_post_status'] = isPublished ? 'published' : 'draft';
@@ -127,6 +144,7 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       meta_title: metaTitle,
       meta_description: metaDescription,
       cta_config: ctaConfigValue,
+      schema_json: schemaJsonValue,
       updated_at: new Date().toISOString(),
       published_at: isPublished && !post?.published_at ? new Date().toISOString() : post?.published_at,
     };
@@ -141,6 +159,8 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       return;
     }
     toast({ title: post ? 'Post atualizado!' : 'Post criado!' });
+    // Avisa o IndexNow (Bing, o índice que o ChatGPT consulta) na publicação.
+    if (isPublished) void pingIndexNow([`/blog/${slug}`, '/blog', '/sitemap.xml']);
     setTimeout(() => onSave(), 1500);
   };
 
@@ -254,6 +274,20 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
               <div>
                 <label className="mb-1 block text-xs font-medium text-muted-foreground">Meta Description</label>
                 <Textarea value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Descrição para o Google" className="resize-none h-24 text-xs" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                  Schema extra (JSON-LD)
+                </label>
+                <Textarea
+                  value={schemaJson}
+                  onChange={(e) => setSchemaJson(e.target.value)}
+                  placeholder='ItemList, HowTo ou FAQPage. Objeto ou array, ex: [{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[]}]'
+                  className="resize-none h-32 font-mono text-[11px]"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Impresso no HTML do servidor, junto do BlogPosting. Deixe vazio se não precisar.
+                </p>
               </div>
             </CardContent>
           </Card>
