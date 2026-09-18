@@ -16,13 +16,28 @@ import type {
   PrerenderStore,
 } from './data';
 
+export interface FeaturedPost {
+  title: string;
+  slug: string;
+}
+
 export interface RenderedPage {
   head: string;
   body: string;
 }
 
+export interface ChromeLinks {
+  stores: PrerenderStore[];
+  posts: FeaturedPost[];
+}
+
 /** Navegação e rodapé em `<a href>` reais: link que só existe depois do JavaScript não conta. */
-function chrome(inner: string, breadcrumbTrail: Array<{ name: string; url: string }>, stores: PrerenderStore[]): string {
+function chrome(
+  inner: string,
+  breadcrumbTrail: Array<{ name: string; url: string }>,
+  links: ChromeLinks
+): string {
+  const { stores, posts } = links;
   const trail = breadcrumbTrail
     .map((item, index) =>
       index === breadcrumbTrail.length - 1
@@ -33,6 +48,12 @@ function chrome(inner: string, breadcrumbTrail: Array<{ name: string; url: strin
 
   const storeLinks = stores
     .map(store => `<li><a href="${SITE_URL}/desconto/${store.slug}">Cupom ${escapeHtml(store.name)}</a></li>`)
+    .join('');
+
+  // Sem isto o post fica órfão no HTML do servidor: nenhuma página apontaria
+  // para ele sem JavaScript, e o crawler não o descobre.
+  const postLinks = posts
+    .map(post => `<li><a href="${SITE_URL}/blog/${post.slug}">${escapeHtml(post.title)}</a></li>`)
     .join('');
 
   return `
@@ -49,6 +70,7 @@ function chrome(inner: string, breadcrumbTrail: Array<{ name: string; url: strin
       ${inner}
       <footer>
         ${storeLinks ? `<nav aria-label="Lojas em destaque"><ul>${storeLinks}</ul></nav>` : ''}
+        ${postLinks ? `<nav aria-label="Guias do Cuponito"><ul>${postLinks}</ul></nav>` : ''}
         <nav>
           <a href="${SITE_URL}/como-funciona">Como funciona</a>
           <a href="${SITE_URL}/perguntas-frequentes">Perguntas frequentes</a>
@@ -78,7 +100,7 @@ function safeJsonParse(raw: string): unknown {
 export function renderBlogPost(
   post: PrerenderPost,
   authorName: string | null,
-  stores: PrerenderStore[]
+  links: ChromeLinks
 ): RenderedPage {
   const canonical = `${SITE_URL}/blog/${post.slug}`;
   const publishedIso = post.published_at || post.created_at || null;
@@ -146,7 +168,8 @@ export function renderBlogPost(
       { name: 'Blog', url: `${SITE_URL}/blog` },
       { name: post.title, url: canonical },
     ],
-    stores
+    // o próprio post nunca se autolinka no rodapé
+    { ...links, posts: links.posts.filter(other => other.slug !== post.slug) }
   );
 
   return {
@@ -196,7 +219,7 @@ function couponOfferList(listName: string, coupons: PrerenderCoupon[]) {
 export function renderStorePage(
   store: PrerenderStore,
   coupons: PrerenderCoupon[],
-  otherStores: PrerenderStore[]
+  links: ChromeLinks
 ): RenderedPage {
   const canonical = `${SITE_URL}/desconto/${store.slug}`;
   const description =
@@ -261,7 +284,7 @@ export function renderStorePage(
       { name: 'Lojas', url: `${SITE_URL}/lojas` },
       { name: store.name, url: canonical },
     ],
-    otherStores.filter(other => other.slug !== store.slug).slice(0, 6)
+    { ...links, stores: links.stores.filter(other => other.slug !== store.slug).slice(0, 6) }
   );
 
   return { head: renderHead(meta, [schema]), body };
@@ -272,7 +295,7 @@ export function renderStorePage(
 export function renderCategoryPage(
   category: PrerenderCategory,
   coupons: PrerenderCoupon[],
-  stores: PrerenderStore[]
+  links: ChromeLinks
 ): RenderedPage {
   const canonical = `${SITE_URL}/categoria/${category.slug}`;
   const description =
@@ -325,7 +348,7 @@ export function renderCategoryPage(
       { name: 'Cupons', url: `${SITE_URL}/cupons` },
       { name: category.name, url: canonical },
     ],
-    stores
+    links
   );
 
   return { head: renderHead(meta, [schema]), body };
@@ -339,7 +362,7 @@ export const ABOUT_ESPELHA_GRUPOS_PARAGRAPHS = [
   'Somos um time pequeno com uma missão simples: se tem desconto bom no Brasil, o cuponito acha pra você.',
 ];
 
-export function renderAboutPage(stores: PrerenderStore[]): RenderedPage {
+export function renderAboutPage(links: ChromeLinks): RenderedPage {
   const canonical = `${SITE_URL}/quem-somos`;
   const description =
     'Conheça a história do Cuponito e nossa missão de encontrar cupons testados e descontos bons no Brasil.';
@@ -398,7 +421,7 @@ export function renderAboutPage(stores: PrerenderStore[]): RenderedPage {
       { name: 'Cuponito', url: `${SITE_URL}/` },
       { name: 'Quem somos', url: canonical },
     ],
-    stores
+    links
   );
 
   return { head: renderHead(meta, [schema]), body };

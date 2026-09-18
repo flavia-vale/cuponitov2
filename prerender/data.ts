@@ -105,6 +105,18 @@ export async function fetchAuthorName(authorId: string | null): Promise<string |
   return rows[0]?.name ?? null;
 }
 
+/**
+ * Posts marcados como destaque. São eles que aparecem como link real no rodapé
+ * de todas as páginas prerenderizadas: o `FeaturedGuidesLinks` do React só
+ * existe depois do JavaScript, e link que só existe depois do JavaScript não
+ * conta como link para o crawler nem para os robôs das IAs.
+ */
+export async function fetchFeaturedPosts(limit = 3): Promise<Array<Pick<PrerenderPost, 'title' | 'slug'>>> {
+  return query<Pick<PrerenderPost, 'title' | 'slug'>>(
+    `blog_posts?status=eq.published&featured=is.true&select=title,slug&order=published_at.desc&limit=${limit}`
+  );
+}
+
 export async function fetchRecentPosts(limit = 6): Promise<Array<Pick<PrerenderPost, 'title' | 'slug' | 'excerpt'>>> {
   return query<Pick<PrerenderPost, 'title' | 'slug' | 'excerpt'>>(
     `blog_posts?status=eq.published&select=title,slug,excerpt&order=published_at.desc&limit=${limit}`

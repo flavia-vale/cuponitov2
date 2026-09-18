@@ -16,6 +16,7 @@ import {
   fetchAuthorName,
   fetchCategory,
   fetchCategoryCoupons,
+  fetchFeaturedPosts,
   fetchFeaturedStores,
   fetchPost,
   fetchStore,
@@ -85,10 +86,14 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (blogMatch) {
     const slug = decodeURIComponent(blogMatch[1]);
-    const [post, stores] = await Promise.all([fetchPost(slug), fetchFeaturedStores(3)]);
+    const [post, stores, posts] = await Promise.all([
+      fetchPost(slug),
+      fetchFeaturedStores(3),
+      fetchFeaturedPosts(4),
+    ]);
     if (!post) return null;
     const authorName = await fetchAuthorName(post.author_id);
-    return renderBlogPost(post, authorName, stores);
+    return renderBlogPost(post, authorName, { stores, posts });
   }
 
   const storeMatch = pathname.match(/^\/desconto\/([^/]+)\/?$/);
@@ -96,11 +101,12 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const slug = decodeURIComponent(storeMatch[1]);
     const store = await fetchStore(slug);
     if (!store) return null;
-    const [coupons, otherStores] = await Promise.all([
+    const [coupons, stores, posts] = await Promise.all([
       fetchStoreCoupons(store),
       fetchFeaturedStores(8),
+      fetchFeaturedPosts(3),
     ]);
-    return renderStorePage(store, coupons, otherStores);
+    return renderStorePage(store, coupons, { stores, posts });
   }
 
   const categoryMatch = pathname.match(/^\/categoria\/([^/]+)\/?$/);
@@ -108,16 +114,17 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const slug = decodeURIComponent(categoryMatch[1]);
     const category = await fetchCategory(slug);
     if (!category) return null;
-    const [coupons, stores] = await Promise.all([
+    const [coupons, stores, posts] = await Promise.all([
       fetchCategoryCoupons(category.name),
       fetchFeaturedStores(3),
+      fetchFeaturedPosts(3),
     ]);
-    return renderCategoryPage(category, coupons, stores);
+    return renderCategoryPage(category, coupons, { stores, posts });
   }
 
   if (/^\/quem-somos\/?$/.test(pathname)) {
-    const stores = await fetchFeaturedStores(3);
-    return renderAboutPage(stores);
+    const [stores, posts] = await Promise.all([fetchFeaturedStores(3), fetchFeaturedPosts(3)]);
+    return renderAboutPage({ stores, posts });
   }
 
   return null;
