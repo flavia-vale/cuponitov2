@@ -182,3 +182,40 @@ export async function fetchStoreByLegacySlug(legacySlug: string): Promise<Preren
   );
   return rows[0] ?? null;
 }
+
+// ── Home e listagens ─────────────────────────────────────────────────────────
+
+const STORE_COLUMNS =
+  'slug,name,description,meta_description,logo_url,store_id,website_url';
+
+export async function fetchAllStores(limit = 80): Promise<PrerenderStore[]> {
+  return query<PrerenderStore>(
+    `stores?active=is.true&select=${STORE_COLUMNS}&order=name&limit=${limit}`
+  );
+}
+
+export async function fetchCategories(limit = 40): Promise<PrerenderCategory[]> {
+  return query<PrerenderCategory>(
+    `coupon_categories?select=name,slug,description,icon,updated_at&order=sort_order&order=name&limit=${limit}`
+  );
+}
+
+export async function fetchTopCoupons(limit = 40): Promise<PrerenderCoupon[]> {
+  return query<PrerenderCoupon>(
+    `coupons?status=is.true&select=${COUPON_COLUMNS}&order=is_featured.desc&order=updated_at.desc&limit=${limit}`
+  );
+}
+
+export interface PrerenderPostSummary {
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  published_at: string | null;
+  updated_at: string | null;
+}
+
+export async function fetchPublishedPosts(limit = 30): Promise<PrerenderPostSummary[]> {
+  return query<PrerenderPostSummary>(
+    `blog_posts?status=eq.published&select=title,slug,excerpt,published_at,updated_at&order=published_at.desc&limit=${limit}`
+  );
+}

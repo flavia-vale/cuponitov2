@@ -133,7 +133,10 @@ ${postUrls}
 </urlset>`
 
   res.setHeader('Content-Type', 'application/xml; charset=utf-8')
-  // Cache de 6h no CDN; serve versão stale por até 24h enquanto revalida em background
-  res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=86400')
+  // Cache curto de propósito: com 6h, um post publicado agora só entrava no
+  // sitemap horas depois — e foi o que aconteceu na publicação de 18/09, em que
+  // o Bing leu uma cópia sem os dois posts novos. O sitemap é lido por crawler,
+  // não por usuário, então revalidar a cada 15 min não pesa.
+  res.setHeader('Cache-Control', 's-maxage=900, stale-while-revalidate=3600')
   res.status(200).send(xml)
 }
