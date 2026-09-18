@@ -1,135 +1,159 @@
-// Vercel Edge Middleware — prerender para bots de busca nas páginas de blog
-// Para usuários normais: retorna undefined → SPA funciona normalmente
-// Para Googlebot/similares: busca dados do Supabase e retorna HTML completo
+// Vercel Edge Middleware — entrega HTML real (status 200 + <h1>/<article>/JSON-LD)
+// nas rotas com parâmetro do SPA.
+//
+// Por que existe: as rotas `/blog/:slug`, `/desconto/:slug` e `/categoria/:slug`
+// não têm arquivo no build, então o fallback da SPA respondia 404 e o corpo era
+// só a casca com o <title> — Google e Bing descartam 404 antes de renderizar
+// JavaScript, e os robôs da OpenAI, Anthropic e Perplexity não executam
+// JavaScript nenhum. Aqui o conteúdo do Supabase é montado no servidor.
+//
+// O MESMO HTML vai para todo mundo (navegador, bingbot, OAI-SearchBot,
+// PerplexityBot): não é dynamic rendering nem cloaking. O React monta com
+// `createRoot().render()`, que substitui o conteúdo de `#root`, então o corpo
+// prerenderizado não conflita com a hidratação.
+
+import {
+  fetchAuthorName,
+  fetchCategory,
+  fetchCategoryCoupons,
+  fetchFeaturedStores,
+  fetchPost,
+  fetchStore,
+  fetchStoreByLegacySlug,
+  fetchStoreCoupons,
+} from './prerender/data';
+import { injectIntoShell, SITE_URL } from './prerender/html';
+import {
+  renderAboutPage,
+  renderBlogPost,
+  renderCategoryPage,
+  renderStorePage,
+  type RenderedPage,
+} from './prerender/render';
 
 export const config = {
-  matcher: ['/blog/:slug*'],
+  matcher: [
+    '/blog/:slug',
+    '/desconto/:slug',
+    '/categoria/:slug',
+    '/quem-somos',
+    '/store/:path*',
+    '/stores-2/:path*',
+  ],
 };
 
-const BOTS =
-  /googlebot|google-inspectiontool|bingbot|slurp|duckduckbot|baiduspider|yandexbot|facebot|ia_archiver/i;
+const SHELL_HEADERS = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=86400',
+  'X-Prerendered': 'true',
+};
 
-const SITE_URL = 'https://www.cuponito.com.br';
+let cachedShell: string | null = null;
 
-function esc(str: string): string {
-  return (str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+/** Casca do SPA (com os caminhos dos assets do build) buscada da própria origem. */
+async function loadShell(requestUrl: string): Promise<string | null> {
+  if (cachedShell) return cachedShell;
+  try {
+    const response = await fetch(new URL('/index.html', requestUrl).toString(), {
+      headers: { 'X-Prerender-Shell': '1' },
+    });
+    if (!response.ok) return null;
+    const html = await response.text();
+    if (!html.includes('<div id="root">')) return null;
+    cachedShell = html;
+    return html;
+  } catch {
+    return null;
+  }
+}
+
+function respond(shell: string, page: RenderedPage, status = 200): Response {
+  return new Response(injectIntoShell(shell, page.head, page.body), {
+    status,
+    headers: SHELL_HEADERS,
+  });
+}
+
+function movedPermanently(location: string): Response {
+  return new Response(null, {
+    status: 301,
+    headers: { Location: location, 'Cache-Control': 'public, max-age=86400' },
+  });
+}
+
+async function renderRoute(pathname: string): Promise<RenderedPage | null> {
+  const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
+  if (blogMatch) {
+    const slug = decodeURIComponent(blogMatch[1]);
+    const [post, stores] = await Promise.all([fetchPost(slug), fetchFeaturedStores(3)]);
+    if (!post) return null;
+    const authorName = await fetchAuthorName(post.author_id);
+    return renderBlogPost(post, authorName, stores);
+  }
+
+  const storeMatch = pathname.match(/^\/desconto\/([^/]+)\/?$/);
+  if (storeMatch) {
+    const slug = decodeURIComponent(storeMatch[1]);
+    const store = await fetchStore(slug);
+    if (!store) return null;
+    const [coupons, otherStores] = await Promise.all([
+      fetchStoreCoupons(store),
+      fetchFeaturedStores(8),
+    ]);
+    return renderStorePage(store, coupons, otherStores);
+  }
+
+  const categoryMatch = pathname.match(/^\/categoria\/([^/]+)\/?$/);
+  if (categoryMatch) {
+    const slug = decodeURIComponent(categoryMatch[1]);
+    const category = await fetchCategory(slug);
+    if (!category) return null;
+    const [coupons, stores] = await Promise.all([
+      fetchCategoryCoupons(category.name),
+      fetchFeaturedStores(3),
+    ]);
+    return renderCategoryPage(category, coupons, stores);
+  }
+
+  if (/^\/quem-somos\/?$/.test(pathname)) {
+    const stores = await fetchFeaturedStores(3);
+    return renderAboutPage(stores);
+  }
+
+  return null;
 }
 
 export default async function middleware(request: Request): Promise<Response | undefined> {
   const url = new URL(request.url);
-  const ua = request.headers.get('user-agent') || '';
+  const { pathname } = url;
 
-  // Só intercepta /blog/:slug (ignora /blog/ e /blog sem slug)
-  const blogMatch = url.pathname.match(/^\/blog\/([^/]+)\/?$/);
-  if (!blogMatch || !BOTS.test(ua)) return undefined;
+  // 301 das URLs do site antigo (WordPress) — é o que o Bing ainda tem indexado.
+  if (/^\/stores-2\/?/.test(pathname)) {
+    return movedPermanently(`${SITE_URL}/lojas`);
+  }
 
-  const slug = blogMatch[1];
-  const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
-
-  if (!SUPABASE_URL || !SUPABASE_KEY) return undefined;
+  const legacyStore = pathname.match(/^\/store\/([^/]+)\/?$/);
+  if (legacyStore) {
+    const store = await fetchStoreByLegacySlug(decodeURIComponent(legacyStore[1]));
+    return movedPermanently(store ? `${SITE_URL}/desconto/${store.slug}` : `${SITE_URL}/lojas`);
+  }
+  if (/^\/store\/?$/.test(pathname)) {
+    return movedPermanently(`${SITE_URL}/lojas`);
+  }
 
   try {
-    const apiUrl =
-      `${SUPABASE_URL}/rest/v1/blog_posts` +
-      `?slug=eq.${encodeURIComponent(slug)}` +
-      `&status=eq.published` +
-      `&select=title,excerpt,meta_title,meta_description,content,cover_image,published_at,slug`;
+    const page = await renderRoute(pathname);
+    const shell = await loadShell(request.url);
+    // Sem casca não há como injetar: deixa o SPA responder como antes.
+    if (!shell) return undefined;
 
-    const res = await fetch(apiUrl, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        Accept: 'application/json',
-      },
-    });
+    if (!page) {
+      // Slug inexistente: 404 de verdade, não soft 404. A SPA ainda monta por
+      // cima e mostra a tela de "não encontrado" para quem está no navegador.
+      return new Response(shell, { status: 404, headers: SHELL_HEADERS });
+    }
 
-    if (!res.ok) return undefined;
-
-    const posts: Array<Record<string, string>> = await res.json();
-    const post = posts?.[0];
-
-    if (!post) return undefined;
-
-    const title = post.meta_title || post.title;
-    const description =
-      post.meta_description || post.excerpt || 'Artigo no blog do Cuponito.';
-    const canonical = `${SITE_URL}/blog/${post.slug}`;
-    const image = post.cover_image || `${SITE_URL}/og-image.png`;
-    const datePublished = post.published_at
-      ? new Date(post.published_at).toLocaleDateString('pt-BR', {
-          day: '2-digit',
-          month: 'long',
-          year: 'numeric',
-        })
-      : '';
-
-    const jsonLd = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: post.title,
-      description,
-      image,
-      datePublished: post.published_at,
-      url: canonical,
-      mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-      publisher: {
-        '@type': 'Organization',
-        name: 'Cuponito',
-        url: SITE_URL,
-      },
-    });
-
-    const html = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${esc(title)} | Blog Cuponito</title>
-  <meta name="description" content="${esc(description)}">
-  <link rel="canonical" href="${canonical}">
-  <meta property="og:title" content="${esc(title)} | Blog Cuponito">
-  <meta property="og:description" content="${esc(description)}">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="${canonical}">
-  <meta property="og:image" content="${image}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:locale" content="pt_BR">
-  <meta property="og:site_name" content="Cuponito">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${esc(title)} | Blog Cuponito">
-  <meta name="twitter:description" content="${esc(description)}">
-  <meta name="twitter:image" content="${image}">
-  <script type="application/ld+json">${jsonLd}</script>
-</head>
-<body>
-  <header>
-    <nav><a href="${SITE_URL}">Cuponito</a> › <a href="${SITE_URL}/blog">Blog</a></nav>
-  </header>
-  <main>
-    <article>
-      <h1>${esc(post.title)}</h1>
-      ${datePublished ? `<time datetime="${post.published_at}">${datePublished}</time>` : ''}
-      ${post.excerpt ? `<p>${esc(post.excerpt)}</p>` : ''}
-      <div>${post.content || ''}</div>
-    </article>
-  </main>
-</body>
-</html>`;
-
-    return new Response(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-        'X-Prerendered': 'true',
-      },
-    });
+    return respond(shell, page);
   } catch {
     return undefined;
   }

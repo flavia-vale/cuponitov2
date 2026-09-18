@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import Header from '@/components/Header';
+import FeaturedGuidesLinks from '@/components/blog/FeaturedGuidesLinks';
 import SEOHead from '@/components/SEOHead';
 import { getLatestUpdatedLabel } from '@/lib/seo';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
@@ -85,6 +86,8 @@ export default function LojasPage() {
             ))}
           </div>
         )}
+        <FeaturedGuidesLinks className="mt-2" />
+
       </main>
 
       <Suspense fallback={null}>

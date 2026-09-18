@@ -17,6 +17,17 @@ O join `stores(id, name, logo_url, color)` causa erro `42703` em produção e **
 - **Correto:** `.select('id, code, title, description, ...')` — sem join stores
 - Os componentes recebem dados de loja via `useStoreBrands()` + `storeBrandMap`, não via join no useCoupons.
 
+### `prerender/` — NUNCA pedir coluna que pode não existir no banco
+O prerender do Edge lê o Supabase pela REST. Pedir uma coluna ainda não migrada
+devolve **400** e a página inteira viraria 404. Colunas novas entram pelo
+`tryQuery` com fallback (ver `fetchPost` e `schema_json`).
+
+### Prerender serve o MESMO HTML para todo mundo
+`middleware.ts` injeta o conteúdo em `#root` para navegador e robô igualmente.
+Servir HTML diferente por user-agent é cloaking — não fazer, mesmo "só para o bot".
+O React monta com `createRoot().render()`, que substitui o conteúdo do container;
+trocar por `hydrateRoot` quebraria a página (erro de hidratação).
+
 ---
 
 ## ⚠️ LEMBRETES CRÍTICOS
@@ -68,6 +79,18 @@ O join `stores(id, name, logo_url, color)` causa erro `42703` em produção e **
 │   │   └── ...
 │   └── lib/
 │       └── utils.ts
+├── prerender/                   # HTML do servidor para busca e IA (Edge)
+│   ├── data.ts                  # leitura do Supabase pela REST
+│   ├── markdown.ts              # Markdown → HTML mínimo
+│   ├── html.ts                  # head, JSON-LD e injeção na casca do SPA
+│   └── render.ts                # blog, loja, categoria, quem-somos
+├── middleware.ts                # roteia o prerender + 301 do site antigo
+├── api/
+│   ├── sitemap.ts               # sitemap com lastmod real
+│   └── indexnow.ts              # avisa o Bing na publicação
+├── scripts/
+│   ├── diag-acesso-robos-ia.mjs # npm run seo:robos
+│   └── diag-entrega-seo.mjs     # npm run seo:entrega
 ├── supabase/
 │   ├── migrations/               # Versionadas, NUNCA alterar após merge
 │   │   ├── 20260414182606_*.sql
@@ -193,6 +216,13 @@ export function useCouponCategories() {
 - [ ] Commit com mensagem descritiva
 - [ ] PR com testes manuais documentados
 
+### Se a feature cria ou muda página PÚBLICA
+- [ ] A rota entra no `prerender/render.ts` (ou reusa uma existente): sem HTML do
+      servidor a página não existe para o Google nem para as IAs
+- [ ] `<h1>`, `<article>`, datas visíveis e JSON-LD no HTML, não só no React
+- [ ] A página nasce linkada de pelo menos 3 páginas internas (`<a href>` real)
+- [ ] `npm run seo:entrega` e `npm run seo:robos` passando
+
 ---
 
 ## 🚀 Como Rodar Migrations
@@ -235,9 +265,10 @@ supabase db push
 
 ---
 
-**Última atualização:** 2026-04-25  
+**Última atualização:** 2026-09-18  
 **Por:** Claude  
-**Branch:** `claude/admin-category-editing-vBbYy` → PR #21
+**Branch:** `claude/stoic-hawking-f7ctit` — entrega de HTML para busca/IA (prerender no Edge)
+e os dois posts que citam o Espelha Grupos. Ver `docs/espelha-grupos-entrega-html-2026-09-18.md`.
 
 ---
 

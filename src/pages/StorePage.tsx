@@ -1,6 +1,7 @@
 import { useState, useMemo, lazy } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import Header from '@/components/Header';
+import FeaturedGuidesLinks from '@/components/blog/FeaturedGuidesLinks';
 import { useStoreCoupons } from '@/hooks/useStoreCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useSettings } from '@/hooks/useSettings';
@@ -175,6 +176,8 @@ export default function StorePage() {
                   {showExpired && <div className="space-y-2.5">{expiredCoupons.map(coupon => <StoreCouponCard key={coupon.id} coupon={coupon} isExpired />)}</div>}
                 </div>
               )}
+              <FeaturedGuidesLinks className="mt-2" />
+
             </main>
 
             <aside className="space-y-3.5">
