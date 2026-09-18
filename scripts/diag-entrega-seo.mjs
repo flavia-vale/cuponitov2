@@ -85,8 +85,9 @@ for (const path of CONTENT_PATHS) {
     );
     const ok = response.status === 200 && found.length === 3;
     if (!ok) failures += 1;
+    const hint = response.status === 404 ? ' — post não publicado (migration pendente?)' : '';
     console.log(
-      `   ${ok ? 'OK  ' : 'FALHA'} ${response.status} ${path} — ${found.length}/3 (${found.join(', ') || 'nada'}), ${body.length}B`
+      `   ${ok ? 'OK  ' : 'FALHA'} ${response.status} ${path} — ${found.length}/3 (${found.join(', ') || 'nada'}), ${body.length}B${hint}`
     );
   } catch (error) {
     failures += 1;
@@ -94,20 +95,46 @@ for (const path of CONTENT_PATHS) {
   }
 }
 
-// ── 3. 301 das URLs do site antigo ───────────────────────────────────────────
-const LEGACY_PATHS = ['/store/casas-bahia/', '/store/kabum/', '/stores-2/'];
+// ── 3. redirecionamento permanente das URLs do site antigo ──────────────────
+// A Vercel emite 308 para redirect permanente, e `trailingSlash: false` tira a
+// barra final num salto próprio — então a URL antiga (`/store/<loja>/`, com
+// barra, que é a forma indexada) chega ao destino em 308 → 301. O que importa
+// é que todo salto seja permanente e o destino final seja o certo, não que o
+// primeiro salto seja literalmente 301.
+const PERMANENT = new Set([301, 308]);
+const LEGACY_CASES = [
+  { path: '/store/casas-bahia/', expect: /\/desconto\// },
+  { path: '/store/kabum/', expect: /\/desconto\// },
+  { path: '/store/loja-que-nunca-existiu/', expect: /\/lojas$/ },
+  { path: '/stores-2/', expect: /\/lojas$/ },
+];
 
-console.log('\n3. Redirecionamento das URLs do site antigo');
-for (const path of LEGACY_PATHS) {
-  try {
-    const response = await fetch(`${host}${path}`, {
+async function followChain(startUrl, maxHops = 5) {
+  const chain = [];
+  let current = startUrl;
+  for (let hop = 0; hop < maxHops; hop += 1) {
+    const response = await fetch(current, {
       headers: { 'User-Agent': OAI_UA },
       redirect: 'manual',
     });
-    const ok = response.status === 301;
+    chain.push(response.status);
+    const location = response.headers.get('location');
+    if (!location) return { chain, final: current, status: response.status };
+    current = new URL(location, current).toString();
+  }
+  return { chain, final: current, status: 0, tooManyHops: true };
+}
+
+console.log('\n3. Redirecionamento das URLs do site antigo');
+for (const { path, expect } of LEGACY_CASES) {
+  try {
+    const { chain, final, status, tooManyHops } = await followChain(`${host}${path}`);
+    const hops = chain.slice(0, -1);
+    const allPermanent = hops.length > 0 && hops.every(code => PERMANENT.has(code));
+    const ok = allPermanent && !tooManyHops && status === 200 && expect.test(new URL(final).pathname);
     if (!ok) failures += 1;
     console.log(
-      `   ${ok ? 'OK  ' : 'FALHA'} ${response.status} ${path} → ${response.headers.get('location') || '(sem Location)'}`
+      `   ${ok ? 'OK  ' : 'FALHA'} ${chain.join(' → ')} ${path} → ${new URL(final).pathname}`
     );
   } catch (error) {
     failures += 1;
@@ -120,4 +147,4 @@ if (failures > 0) {
   console.log(`FALHA: ${failures} verificação(ões) reprovada(s).`);
   process.exit(1);
 }
-console.log('OK: sitemap sem 404, HTML com conteúdo e 301 do site antigo.');
+console.log('OK: sitemap sem 404, HTML com conteúdo e redirect permanente do site antigo.');
