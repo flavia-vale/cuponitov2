@@ -13,6 +13,7 @@ import type {
   PrerenderCategory,
   PrerenderCoupon,
   PrerenderPost,
+  PrerenderPostSummary,
   PrerenderStore,
 } from './data';
 
@@ -57,6 +58,7 @@ function chrome(
     .join('');
 
   return `
+    <div class="pr">
       <header>
         <a href="${SITE_URL}/">Cuponito</a>
         <nav>
@@ -77,7 +79,8 @@ function chrome(
           <a href="${SITE_URL}/termos-de-uso">Termos de uso</a>
           <a href="${SITE_URL}/fale-conosco">Fale conosco</a>
         </nav>
-      </footer>`;
+      </footer>
+    </div>`;
 }
 
 function parseExtraSchema(raw: unknown): unknown[] {
@@ -180,15 +183,34 @@ export function renderBlogPost(
 
 // ── Página de loja ───────────────────────────────────────────────────────────
 
-function couponListItems(coupons: PrerenderCoupon[]): string {
+const DATE_LIKE = /^\s*\d{1,2}\/\d{1,2}\/\d{2,4}\s*$/;
+
+function sameText(a?: string | null, b?: string | null): boolean {
+  return (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase();
+}
+
+function couponListItems(coupons: PrerenderCoupon[], withStore = false): string {
   return coupons
     .map(coupon => {
+      // Muitos cupons vêm do feed com a descrição igual ao título e com
+      // `expiry_text` ora data, ora texto de desconto. Repetir a mesma frase e
+      // largar uma data sem rótulo deixa a lista ilegível para gente e para IA.
+      const expiry = coupon.expiry_text?.trim();
       const parts = [
         `<strong>${escapeHtml(coupon.title)}</strong>`,
-        coupon.discount ? `<span>${escapeHtml(coupon.discount)}</span>` : '',
+        withStore && coupon.store ? `<span>${escapeHtml(coupon.store)}</span>` : '',
+        coupon.discount && !sameText(coupon.discount, coupon.title)
+          ? `<span>${escapeHtml(coupon.discount)}</span>`
+          : '',
         coupon.code ? `<span>Código: <code>${escapeHtml(coupon.code)}</code></span>` : '',
-        coupon.description ? `<span>${escapeHtml(coupon.description)}</span>` : '',
-        coupon.expiry_text ? `<span>${escapeHtml(coupon.expiry_text)}</span>` : '',
+        coupon.description && !sameText(coupon.description, coupon.title)
+          ? `<span>${escapeHtml(coupon.description)}</span>`
+          : '',
+        expiry
+          ? DATE_LIKE.test(expiry)
+            ? `<span>Válido até ${escapeHtml(expiry)}</span>`
+            : `<span>${escapeHtml(expiry)}</span>`
+          : '',
       ].filter(Boolean);
       return `<li>${parts.join(' — ')}</li>`;
     })
@@ -422,6 +444,317 @@ export function renderAboutPage(links: ChromeLinks): RenderedPage {
       { name: 'Quem somos', url: canonical },
     ],
     links
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+// ── Home e listagens ─────────────────────────────────────────────────────────
+//
+// Sem estas rotas no prerender, as páginas de maior autoridade do site (a home
+// e os três hubs) respondiam só a casca do SPA: nenhum texto, nenhum link real
+// para loja, categoria ou post. Era o furo que sobrava depois de `/blog/:slug`,
+// `/desconto/:slug` e `/categoria/:slug`.
+
+function storeListItems(stores: PrerenderStore[]): string {
+  return stores
+    .map(
+      store =>
+        `<li><a href="${SITE_URL}/desconto/${store.slug}">Cupom de desconto ${escapeHtml(store.name)}</a></li>`
+    )
+    .join('');
+}
+
+function categoryListItems(categories: PrerenderCategory[]): string {
+  return categories
+    .map(
+      category =>
+        `<li><a href="${SITE_URL}/categoria/${category.slug}">Cupons de ${escapeHtml(category.name)}</a></li>`
+    )
+    .join('');
+}
+
+function postListItems(posts: PrerenderPostSummary[]): string {
+  return posts
+    .map(post => {
+      const date = formatDatePtBr(post.published_at);
+      return `<li>
+            <a href="${SITE_URL}/blog/${post.slug}">${escapeHtml(post.title)}</a>
+            ${post.published_at ? `<time datetime="${escapeHtml(post.published_at)}">${date}</time>` : ''}
+            ${post.excerpt ? `<p>${escapeHtml(post.excerpt)}</p>` : ''}
+          </li>`;
+    })
+    .join('');
+}
+
+function latestUpdate(rows: Array<{ updated_at?: string | null }>): string | null {
+  return rows.reduce<string | null>((acc, row) => {
+    if (!row.updated_at) return acc;
+    return !acc || row.updated_at > acc ? row.updated_at : acc;
+  }, null);
+}
+
+export interface HomeData {
+  coupons: PrerenderCoupon[];
+  stores: PrerenderStore[];
+  categories: PrerenderCategory[];
+  posts: PrerenderPostSummary[];
+}
+
+export function renderHomePage(data: HomeData): RenderedPage {
+  const canonical = `${SITE_URL}/`;
+  const description =
+    'Encontre cupons de desconto atualizados diariamente para Amazon, Shopee, Mercado Livre e centenas de outras lojas. Economia real e verificada.';
+  const updated = latestUpdate(data.coupons);
+
+  const meta: HeadMeta = {
+    title: 'Cuponito - Cupons de Desconto Verificados',
+    description,
+    canonical,
+    modifiedTime: updated,
+  };
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        name: 'Cuponito',
+        url: canonical,
+        inLanguage: 'pt-BR',
+        description,
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_URL}/cupons?q={search_term_string}`,
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      { ...CUPONITO_ORGANIZATION, founder: { '@id': FLAVIA_VALE_PERSON['@id'] } },
+      breadcrumb([{ name: 'Página Inicial', url: canonical }]),
+      ...(data.coupons.length > 0
+        ? [couponOfferList('Top Cupons de Desconto', data.coupons.slice(0, 20))]
+        : []),
+    ],
+  };
+
+  const body = chrome(
+    `
+      <main>
+        <h1>Cupons de desconto verificados todos os dias</h1>
+        <p>${escapeHtml(description)}</p>
+        ${updated ? `<p>Última atualização dos cupons: <time datetime="${escapeHtml(updated)}">${formatDatePtBr(updated)}</time></p>` : ''}
+
+        ${
+          data.coupons.length > 0
+            ? `<h2>Cupons em destaque</h2><ul>${couponListItems(data.coupons.slice(0, 12), true)}</ul>
+               <p><a href="${SITE_URL}/cupons">Ver todos os cupons</a></p>`
+            : ''
+        }
+
+        ${
+          data.stores.length > 0
+            ? `<h2>Lojas com cupom</h2><ul>${storeListItems(data.stores.slice(0, 12))}</ul>
+               <p><a href="${SITE_URL}/lojas">Ver todas as lojas</a></p>`
+            : ''
+        }
+
+        ${
+          data.categories.length > 0
+            ? `<h2>Categorias</h2><ul>${categoryListItems(data.categories.slice(0, 12))}</ul>`
+            : ''
+        }
+
+        ${
+          data.posts.length > 0
+            ? `<h2>Guias do Cuponito</h2><ul>${postListItems(data.posts.slice(0, 5))}</ul>
+               <p><a href="${SITE_URL}/blog">Ver o blog</a></p>`
+            : ''
+        }
+      </main>`,
+    [{ name: 'Cuponito', url: canonical }],
+    { stores: [], posts: [] }
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+export function renderCouponsPage(
+  coupons: PrerenderCoupon[],
+  categories: PrerenderCategory[],
+  links: ChromeLinks
+): RenderedPage {
+  const canonical = `${SITE_URL}/cupons`;
+  const description =
+    'Lista atualizada de cupons de desconto verificados para as maiores lojas do Brasil.';
+  const updated = latestUpdate(coupons);
+
+  const meta: HeadMeta = {
+    title: 'Todos os Cupons de Desconto | Cuponito',
+    description,
+    canonical,
+    modifiedTime: updated,
+  };
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonical}#page`,
+        name: 'Todos os Cupons de Desconto',
+        description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${SITE_URL}/#organization` },
+        ...(updated ? { dateModified: updated } : {}),
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb([
+        { name: 'Página Inicial', url: `${SITE_URL}/` },
+        { name: 'Todos os Cupons', url: canonical },
+      ]),
+      ...(coupons.length > 0 ? [couponOfferList('Todos os Cupons de Desconto', coupons)] : []),
+    ],
+  };
+
+  const body = chrome(
+    `
+      <main>
+        <h1>Todos os cupons de desconto</h1>
+        <p>${escapeHtml(description)}</p>
+        ${updated ? `<p>Atualizado em <time datetime="${escapeHtml(updated)}">${formatDatePtBr(updated)}</time></p>` : ''}
+        ${coupons.length > 0 ? `<ul>${couponListItems(coupons, true)}</ul>` : '<p>Nenhum cupom ativo neste momento.</p>'}
+        ${categories.length > 0 ? `<h2>Por categoria</h2><ul>${categoryListItems(categories)}</ul>` : ''}
+      </main>`,
+    [
+      { name: 'Cuponito', url: `${SITE_URL}/` },
+      { name: 'Cupons', url: canonical },
+    ],
+    links
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+export function renderStoresPage(stores: PrerenderStore[], links: ChromeLinks): RenderedPage {
+  const canonical = `${SITE_URL}/lojas`;
+  const description =
+    'Encontre cupons de desconto das melhores lojas do Brasil: Amazon, Shopee, Mercado Livre e centenas de outras lojas verificadas.';
+
+  const meta: HeadMeta = {
+    title: 'Lojas com Cupom de Desconto | Cuponito',
+    description,
+    canonical,
+  };
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonical}#page`,
+        name: 'Todas as Lojas com Cupons',
+        description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${SITE_URL}/#organization` },
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb([
+        { name: 'Página Inicial', url: `${SITE_URL}/` },
+        { name: 'Todas as Lojas', url: canonical },
+      ]),
+      {
+        '@type': 'ItemList',
+        name: 'Lojas com cupom de desconto',
+        itemListElement: stores.map((store, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: store.name,
+          url: `${SITE_URL}/desconto/${store.slug}`,
+        })),
+      },
+    ],
+  };
+
+  const body = chrome(
+    `
+      <main>
+        <h1>Todas as lojas com cupom de desconto</h1>
+        <p>${escapeHtml(description)}</p>
+        <p>${stores.length} lojas com cupons conferidos pela equipe do Cuponito.</p>
+        ${stores.length > 0 ? `<ul>${storeListItems(stores)}</ul>` : '<p>Nenhuma loja ativa neste momento.</p>'}
+      </main>`,
+    [
+      { name: 'Cuponito', url: `${SITE_URL}/` },
+      { name: 'Lojas', url: canonical },
+    ],
+    links
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+export function renderBlogListPage(
+  posts: PrerenderPostSummary[],
+  links: ChromeLinks
+): RenderedPage {
+  const canonical = `${SITE_URL}/blog`;
+  const description =
+    'Guias e comparativos do Cuponito sobre cupons, ofertas e ferramentas para quem divulga como afiliado.';
+  const updated = latestUpdate(posts);
+
+  const meta: HeadMeta = {
+    title: 'Blog | Cuponito',
+    description,
+    canonical,
+    modifiedTime: updated,
+  };
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Blog',
+        '@id': `${canonical}#blog`,
+        name: 'Blog do Cuponito',
+        description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        blogPost: posts.map(post => ({
+          '@type': 'BlogPosting',
+          headline: post.title,
+          url: `${SITE_URL}/blog/${post.slug}`,
+          ...(post.published_at ? { datePublished: post.published_at } : {}),
+        })),
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb([
+        { name: 'Página Inicial', url: `${SITE_URL}/` },
+        { name: 'Blog', url: canonical },
+      ]),
+    ],
+  };
+
+  const body = chrome(
+    `
+      <main>
+        <h1>Blog do Cuponito</h1>
+        <p>${escapeHtml(description)}</p>
+        ${posts.length > 0 ? `<ul>${postListItems(posts)}</ul>` : '<p>Nenhum artigo publicado ainda.</p>'}
+      </main>`,
+    [
+      { name: 'Cuponito', url: `${SITE_URL}/` },
+      { name: 'Blog', url: canonical },
+    ],
+    // a listagem já linka todos os posts no corpo; repetir no rodapé é ruído
+    { ...links, posts: [] }
   );
 
   return { head: renderHead(meta, [schema]), body };

@@ -50,13 +50,20 @@ if (!sitemapResponse.ok) {
   const xml = await sitemapResponse.text();
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1].trim());
   console.log(`   ${urls.length} URLs no sitemap`);
+  // A Vercel responde 403 "Forbidden" a rajadas do mesmo IP (proteção de taxa),
+  // o que apareceria como URL quebrada. Uma segunda tentativa com pausa separa
+  // limite de taxa de 404 de verdade.
   const statuses = await mapLimit(urls, CONCURRENCY, async url => {
-    try {
-      const response = await fetch(url, { headers: { 'User-Agent': OAI_UA }, redirect: 'manual' });
-      return { url, status: response.status };
-    } catch (error) {
-      return { url, status: 0, error: error.message };
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const response = await fetch(url, { headers: { 'User-Agent': OAI_UA }, redirect: 'manual' });
+        if (response.status === 200 || attempt === 1) return { url, status: response.status };
+      } catch (error) {
+        if (attempt === 1) return { url, status: 0, error: error.message };
+      }
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
+    return { url, status: 0 };
   });
   const bad = statuses.filter(entry => entry.status !== 200);
   for (const entry of bad) console.log(`   ${entry.status} ${entry.url}`);

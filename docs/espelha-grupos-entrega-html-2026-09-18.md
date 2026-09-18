@@ -56,6 +56,28 @@ Esperado em `seo:entrega`: nenhuma URL fora de 200, 3/3 em cada página de
 conteúdo, 301 nas URLs antigas. Em `seo:robos`: um 403 para o "Googlebot falso"
 é esperado (a Vercel verifica o robô por IP); qualquer `busca_bloqueada` é falha.
 
+## Segunda leva (18/09, depois do merge e da migration)
+
+Medido em produção com os posts já publicados:
+
+- **Home e listagens no prerender.** `/`, `/cupons`, `/lojas` e `/blog` respondiam
+  a casca do SPA (3.485 B, zero texto). Agora saem com `<h1>`, texto, links
+  internos reais e JSON-LD (`WebSite`, `CollectionPage`, `Blog`, `ItemList`).
+  `/lojas` expõe as 63 páginas de loja como link real — antes elas só existiam
+  no sitemap.
+- **Estilo inline do prerender.** O visitante vê o HTML do servidor até o React
+  montar; sem estilo a home apareceria como texto cru. Vai inline, igual para
+  todo mundo.
+- **Cache do sitemap: 6 h → 15 min.** Na publicação dos dois posts o Bing leu uma
+  cópia cacheada de 34 min antes da migration, sem eles (o IndexNow os avisou
+  direto, então nada se perdeu). Sitemap é lido por crawler, não por usuário.
+- **Legibilidade da lista de cupons.** O feed traz descrição igual ao título e
+  `expiry_text` ora data, ora texto de desconto. Agora a loja aparece, a
+  descrição repetida sai e a data ganha rótulo "Válido até".
+- **Rajada = 403.** A Vercel responde `Forbidden` a muitas requisições do mesmo
+  IP (o D7 do plano). Não é bloqueio por user-agent: nenhum robô foi barrado no
+  `seo:robos`. O `seo:entrega` agora tenta de novo antes de acusar URL quebrada.
+
 ## Pendências fora do repositório
 
 - **M6 — Firewall da Vercel.** Conferir em Firewall → Bot Protection que os

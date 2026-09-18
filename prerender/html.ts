@@ -14,6 +14,32 @@ export interface HeadMeta {
   robots?: string;
 }
 
+
+/**
+ * Estilo mínimo do corpo prerenderizado.
+ *
+ * O visitante vê este HTML pelo instante entre o parse da página e a montagem
+ * do React (que substitui o conteúdo de `#root`). Sem isto a home apareceria
+ * como texto cru sem formatação por um segundo — pior que o spinner que havia
+ * antes. Vai inline e vale para todo mundo, robô incluído: não esconde nada,
+ * só deixa legível.
+ */
+const PRERENDER_STYLE = `<style>
+    .pr{font-family:Inter,system-ui,-apple-system,sans-serif;max-width:60rem;margin:0 auto;padding:1.5rem 1rem;color:#1a1a1a;line-height:1.6}
+    .pr a{color:#ff4d00;text-decoration:none}
+    .pr a:hover{text-decoration:underline}
+    .pr h1{font-size:1.75rem;line-height:1.2;margin:.75rem 0}
+    .pr h2{font-size:1.25rem;margin:1.5rem 0 .5rem}
+    .pr h3{font-size:1.05rem;margin:1.25rem 0 .5rem}
+    .pr header nav{display:flex;flex-wrap:wrap;gap:.75rem;font-weight:600;font-size:.875rem;margin:.5rem 0}
+    .pr ul,.pr ol{padding-left:1.25rem}
+    .pr li{margin:.35rem 0}
+    .pr table{width:100%;border-collapse:collapse;font-size:.875rem;margin:1rem 0;display:block;overflow-x:auto}
+    .pr th,.pr td{border:1px solid rgba(0,0,0,.12);padding:.5rem;text-align:left}
+    .pr img{max-width:100%;height:auto}
+    .pr footer{margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.12);font-size:.875rem}
+  </style>`;
+
 /** Tags de <head> que precisam existir no HTML do servidor (sem JavaScript). */
 export function renderHead(meta: HeadMeta, jsonLd: unknown[]): string {
   const image = meta.ogImage || DEFAULT_OG_IMAGE;
@@ -50,6 +76,8 @@ export function renderHead(meta: HeadMeta, jsonLd: unknown[]): string {
     const json = JSON.stringify(schema).replace(/<\/script/gi, '<\\/script');
     tags.push(`<script type="application/ld+json">${json}</script>`);
   }
+
+  tags.push(PRERENDER_STYLE);
 
   return tags.join('\n    ');
 }

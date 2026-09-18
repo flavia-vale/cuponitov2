@@ -13,27 +13,39 @@
 // prerenderizado não conflita com a hidratação.
 
 import {
+  fetchAllStores,
   fetchAuthorName,
+  fetchCategories,
   fetchCategory,
   fetchCategoryCoupons,
   fetchFeaturedPosts,
   fetchFeaturedStores,
   fetchPost,
   fetchStore,
+  fetchPublishedPosts,
   fetchStoreByLegacySlug,
   fetchStoreCoupons,
+  fetchTopCoupons,
 } from './prerender/data';
 import { injectIntoShell, SITE_URL } from './prerender/html';
 import {
   renderAboutPage,
+  renderBlogListPage,
   renderBlogPost,
   renderCategoryPage,
+  renderCouponsPage,
+  renderHomePage,
   renderStorePage,
+  renderStoresPage,
   type RenderedPage,
 } from './prerender/render';
 
 export const config = {
   matcher: [
+    '/',
+    '/cupons',
+    '/lojas',
+    '/blog',
     '/blog/:slug',
     '/desconto/:slug',
     '/categoria/:slug',
@@ -120,6 +132,36 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(3),
     ]);
     return renderCategoryPage(category, coupons, { stores, posts });
+  }
+
+  if (/^\/$/.test(pathname)) {
+    const [coupons, stores, categories, posts] = await Promise.all([
+      fetchTopCoupons(20),
+      fetchAllStores(12),
+      fetchCategories(12),
+      fetchPublishedPosts(5),
+    ]);
+    return renderHomePage({ coupons, stores, categories, posts });
+  }
+
+  if (/^\/cupons\/?$/.test(pathname)) {
+    const [coupons, categories, stores, posts] = await Promise.all([
+      fetchTopCoupons(60),
+      fetchCategories(),
+      fetchFeaturedStores(6),
+      fetchFeaturedPosts(3),
+    ]);
+    return renderCouponsPage(coupons, categories, { stores, posts });
+  }
+
+  if (/^\/lojas\/?$/.test(pathname)) {
+    const [stores, posts] = await Promise.all([fetchAllStores(), fetchFeaturedPosts(3)]);
+    return renderStoresPage(stores, { stores: [], posts });
+  }
+
+  if (/^\/blog\/?$/.test(pathname)) {
+    const [posts, stores] = await Promise.all([fetchPublishedPosts(), fetchFeaturedStores(3)]);
+    return renderBlogListPage(posts, { stores, posts: [] });
   }
 
   if (/^\/quem-somos\/?$/.test(pathname)) {
