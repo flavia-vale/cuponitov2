@@ -106,6 +106,28 @@ export async function fetchPost(slug: string): Promise<PrerenderPost | null> {
   return rows[0] ?? null;
 }
 
+// Slug encurtado depois de publicado (`cupom-shopee-hoje-o-passo-a-passo-...`
+// virou `cupom-shopee-hoje`): a URL antiga já estava no Google e virou 404.
+// Candidatos = prefixos do slug pedido; vence o mais longo publicado. Mínimo de
+// 3 palavras para não mandar um slug qualquer para um post genérico.
+const MIN_RENAMED_SLUG_WORDS = 3;
+
+export async function fetchRenamedPostSlug(requestedSlug: string): Promise<string | null> {
+  const words = requestedSlug.split('-');
+  const candidates: string[] = [];
+  for (let size = words.length - 1; size >= MIN_RENAMED_SLUG_WORDS; size--) {
+    candidates.push(words.slice(0, size).join('-'));
+  }
+  if (candidates.length === 0) return null;
+
+  const list = candidates.map(slug => `"${slug}"`).join(',');
+  const rows = await query<{ slug: string }>(
+    `blog_posts?slug=in.(${encodeURIComponent(list)})&status=eq.published&select=slug`
+  );
+  const published = new Set(rows.map(row => row.slug));
+  return candidates.find(slug => published.has(slug)) ?? null;
+}
+
 export async function fetchAuthorName(authorId: string | null): Promise<string | null> {
   if (!authorId) return null;
   const rows = await query<{ name: string }>(
