@@ -94,6 +94,22 @@ function movedPermanently(location: string): Response {
   });
 }
 
+function temporarilyUnavailable(): Response {
+  return new Response('Serviço temporariamente indisponível.', {
+    status: 503,
+    headers: { 'Retry-After': '120', 'Cache-Control': 'no-store' },
+  });
+}
+
+/** `decodeURIComponent` lança em `%` malformado — e erro no middleware vira 500. */
+function safeDecode(segment: string): string | null {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return null;
+  }
+}
+
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (blogMatch) {
@@ -183,7 +199,12 @@ export default async function middleware(request: Request): Promise<Response | u
 
   const legacyStore = pathname.match(/^\/store\/([^/]+)\/?$/);
   if (legacyStore) {
-    const store = await fetchStoreByLegacySlug(decodeURIComponent(legacyStore[1]));
+    const slug = safeDecode(legacyStore[1]);
+    if (slug === null) return movedPermanently(`${SITE_URL}/lojas`);
+    const store = await fetchStoreByLegacySlug(slug);
+    // Falha do Supabase: 301 para /lojas seria cravar o destino errado (o
+    // robô e o navegador guardam o 301). 503 manda o robô voltar depois.
+    if (store === undefined) return temporarilyUnavailable();
     return movedPermanently(store ? `${SITE_URL}/desconto/${store.slug}` : `${SITE_URL}/lojas`);
   }
   if (/^\/store\/?$/.test(pathname)) {
