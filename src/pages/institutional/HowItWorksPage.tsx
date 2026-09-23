@@ -1,14 +1,17 @@
 import InstitutionalLayout from './InstitutionalLayout';
-import { howItWorksSteps } from './content';
+import { howItWorksClosing, howItWorksIntro, howItWorksSteps, institutionalMeta } from './content';
+import { SITE_URL } from '@/lib/seo';
+
+const meta = institutionalMeta.howItWorks;
 
 export default function HowItWorksPage() {
   return (
     <InstitutionalLayout
-      title="Como funciona"
-      description="Veja como usar o Cuponito para buscar lojas, copiar cupons verificados e economizar no carrinho."
-      canonical="https://www.cuponito.com.br/como-funciona"
+      title={meta.title}
+      description={meta.description}
+      canonical={`${SITE_URL}${meta.path}`}
     >
-      <p className="font-bold text-foreground">Economizar com o cuponito é simples assim:</p>
+      <p className="font-bold text-foreground">{howItWorksIntro}</p>
       <ol className="space-y-3">
         {howItWorksSteps.map((step, index) => (
           <li key={step} className="flex gap-3">
@@ -19,10 +22,8 @@ export default function HowItWorksPage() {
           </li>
         ))}
       </ol>
-      <p>
-        O que faz o cuponito diferente é que a gente só publica cupom que funciona. Cada código é verificado antes de ir pro ar e a lista é atualizada todos os dias.
-      </p>
-      <p className="font-bold text-foreground">Sem cadastro. Sem taxa. Sem pegadinha. Só desconto de verdade.</p>
+      <p>{howItWorksClosing[0]}</p>
+      <p className="font-bold text-foreground">{howItWorksClosing[1]}</p>
     </InstitutionalLayout>
   );
 }

@@ -36,8 +36,10 @@ import {
   renderCategoryPage,
   renderCouponsPage,
   renderHomePage,
+  renderInstitutionalPage,
   renderStorePage,
   renderStoresPage,
+  type InstitutionalPage,
   type RenderedPage,
 } from './prerender/render';
 
@@ -51,6 +53,10 @@ export const config = {
     '/desconto/:slug',
     '/categoria/:slug',
     '/quem-somos',
+    '/como-funciona',
+    '/perguntas-frequentes',
+    '/fale-conosco',
+    '/termos-de-uso',
     '/store/:path*',
     '/stores-2/:path*',
   ],
@@ -117,6 +123,13 @@ async function findRenamedPost(pathname: string): Promise<string | null> {
   const slug = safeDecode(blogMatch[1]);
   return slug ? fetchRenamedPostSlug(slug) : null;
 }
+
+const INSTITUTIONAL_ROUTES: Record<string, InstitutionalPage> = {
+  '/como-funciona': 'howItWorks',
+  '/perguntas-frequentes': 'faq',
+  '/fale-conosco': 'contact',
+  '/termos-de-uso': 'terms',
+};
 
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
@@ -191,6 +204,12 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   if (/^\/quem-somos\/?$/.test(pathname)) {
     const [stores, posts] = await Promise.all([fetchFeaturedStores(3), fetchFeaturedPosts(3)]);
     return renderAboutPage({ stores, posts });
+  }
+
+  const institutional = INSTITUTIONAL_ROUTES[pathname.replace(/\/$/, '')];
+  if (institutional) {
+    const [stores, posts] = await Promise.all([fetchFeaturedStores(3), fetchFeaturedPosts(3)]);
+    return renderInstitutionalPage(institutional, { stores, posts });
   }
 
   return null;
