@@ -23,6 +23,7 @@ import {
   fetchPost,
   fetchStore,
   fetchPublishedPosts,
+  fetchRenamedPostSlug,
   fetchStoreByLegacySlug,
   fetchStoreCoupons,
   fetchTopCoupons,
@@ -108,6 +109,13 @@ function safeDecode(segment: string): string | null {
   } catch {
     return null;
   }
+}
+
+async function findRenamedPost(pathname: string): Promise<string | null> {
+  const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
+  if (!blogMatch) return null;
+  const slug = safeDecode(blogMatch[1]);
+  return slug ? fetchRenamedPostSlug(slug) : null;
 }
 
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
@@ -218,6 +226,9 @@ export default async function middleware(request: Request): Promise<Response | u
     if (!shell) return undefined;
 
     if (!page) {
+      const renamed = await findRenamedPost(pathname);
+      if (renamed) return movedPermanently(`${SITE_URL}/blog/${renamed}`);
+
       // Slug inexistente: 404 de verdade, não soft 404. A SPA ainda monta por
       // cima e mostra a tela de "não encontrado" para quem está no navegador.
       return new Response(shell, { status: 404, headers: SHELL_HEADERS });
