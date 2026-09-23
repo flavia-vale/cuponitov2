@@ -13,19 +13,28 @@ function credentials() {
   };
 }
 
+// Supabase lento não pode segurar a resposta do Edge: o robô desiste da URL
+// (e, se ela veio de um redirect, o Search Console marca "Erro de redirecionamento").
+const QUERY_TIMEOUT_MS = 5000;
+
 /** `null` = a requisição falhou; `[]` = respondeu, sem registros. */
 async function tryQuery<T>(path: string): Promise<T[] | null> {
   const { url, key } = credentials();
-  const response = await fetch(`${url}/rest/v1/${path}`, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      Accept: 'application/json',
-    },
-  });
-  if (!response.ok) return null;
-  const rows = (await response.json()) as T[];
-  return Array.isArray(rows) ? rows : [];
+  try {
+    const response = await fetch(`${url}/rest/v1/${path}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    const rows = (await response.json()) as T[];
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return null;
+  }
 }
 
 async function query<T>(path: string): Promise<T[]> {
@@ -166,7 +175,13 @@ export async function fetchFeaturedStores(limit = 12): Promise<PrerenderStore[]>
  * Busca a loja aceitando o slug antigo (WordPress: `/store/casas-bahia/`) ou o
  * novo (`cupom-desconto-casas-bahia`). Usado no 301 das URLs do site antigo.
  */
-export async function fetchStoreByLegacySlug(legacySlug: string): Promise<PrerenderStore | null> {
+/**
+ * `undefined` = o Supabase falhou (quem chama não pode cravar um 301);
+ * `null` = respondeu e não há loja com esse slug.
+ */
+export async function fetchStoreByLegacySlug(
+  legacySlug: string
+): Promise<PrerenderStore | null | undefined> {
   const normalized = legacySlug.replace(/^cupom-desconto-/, '');
   // O slug novo pode ter sufixo de país (`kabum` → `cupom-desconto-kabum-br`),
   // daí o terceiro candidato por prefixo. Sem correspondência, quem chama
@@ -177,9 +192,10 @@ export async function fetchStoreByLegacySlug(legacySlug: string): Promise<Preren
     `slug.like.cupom-desconto-${normalized}-*`,
   ];
   const filter = candidates.map(condition => encodeURIComponent(condition)).join(',');
-  const rows = await query<PrerenderStore>(
+  const rows = await tryQuery<PrerenderStore>(
     `stores?or=(${filter})&select=slug,name,description,meta_description,logo_url,store_id,website_url&order=slug&limit=1`
   );
+  if (!rows) return undefined;
   return rows[0] ?? null;
 }
 
