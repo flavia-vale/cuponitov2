@@ -1,17 +1,21 @@
 import InstitutionalLayout from './InstitutionalLayout';
+import { contactMailto, contactParagraphs, institutionalMeta } from './content';
+import { SITE_URL } from '@/lib/seo';
+
+const meta = institutionalMeta.contact;
 
 export default function ContactPage() {
   return (
     <InstitutionalLayout
-      title="Fale conosco"
-      description="Entre em contato com o time do Cuponito para avisar sobre cupons, sugerir lojas ou tirar dúvidas."
-      canonical="https://www.cuponito.com.br/fale-conosco"
+      title={meta.title}
+      description={meta.description}
+      canonical={`${SITE_URL}${meta.path}`}
     >
-      <p>Encontrou um cupom que não funcionou? Quer sugerir uma loja? Tem alguma dúvida que não está no FAQ?</p>
-      <p>Manda mensagem aqui embaixo. O time do Cuponito lê tudo e te responde o mais rápido possível.</p>
-      <p className="font-bold text-foreground">Adoramos ouvir, de verdade.</p>
+      <p>{contactParagraphs[0]}</p>
+      <p>{contactParagraphs[1]}</p>
+      <p className="font-bold text-foreground">{contactParagraphs[2]}</p>
       <a
-        href="mailto:contato@cuponito.com.br?subject=Contato%20pelo%20Cuponito"
+        href={contactMailto}
         className="inline-flex rounded-full bg-[#FF6B35] px-6 py-3 text-sm font-black text-white transition-colors hover:bg-[#FF4D00]"
       >
         Enviar mensagem

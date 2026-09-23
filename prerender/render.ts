@@ -16,6 +16,17 @@ import type {
   PrerenderPostSummary,
   PrerenderStore,
 } from './data';
+import {
+  contactMailto,
+  contactParagraphs,
+  faqs,
+  howItWorksClosing,
+  howItWorksIntro,
+  howItWorksSteps,
+  institutionalMeta,
+  termsIntro,
+  termsSections,
+} from '../src/pages/institutional/content';
 
 export interface FeaturedPost {
   title: string;
@@ -447,6 +458,93 @@ export function renderAboutPage(links: ChromeLinks): RenderedPage {
   );
 
   return { head: renderHead(meta, [schema]), body };
+}
+
+// ── Institucionais ───────────────────────────────────────────────────────────
+//
+// Sem prerender, estas rotas respondiam a casca do SPA, que traz o canonical da
+// home: o Google tratava a página como cópia da home ("Cópia sem página
+// canônica selecionada pelo usuário"). Os textos vêm do mesmo `content.ts` do React.
+
+export type InstitutionalPage = keyof typeof institutionalMeta;
+
+function institutionalBody(page: InstitutionalPage): string {
+  const paragraph = (text: string) => `<p>${escapeHtml(text)}</p>`;
+  const section = (title: string, text: string) =>
+    `<section><h2>${escapeHtml(title)}</h2>${paragraph(text)}</section>`;
+
+  switch (page) {
+    case 'howItWorks':
+      return [
+        paragraph(howItWorksIntro),
+        `<ol>${howItWorksSteps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>`,
+        ...howItWorksClosing.map(paragraph),
+        `<p><a href="${SITE_URL}/cupons">Ver cupons de hoje</a> · <a href="${SITE_URL}/lojas">Ver todas as lojas</a></p>`,
+      ].join('\n          ');
+    case 'faq':
+      return faqs.map(faq => section(faq.question, faq.answer)).join('\n          ');
+    case 'contact':
+      return [
+        ...contactParagraphs.map(paragraph),
+        `<p><a href="${escapeHtml(contactMailto)}">Enviar mensagem para contato@cuponito.com.br</a></p>`,
+      ].join('\n          ');
+    case 'terms':
+      return [
+        paragraph(termsIntro),
+        ...termsSections.map(item => section(item.title, item.content)),
+      ].join('\n          ');
+  }
+}
+
+export function renderInstitutionalPage(page: InstitutionalPage, links: ChromeLinks): RenderedPage {
+  const { path, title, description } = institutionalMeta[page];
+  const canonical = `${SITE_URL}${path}`;
+
+  const meta: HeadMeta = { title: `${title} | Cuponito`, description, canonical };
+
+  const graph: object[] = [
+    {
+      '@type': 'WebPage',
+      '@id': `${canonical}#page`,
+      name: title,
+      description,
+      url: canonical,
+      inLanguage: 'pt-BR',
+      isPartOf: { '@id': `${SITE_URL}/#website` },
+    },
+    breadcrumb([
+      { name: 'Página Inicial', url: `${SITE_URL}/` },
+      { name: title, url: canonical },
+    ]),
+  ];
+  if (page === 'faq') {
+    graph.push({
+      '@type': 'FAQPage',
+      '@id': `${canonical}#faq`,
+      mainEntity: faqs.map(faq => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      })),
+    });
+  }
+
+  const body = chrome(
+    `
+      <main>
+        <article>
+          <h1>${escapeHtml(title)}</h1>
+          ${institutionalBody(page)}
+        </article>
+      </main>`,
+    [
+      { name: 'Cuponito', url: `${SITE_URL}/` },
+      { name: title, url: canonical },
+    ],
+    links
+  );
+
+  return { head: renderHead(meta, [{ '@context': 'https://schema.org', '@graph': graph }]), body };
 }
 
 // ── Home e listagens ─────────────────────────────────────────────────────────

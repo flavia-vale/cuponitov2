@@ -1,12 +1,15 @@
 import InstitutionalLayout from './InstitutionalLayout';
-import { faqs } from './content';
+import { faqs, institutionalMeta } from './content';
+import { SITE_URL } from '@/lib/seo';
+
+const meta = institutionalMeta.faq;
 
 export default function FaqPage() {
   return (
     <InstitutionalLayout
-      title="Perguntas frequentes"
-      description="Tire dúvidas sobre cupons, cadastro, custo, atualização dos descontos e sugestões de lojas no Cuponito."
-      canonical="https://www.cuponito.com.br/perguntas-frequentes"
+      title={meta.title}
+      description={meta.description}
+      canonical={`${SITE_URL}${meta.path}`}
     >
       <div className="space-y-6">
         {faqs.map((faq) => (
