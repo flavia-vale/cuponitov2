@@ -139,6 +139,7 @@ export interface PrerenderAuthor {
   bio: string | null;
   linkedin_url: string | null;
   job_title: string | null;
+  avatar_url: string | null;
 }
 
 /**
@@ -148,11 +149,11 @@ export interface PrerenderAuthor {
  */
 async function fetchAuthorBy(filter: string): Promise<PrerenderAuthor | null> {
   const full = await tryQuery<PrerenderAuthor>(
-    `blog_authors?${filter}&select=name,bio,linkedin_url,job_title&limit=1`
+    `blog_authors?${filter}&select=name,bio,linkedin_url,job_title,avatar_url&limit=1`
   );
   if (full) return full[0] ?? null;
-  const basic = await query<{ name: string; bio: string | null }>(
-    `blog_authors?${filter}&select=name,bio&limit=1`
+  const basic = await query<{ name: string; bio: string | null; avatar_url: string | null }>(
+    `blog_authors?${filter}&select=name,bio,avatar_url&limit=1`
   );
   return basic[0] ? { ...basic[0], linkedin_url: null, job_title: null } : null;
 }

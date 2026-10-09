@@ -20,6 +20,7 @@ export interface AuthorProfile {
   bio?: string | null;
   linkedin_url?: string | null;
   job_title?: string | null;
+  avatar_url?: string | null;
 }
 
 export function isFlavia(name: string | null | undefined): boolean {
@@ -42,6 +43,7 @@ export function authorPersonSchema(author: AuthorProfile | null | undefined): Re
     name: author.name,
     ...(author.job_title ? { jobTitle: author.job_title } : {}),
     ...(author.bio ? { description: author.bio } : {}),
+    ...(safeExternalUrl(author.avatar_url) ? { image: safeExternalUrl(author.avatar_url) } : {}),
   };
 
   if (isFlavia(author.name)) {
