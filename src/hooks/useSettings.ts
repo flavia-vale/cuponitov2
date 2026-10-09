@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DEFAULT_GROUP_INFO, type WhatsappGroupInfo } from '@/lib/whatsappGroup';
+import { DEFAULT_GROUP_INFO, DEFAULT_JOIN_URL, type WhatsappGroupInfo } from '@/lib/whatsappGroup';
 
 export interface SiteSettings {
   global_links: {
@@ -33,7 +33,7 @@ export interface SiteSettings {
 
 const DEFAULT_SETTINGS: SiteSettings = {
   global_links: {
-    whatsapp_group: "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
+    whatsapp_group: DEFAULT_JOIN_URL,
     instagram: "",
     contact_email: "contato@cuponito.com.br"
   },

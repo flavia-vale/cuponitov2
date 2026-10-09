@@ -10,6 +10,7 @@ import {
   type HeadMeta,
 } from './html';
 import type {
+  PrerenderAuthor,
   PrerenderCategory,
   PrerenderCoupon,
   PrerenderPost,
@@ -36,6 +37,7 @@ import {
   type WhatsappGroupInfo,
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
+import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
 
 export interface FeaturedPost {
   title: string;
@@ -121,9 +123,32 @@ function safeJsonParse(raw: string): unknown {
 
 // ── Post do blog ─────────────────────────────────────────────────────────────
 
+/** Assinatura visível (EEAT): nome com link para o perfil público, cargo e datas. */
+function authorByline(author: PrerenderAuthor | null): string {
+  if (!author) return 'Por Equipe Cuponito';
+  const url = authorProfileUrl(author);
+  const name = url
+    ? `<a href="${escapeHtml(url)}" rel="author noopener">${escapeHtml(author.name)}</a>`
+    : escapeHtml(author.name);
+  return `Por ${name}${author.job_title ? `, ${escapeHtml(author.job_title)}` : ''}`;
+}
+
+/** Caixa "sobre a autora" no fim do conteúdo: quem escreveu e onde verificar. */
+function authorBox(author: PrerenderAuthor | null): string {
+  if (!author) return '';
+  const url = authorProfileUrl(author);
+  return `
+          <aside aria-label="Sobre a autora">
+            <h2>Sobre a autora</h2>
+            <p><strong>${escapeHtml(author.name)}</strong>${author.job_title ? ` · ${escapeHtml(author.job_title)}` : ''}</p>
+            ${author.bio ? `<p>${escapeHtml(author.bio)}</p>` : ''}
+            ${url ? `<p><a href="${escapeHtml(url)}" rel="author noopener">Perfil no LinkedIn</a></p>` : ''}
+          </aside>`;
+}
+
 export function renderBlogPost(
   post: PrerenderPost,
-  authorName: string | null,
+  author: PrerenderAuthor | null,
   links: ChromeLinks
 ): RenderedPage {
   const canonical = `${SITE_URL}/blog/${post.slug}`;
@@ -131,8 +156,6 @@ export function renderBlogPost(
   const modifiedIso = post.updated_at || publishedIso;
   const description =
     post.meta_description || post.excerpt || markdownToPlainText(post.content || '');
-  const author = authorName || 'Equipe Cuponito';
-  const isFlavia = author.trim().toLowerCase() === 'flávia vale';
 
   const meta: HeadMeta = {
     title: post.meta_title || `${post.title} | Blog Cuponito`,
@@ -157,7 +180,7 @@ export function renderBlogPost(
         mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
         datePublished: publishedIso,
         dateModified: modifiedIso,
-        author: isFlavia ? FLAVIA_VALE_PERSON : { '@type': 'Person', name: author },
+        author: authorPersonSchema(author),
         publisher: CUPONITO_ORGANIZATION,
         ...(post.cover_image ? { image: post.cover_image } : {}),
       },
@@ -178,13 +201,14 @@ export function renderBlogPost(
         <article>
           <h1>${escapeHtml(post.title)}</h1>
           <p>
-            Por ${escapeHtml(author)}
+            ${authorByline(author)}
             ${publishedIso ? `· Publicado em <time datetime="${escapeHtml(publishedIso)}">${publishedLabel}</time>` : ''}
             ${modifiedIso ? `· Atualizado em <time datetime="${escapeHtml(modifiedIso)}">${modifiedLabel}</time>` : ''}
           </p>
           ${post.excerpt ? `<p>${escapeHtml(post.excerpt)}</p>` : ''}
           ${post.cover_image ? `<img src="${escapeHtml(post.cover_image)}" alt="${escapeHtml(post.title)}" />` : ''}
           ${markdownToHtml(post.content || '', { demoteHeadings: 1 })}
+          ${authorBox(author)}
         </article>
       </main>`,
     [
@@ -269,12 +293,13 @@ export interface StoreGroupCta {
 function storeGroupSection(storeName: string, cta: StoreGroupCta): string {
   const pageUrl = `${SITE_URL}${groupPagePath(cta.page?.slug ?? GROUP_HUB_SLUG)}`;
   const join = cta.joinUrl
-    ? `<a href="${escapeHtml(cta.joinUrl)}" rel="nofollow noopener">Entrar no grupo de ofertas</a> · `
+    ? `<a class="cta" href="${escapeHtml(cta.joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>`
     : '';
   return `
           <h2>Receba os cupons da ${escapeHtml(storeName)} no WhatsApp</h2>
           <p>${escapeHtml(groupFactsSentence(cta.info))}</p>
-          <p>${join}<a href="${pageUrl}">Como funciona o grupo de ofertas</a></p>`;
+          ${join}
+          <p class="cta-alt"><a href="${pageUrl}">Como funciona o grupo de ofertas</a></p>`;
 }
 
 export function renderStorePage(
@@ -364,6 +389,8 @@ export interface GroupPageContext {
   joinUrl: string | null;
   /** Demais páginas do grupo publicadas, para linkar entre si. */
   siblings: Array<Pick<WhatsappGroupPageData, 'slug' | 'h1'>>;
+  /** Quem mantém o grupo e assina a página (EEAT). */
+  author: PrerenderAuthor | null;
 }
 
 export function renderGroupPage(
@@ -402,6 +429,7 @@ export function renderGroupPage(
         inLanguage: 'pt-BR',
         isPartOf: { '@id': `${SITE_URL}/#organization` },
         ...(page.updated_at ? { dateModified: page.updated_at } : {}),
+        ...(context.author ? { author: authorPersonSchema(context.author) } : {}),
       },
       CUPONITO_ORGANIZATION,
       breadcrumb(trail),
@@ -430,13 +458,11 @@ export function renderGroupPage(
   ].join('');
 
   const actions = [
-    joinUrl ? `<a href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo</a>` : '',
+    joinUrl ? `<a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>` : '',
     info.channel_url
-      ? `<a href="${escapeHtml(info.channel_url)}" rel="nofollow noopener">Seguir o canal do WhatsApp</a>`
+      ? `<p class="cta-alt"><a href="${escapeHtml(info.channel_url)}" rel="nofollow noopener">Prefere o canal? Seguir o canal do WhatsApp</a></p>`
       : '',
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  ].join('');
 
   const siblings = context.siblings.filter(other => other.slug !== page.slug);
   const siblingLinks = siblings
@@ -452,13 +478,17 @@ export function renderGroupPage(
       <main>
         <article>
           <h1>${escapeHtml(page.h1)}</h1>
-          ${page.updated_at ? `<p>Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time></p>` : ''}
+          <p>
+            ${context.author ? authorByline(context.author) : ''}
+            ${page.updated_at ? `· Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time>` : ''}
+          </p>
           <p>${escapeHtml(page.intro)}</p>
           <ul>${facts}</ul>
-          ${actions ? `<p>${actions}</p>` : ''}
+          ${actions}
           ${markdownToHtml(page.content || '')}
           ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
           ${siblingLinks ? `<h2>Outras páginas do grupo</h2><ul>${siblingLinks}</ul>` : ''}
+          ${authorBox(context.author)}
         </article>
       </main>`,
     trail.map((item, index) => (index === 0 ? { ...item, name: 'Cuponito' } : item)),

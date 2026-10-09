@@ -2,14 +2,16 @@ import { lazy, Suspense, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowLeft, CheckCircle2, Radio } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
-import { Button } from '@/components/ui/button';
+import GroupJoinCTA from '@/components/GroupJoinCTA';
+import AuthorBox from '@/components/blog/AuthorBox';
+import { useBlogAuthors } from '@/hooks/useBlog';
+import { authorProfileUrl, isFlavia } from '@/lib/authors';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSettings } from '@/hooks/useSettings';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { trackEvent } from '@/lib/analytics';
 import { SITE_URL } from '@/lib/seo';
 import {
   GROUP_BASE_PATH,
@@ -37,6 +39,8 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
   const { data: pages, isLoading } = useWhatsappGroupPages();
   const { data: settings } = useSettings();
   const info = useWhatsappGroupInfo();
+  const { data: authors } = useBlogAuthors();
+  const author = useMemo(() => authors?.find(item => isFlavia(item.name)) ?? null, [authors]);
 
   const page = useMemo(() => pages?.find(item => item.slug === slug), [pages, slug]);
   const siblings = useMemo(() => (pages ?? []).filter(item => item.slug !== slug), [pages, slug]);
@@ -103,7 +107,23 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
         <article className="rounded-[2rem] border border-border bg-white p-6 shadow-sm md:p-10">
           <p className="mb-3 text-xs font-black uppercase tracking-[0.25em] text-[#ff5200]">Grupo no WhatsApp</p>
           <h1 className="mb-3 text-3xl font-black tracking-tight text-foreground md:text-5xl">{page.h1}</h1>
-          {updatedAt && <p className="mb-6 text-sm text-muted-foreground">Atualizado em {updatedAt}</p>}
+          <p className="mb-6 text-sm text-muted-foreground">
+            {author && (
+              <>
+                Por{' '}
+                {authorProfileUrl(author) ? (
+                  <a href={authorProfileUrl(author)!} target="_blank" rel="author noopener noreferrer" className="font-bold text-foreground hover:underline">
+                    {author.name}
+                  </a>
+                ) : (
+                  <strong className="text-foreground">{author.name}</strong>
+                )}
+                {author.job_title ? `, ${author.job_title}` : ''}
+                {updatedAt ? ' · ' : ''}
+              </>
+            )}
+            {updatedAt && <>Atualizado em {updatedAt}</>}
+          </p>
 
           <p className="mb-6 text-base leading-relaxed text-muted-foreground md:text-lg">{page.intro}</p>
 
@@ -118,32 +138,14 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
             ))}
           </ul>
 
-          <div className="mb-8 flex flex-col gap-3 sm:flex-row">
-            {joinUrl && (
-              <a
-                href={joinUrl}
-                target="_blank"
-                rel="nofollow noopener noreferrer"
-                onClick={() => trackEvent('whatsapp_click', { source: 'group_page', page: page.slug })}
-              >
-                <Button className="w-full rounded-full bg-[oklch(0.55_0.17_150)] px-6 py-5 text-base font-semibold text-white shadow-md hover:bg-[oklch(0.48_0.17_150)] sm:w-auto">
-                  Entrar no grupo
-                </Button>
-              </a>
-            )}
-            {info.channel_url && (
-              <a
-                href={info.channel_url}
-                target="_blank"
-                rel="nofollow noopener noreferrer"
-                onClick={() => trackEvent('whatsapp_click', { source: 'group_page_channel', page: page.slug })}
-              >
-                <Button variant="outline" className="w-full gap-2 rounded-full px-6 py-5 text-base font-semibold sm:w-auto">
-                  <Radio className="h-4 w-4" /> Seguir o canal
-                </Button>
-              </a>
-            )}
-          </div>
+          <GroupJoinCTA
+            title="Entrar no grupo de ofertas"
+            text={info.channel_url ? 'Toque no botão e o WhatsApp abre o convite. Prefere não aparecer para ninguém? Siga o canal.' : 'Toque no botão e o WhatsApp abre o convite.'}
+            href={joinUrl}
+            source="group_page"
+            context={page.slug}
+            className="mb-10"
+          />
 
           <div className="prose prose-sm max-w-none md:prose-base prose-headings:font-black prose-headings:text-[#1a1a1a] prose-a:font-bold prose-a:text-[#ff5200] prose-a:no-underline hover:prose-a:underline">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{page.content}</ReactMarkdown>
@@ -163,6 +165,8 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
             </section>
           )}
 
+          <GroupJoinCTA title="Pronto para economizar?" href={joinUrl} source="group_page_footer" context={page.slug} className="mt-10" />
+
           {siblings.length > 0 && (
             <nav aria-label="Outras páginas do grupo" className="mt-10">
               <h2 className="mb-3 text-xl font-black text-foreground md:text-2xl">Outras páginas do grupo</h2>
@@ -177,6 +181,8 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
               </ul>
             </nav>
           )}
+
+          <AuthorBox author={author} />
         </article>
       </main>
 

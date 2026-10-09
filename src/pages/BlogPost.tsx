@@ -10,6 +10,8 @@ import { useBlogPost, useBlogAuthors, useBlogCategories, useIncrementBlogViews, 
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
+import AuthorBox from '@/components/blog/AuthorBox';
+import { authorProfileUrl } from '@/lib/authors';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead';
@@ -63,6 +65,7 @@ export default function BlogPost() {
             description: post.excerpt,
             datePublished: post.published_at || post.created_at,
             authorName: author?.name,
+            author: author ?? undefined,
             imageUrl: post.cover_image,
           }
         } : { type: 'generic' }}
@@ -104,8 +107,20 @@ export default function BlogPost() {
                         : <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/5 shadow-sm text-[#aaa] sm:h-10 sm:w-10"><User size={16} /></div>
                       }
                       <div>
-                        <p className="text-xs font-black text-[#1a1a1a]">{author?.name || 'Equipe Cuponito'}</p>
-                        <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wide">{publishedDate}</p>
+                        <p className="text-xs font-black text-[#1a1a1a]">
+                          {author && authorProfileUrl(author) ? (
+                            <a href={authorProfileUrl(author)!} target="_blank" rel="author noopener noreferrer" className="hover:underline">
+                              {author.name}
+                            </a>
+                          ) : (
+                            author?.name || 'Equipe Cuponito'
+                          )}
+                          {author?.job_title && <span className="font-medium text-[#888]"> · {author.job_title}</span>}
+                        </p>
+                        <p className="text-[10px] font-medium text-[#aaa] uppercase tracking-wide">
+                          {publishedDate}
+                          {updatedDate && updatedDate !== publishedDate && <> · Atualizado em {updatedDate}</>}
+                        </p>
                       </div>
                     </div>
                     <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-black/5 text-[#555] hover:text-primary transition-colors shadow-sm sm:h-10 sm:w-10">
@@ -168,6 +183,7 @@ export default function BlogPost() {
               {post.cta_config && typeof post.cta_config === 'object' && (
                 <InlineCouponBox config={post.cta_config as InlineCouponConfig} />
               )}
+              <AuthorBox author={author} />
             </article>
             <div className="mt-10 sm:mt-16">
               <BlogWhatsAppCTA />

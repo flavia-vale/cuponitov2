@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import { resolveJoinUrl } from '@/lib/whatsappGroup';
 import { Link } from '@tanstack/react-router';
 import { Search, Sparkles, TrendingUp } from 'lucide-react';
 import Header from '@/components/Header';
@@ -51,7 +52,7 @@ export default function BlogList() {
   }, [selectedCategory, categories]);
 
   const contextualCouponQuery = selectedCategoryMeta?.name ?? (search.trim() || 'cupom');
-  const whatsappLink = settings?.global_links.whatsapp_group || '#';
+  const whatsappLink = resolveJoinUrl(null, settings?.global_links.whatsapp_group);
 
 
   return (

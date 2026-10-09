@@ -134,12 +134,36 @@ export async function fetchRenamedPostSlug(requestedSlug: string): Promise<strin
   return candidates.find(slug => published.has(slug)) ?? null;
 }
 
-export async function fetchAuthorName(authorId: string | null): Promise<string | null> {
-  if (!authorId) return null;
-  const rows = await query<{ name: string }>(
-    `blog_authors?id=eq.${encodeURIComponent(authorId)}&select=name&limit=1`
+export interface PrerenderAuthor {
+  name: string;
+  bio: string | null;
+  linkedin_url: string | null;
+  job_title: string | null;
+}
+
+/**
+ * Autora com perfil público (EEAT). `linkedin_url`/`job_title` entraram depois
+ * (migration 20261009150000): se ainda não existirem no banco, a REST devolve
+ * 400 e cai para só o nome — a página nunca vira 404 por causa de coluna nova.
+ */
+async function fetchAuthorBy(filter: string): Promise<PrerenderAuthor | null> {
+  const full = await tryQuery<PrerenderAuthor>(
+    `blog_authors?${filter}&select=name,bio,linkedin_url,job_title&limit=1`
   );
-  return rows[0]?.name ?? null;
+  if (full) return full[0] ?? null;
+  const basic = await query<{ name: string; bio: string | null }>(
+    `blog_authors?${filter}&select=name,bio&limit=1`
+  );
+  return basic[0] ? { ...basic[0], linkedin_url: null, job_title: null } : null;
+}
+
+export async function fetchAuthor(authorId: string | null): Promise<PrerenderAuthor | null> {
+  if (!authorId) return null;
+  return fetchAuthorBy(`id=eq.${encodeURIComponent(authorId)}`);
+}
+
+export async function fetchAuthorByName(name: string): Promise<PrerenderAuthor | null> {
+  return fetchAuthorBy(`name=eq.${encodeURIComponent(name)}`);
 }
 
 /**

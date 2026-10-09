@@ -64,6 +64,8 @@ export type Database = {
           bio: string
           created_at: string
           id: string
+          job_title: string | null
+          linkedin_url: string | null
           name: string
         }
         Insert: {
@@ -71,6 +73,8 @@ export type Database = {
           bio?: string
           created_at?: string
           id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
           name: string
         }
         Update: {
@@ -78,6 +82,8 @@ export type Database = {
           bio?: string
           created_at?: string
           id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
           name?: string
         }
         Relationships: []
