@@ -8,6 +8,13 @@ const supabase = createClient(
 
 const BASE_URL = 'https://www.cuponito.com.br'
 
+// Mesma regra de `groupPagePath` (src/lib/whatsappGroup.ts), copiada de
+// propósito: função Node da Vercel com "type": "module" não resolve import
+// relativo sem extensão, e o sitemap quebrado tira o site inteiro do crawler.
+function groupPagePath(slug: string): string {
+  return slug === 'principal' ? '/grupo-whatsapp' : `/grupo-whatsapp/${slug}`
+}
+
 function formatDate(dateStr?: string | null): string | null {
   if (!dateStr) return null
   return dateStr.split('T')[0]
@@ -38,7 +45,7 @@ function latestDate(rows: Array<{ updated_at?: string | null }>): string | null 
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const [storesResult, postsResult, categoriesResult, couponsResult] = await Promise.all([
+  const [storesResult, postsResult, categoriesResult, couponsResult, groupPagesResult] = await Promise.all([
     supabase
       .from('stores')
       .select('slug, updated_at')
@@ -60,12 +67,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq('status', true)
       .order('updated_at', { ascending: false })
       .limit(1),
+    supabase
+      .from('whatsapp_group_pages')
+      .select('slug, updated_at')
+      .eq('is_published', true)
+      .order('sort_order'),
   ])
 
   const stores = storesResult.data ?? []
   const posts = postsResult.data ?? []
   const categories = categoriesResult.data ?? []
   const coupons = couponsResult.data ?? []
+  // Tabela ausente (migration ainda não aplicada) devolve erro: sitemap segue sem as páginas do grupo.
+  const groupPages = groupPagesResult.data ?? []
 
   // Páginas estáticas — ordem reflete importância para crawlers.
   // As institucionais saem sem lastmod (não mudam com o deploy); as de
@@ -88,6 +102,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     urlEntry(`${BASE_URL}/fale-conosco`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/perguntas-frequentes`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/termos-de-uso`, null, 'monthly', 0.4),
+    ...groupPages.map(page =>
+      urlEntry(`${BASE_URL}${groupPagePath(page.slug)}`, formatDate(page.updated_at), 'weekly', 0.8)
+    ),
     ...categories.map(category =>
       urlEntry(
         `${BASE_URL}/categoria/${category.slug}`,

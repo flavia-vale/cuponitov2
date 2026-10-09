@@ -20,6 +20,9 @@ import {
   fetchCategoryCoupons,
   fetchFeaturedPosts,
   fetchFeaturedStores,
+  fetchGroupPage,
+  fetchGroupPages,
+  fetchGroupSettings,
   fetchPost,
   fetchStore,
   fetchPublishedPosts,
@@ -29,12 +32,14 @@ import {
   fetchTopCoupons,
 } from './prerender/data';
 import { injectIntoShell, SITE_URL } from './prerender/html';
+import { GROUP_HUB_SLUG, groupPageForStore, resolveJoinUrl } from './src/lib/whatsappGroup';
 import {
   renderAboutPage,
   renderBlogListPage,
   renderBlogPost,
   renderCategoryPage,
   renderCouponsPage,
+  renderGroupPage,
   renderHomePage,
   renderInstitutionalPage,
   renderStorePage,
@@ -52,6 +57,8 @@ export const config = {
     '/blog/:slug',
     '/desconto/:slug',
     '/categoria/:slug',
+    '/grupo-whatsapp',
+    '/grupo-whatsapp/:slug',
     '/quem-somos',
     '/como-funciona',
     '/perguntas-frequentes',
@@ -150,12 +157,45 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const slug = decodeURIComponent(storeMatch[1]);
     const store = await fetchStore(slug);
     if (!store) return null;
-    const [coupons, stores, posts] = await Promise.all([
+    const [coupons, stores, posts, groupPages, groupSettings] = await Promise.all([
       fetchStoreCoupons(store),
       fetchFeaturedStores(8),
       fetchFeaturedPosts(3),
+      fetchGroupPages(),
+      fetchGroupSettings(),
     ]);
-    return renderStorePage(store, coupons, { stores, posts });
+    const groupPage = groupPageForStore(groupPages, store.slug);
+    return renderStorePage(store, coupons, { stores, posts }, {
+      page: groupPage,
+      joinUrl: resolveJoinUrl(groupPage, groupSettings.globalJoinUrl),
+      info: groupSettings.info,
+    });
+  }
+
+  const groupMatch = pathname.match(/^\/grupo-whatsapp(?:\/([^/]+))?\/?$/);
+  if (groupMatch) {
+    const slug = groupMatch[1] ? safeDecode(groupMatch[1]) : GROUP_HUB_SLUG;
+    // /grupo-whatsapp/principal duplicaria /grupo-whatsapp: só existe sem sufixo.
+    if (!slug || (groupMatch[1] && slug === GROUP_HUB_SLUG)) return null;
+    const page = await fetchGroupPage(slug);
+    // Supabase fora: lança para o middleware devolver a SPA em vez de um 404 falso.
+    if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
+    if (!page) return null;
+    const [groupSettings, siblings, stores, posts] = await Promise.all([
+      fetchGroupSettings(),
+      fetchGroupPages(),
+      fetchFeaturedStores(6),
+      fetchFeaturedPosts(3),
+    ]);
+    return renderGroupPage(
+      page,
+      {
+        info: groupSettings.info,
+        joinUrl: resolveJoinUrl(page, groupSettings.globalJoinUrl),
+        siblings,
+      },
+      { stores, posts }
+    );
   }
 
   const categoryMatch = pathname.match(/^\/categoria\/([^/]+)\/?$/);

@@ -1,8 +1,8 @@
-import { LayoutDashboard, Ticket, Store, Settings, LogOut, BookOpen, Plug, ExternalLink, Tag, Activity } from 'lucide-react';
+import { LayoutDashboard, Ticket, Store, Settings, LogOut, BookOpen, Plug, ExternalLink, Tag, Activity, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type AdminTab = 'dashboard' | 'cupons' | 'categorias' | 'observabilidade' | 'lojas' | 'seo' | 'integracoes';
+export type AdminTab = 'dashboard' | 'cupons' | 'categorias' | 'observabilidade' | 'lojas' | 'grupo-whatsapp' | 'seo' | 'integracoes';
 
 const NAV_ITEMS: { id: AdminTab; label: string; icon: React.ElementType }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const NAV_ITEMS: { id: AdminTab; label: string; icon: React.ElementType }[] = [
   { id: 'observabilidade', label: 'Observabilidade', icon: Activity },
   { id: 'integracoes', label: 'Integrações', icon: Plug },
   { id: 'lojas', label: 'Lojas', icon: Store },
+  { id: 'grupo-whatsapp', label: 'Grupo WhatsApp', icon: MessageCircle },
   { id: 'seo', label: 'SEO & Config', icon: Settings },
 ];
 
