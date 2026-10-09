@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { DEFAULT_GROUP_INFO, type WhatsappGroupInfo } from '@/lib/whatsappGroup';
 
 export interface SiteSettings {
   global_links: {
@@ -26,6 +27,8 @@ export interface SiteSettings {
     step2: string;
     step3: string;
   };
+  /** Fatos do grupo de ofertas exibidos em /grupo-whatsapp (aba "Grupo WhatsApp" do admin). */
+  whatsapp_group_info: WhatsappGroupInfo;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -52,7 +55,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     step1: "Encontre sua loja favorita",
     step2: "Copie o código com 1 clique",
     step3: "Cole no carrinho e economize!"
-  }
+  },
+  whatsapp_group_info: DEFAULT_GROUP_INFO
 };
 
 export function useSettings() {

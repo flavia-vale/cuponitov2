@@ -2,7 +2,13 @@
 // A URL e a chave anônima são as mesmas que o navegador já usa (estão no
 // bundle do cliente), então servem de fallback quando o env não está setado.
 
-const FALLBACK_SUPABASE_URL = 'https://jyvmrkykukialdbcebei.supabase.co';
+import {
+  mergeGroupInfo,
+  type WhatsappGroupInfo,
+  type WhatsappGroupPageData,
+} from '../src/lib/whatsappGroup';
+
+const FALLBACK_SUPABASE_URL ='https://jyvmrkykukialdbcebei.supabase.co';
 const FALLBACK_SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dm1ya3lrdWtpYWxkYmNlYmVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMTAwOTgsImV4cCI6MjA5MTY4NjA5OH0.F7cTOv6Z5cEEPWzQT9gSb2drsZksdY6Xc7erAyXB_K8';
 
@@ -250,6 +256,37 @@ export interface PrerenderPostSummary {
   excerpt: string | null;
   published_at: string | null;
   updated_at: string | null;
+}
+
+const GROUP_PAGE_COLUMNS =
+  'slug,store_slug,title,h1,meta_description,intro,content,faq,join_url,sort_order,updated_at';
+
+/** `undefined` = o Supabase falhou (não confundir com "página não existe"). */
+export async function fetchGroupPage(slug: string): Promise<WhatsappGroupPageData | null | undefined> {
+  const rows = await tryQuery<WhatsappGroupPageData>(
+    `whatsapp_group_pages?slug=eq.${encodeURIComponent(slug)}&is_published=is.true&select=${GROUP_PAGE_COLUMNS}&limit=1`
+  );
+  if (rows === null) return undefined;
+  return rows[0] ?? null;
+}
+
+export async function fetchGroupPages(): Promise<WhatsappGroupPageData[]> {
+  return query<WhatsappGroupPageData>(
+    `whatsapp_group_pages?is_published=is.true&select=${GROUP_PAGE_COLUMNS}&order=sort_order&order=slug`
+  );
+}
+
+/** Fatos do grupo (`whatsapp_group_info`) e link global, numa leitura só. */
+export async function fetchGroupSettings(): Promise<{ info: WhatsappGroupInfo; globalJoinUrl: string | null }> {
+  const rows = await query<{ key: string; value: unknown }>(
+    'site_settings?key=in.(whatsapp_group_info,global_links)&select=key,value'
+  );
+  const byKey = new Map(rows.map(row => [row.key, row.value]));
+  const globalLinks = byKey.get('global_links') as { whatsapp_group?: unknown } | undefined;
+  return {
+    info: mergeGroupInfo(byKey.get('whatsapp_group_info')),
+    globalJoinUrl: typeof globalLinks?.whatsapp_group === 'string' ? globalLinks.whatsapp_group : null,
+  };
 }
 
 export async function fetchPublishedPosts(limit = 30): Promise<PrerenderPostSummary[]> {

@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import FeaturedGuidesLinks from '@/components/blog/FeaturedGuidesLinks';
@@ -15,6 +15,8 @@ import {
 import { getMonthYear, cn } from '@/lib/utils';
 import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
+import { useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
+import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath, resolveJoinUrl } from '@/lib/whatsappGroup';
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 
@@ -37,6 +39,11 @@ export default function StorePage() {
   const storeName = storeBrand?.name || slug?.replace(/cupom-desconto-/g, '').replace(/-/g, ' ') || '';
   const brandColor = storeBrand?.brand_color || '#FF4D00';
   const whatsappLink = settings?.global_links.whatsapp_group || '#';
+  const { data: groupPages } = useWhatsappGroupPages();
+  const groupPage = useMemo(
+    () => (slug ? groupPageForStore(groupPages ?? [], slug) : null),
+    [groupPages, slug]
+  );
 
   const storeCoupons = useMemo(() => storeCouponsData ?? [], [storeCouponsData]);
 
@@ -166,6 +173,15 @@ export default function StorePage() {
                 {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />) :
                   filteredCoupons.map(coupon => <StoreCouponCard key={coupon.id} coupon={coupon} />)}
               </div>
+
+              <Suspense fallback={null}>
+                <WhatsAppCTA
+                  variant="store"
+                  storeName={storeName}
+                  href={resolveJoinUrl(groupPage, settings?.global_links.whatsapp_group)}
+                  learnMoreHref={groupPagePath(groupPage?.slug ?? GROUP_HUB_SLUG)}
+                />
+              </Suspense>
 
               {!isLoading && expiredCoupons.length > 0 && (
                 <div className="mt-6">

@@ -980,6 +980,57 @@ export type Database = {
           },
         ]
       }
+      whatsapp_group_pages: {
+        Row: {
+          content: string
+          created_at: string
+          faq: Json
+          h1: string
+          id: string
+          intro: string
+          is_published: boolean
+          join_url: string | null
+          meta_description: string
+          slug: string
+          sort_order: number
+          store_slug: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          faq?: Json
+          h1: string
+          id?: string
+          intro: string
+          is_published?: boolean
+          join_url?: string | null
+          meta_description: string
+          slug: string
+          sort_order?: number
+          store_slug?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          faq?: Json
+          h1?: string
+          id?: string
+          intro?: string
+          is_published?: boolean
+          join_url?: string | null
+          meta_description?: string
+          slug?: string
+          sort_order?: number
+          store_slug?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -27,6 +27,15 @@ import {
   termsIntro,
   termsSections,
 } from '../src/pages/institutional/content';
+import {
+  GROUP_BASE_PATH,
+  GROUP_HUB_SLUG,
+  groupFactsSentence,
+  groupPagePath,
+  parseGroupFaq,
+  type WhatsappGroupInfo,
+  type WhatsappGroupPageData,
+} from '../src/lib/whatsappGroup';
 
 export interface FeaturedPost {
   title: string;
@@ -76,6 +85,7 @@ function chrome(
           <a href="${SITE_URL}/cupons">Cupons</a>
           <a href="${SITE_URL}/lojas">Lojas</a>
           <a href="${SITE_URL}/blog">Blog</a>
+          <a href="${SITE_URL}${GROUP_BASE_PATH}">Grupo no WhatsApp</a>
           <a href="${SITE_URL}/quem-somos">Quem somos</a>
         </nav>
         <nav aria-label="Trilha de navegação">${trail}</nav>
@@ -249,10 +259,29 @@ function couponOfferList(listName: string, coupons: PrerenderCoupon[]) {
   };
 }
 
+export interface StoreGroupCta {
+  page: Pick<WhatsappGroupPageData, 'slug'> | null;
+  joinUrl: string | null;
+  info: WhatsappGroupInfo;
+}
+
+/** Chamada para o grupo na página da loja: botão de entrar + link interno para a página do grupo. */
+function storeGroupSection(storeName: string, cta: StoreGroupCta): string {
+  const pageUrl = `${SITE_URL}${groupPagePath(cta.page?.slug ?? GROUP_HUB_SLUG)}`;
+  const join = cta.joinUrl
+    ? `<a href="${escapeHtml(cta.joinUrl)}" rel="nofollow noopener">Entrar no grupo de ofertas</a> · `
+    : '';
+  return `
+          <h2>Receba os cupons da ${escapeHtml(storeName)} no WhatsApp</h2>
+          <p>${escapeHtml(groupFactsSentence(cta.info))}</p>
+          <p>${join}<a href="${pageUrl}">Como funciona o grupo de ofertas</a></p>`;
+}
+
 export function renderStorePage(
   store: PrerenderStore,
   coupons: PrerenderCoupon[],
-  links: ChromeLinks
+  links: ChromeLinks,
+  groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/desconto/${store.slug}`;
   const description =
@@ -310,6 +339,7 @@ export function renderStorePage(
               ? `<h2>Cupons ${escapeHtml(store.name)} ativos</h2><ul>${couponListItems(coupons)}</ul>`
               : `<p>Não há cupons ativos da ${escapeHtml(store.name)} neste momento. Veja <a href="${SITE_URL}/cupons">todos os cupons</a> ou <a href="${SITE_URL}/lojas">as outras lojas</a>.</p>`
           }
+          ${groupCta ? storeGroupSection(store.name, groupCta) : ''}
         </article>
       </main>`,
     [
@@ -318,6 +348,121 @@ export function renderStorePage(
       { name: store.name, url: canonical },
     ],
     { ...links, stores: links.stores.filter(other => other.slug !== store.slug).slice(0, 6) }
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+// ── Página do grupo de ofertas no WhatsApp ──────────────────────────────────
+//
+// Formato de quem a busca e a Visão geral de IA já citam (Pechinchou, Promobit):
+// fatos do grupo nas primeiras linhas, botão de entrar, passo a passo,
+// "é confiável?" e perguntas frequentes em FAQPage.
+
+export interface GroupPageContext {
+  info: WhatsappGroupInfo;
+  joinUrl: string | null;
+  /** Demais páginas do grupo publicadas, para linkar entre si. */
+  siblings: Array<Pick<WhatsappGroupPageData, 'slug' | 'h1'>>;
+}
+
+export function renderGroupPage(
+  page: WhatsappGroupPageData,
+  context: GroupPageContext,
+  links: ChromeLinks
+): RenderedPage {
+  const path = groupPagePath(page.slug);
+  const canonical = `${SITE_URL}${path}`;
+  const isHub = page.slug === GROUP_HUB_SLUG;
+  const faq = parseGroupFaq(page.faq);
+  const { info, joinUrl } = context;
+
+  const meta: HeadMeta = {
+    title: page.title,
+    description: page.meta_description,
+    canonical,
+    modifiedTime: page.updated_at,
+  };
+
+  const trail = [
+    { name: 'Página Inicial', url: `${SITE_URL}/` },
+    ...(isHub ? [] : [{ name: 'Grupo no WhatsApp', url: `${SITE_URL}${GROUP_BASE_PATH}` }]),
+    { name: page.h1, url: canonical },
+  ];
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${canonical}#page`,
+        name: page.h1,
+        description: page.meta_description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${SITE_URL}/#organization` },
+        ...(page.updated_at ? { dateModified: page.updated_at } : {}),
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb(trail),
+      ...(faq.length > 0
+        ? [
+            {
+              '@type': 'FAQPage',
+              '@id': `${canonical}#faq`,
+              mainEntity: faq.map(item => ({
+                '@type': 'Question',
+                name: item.question,
+                acceptedAnswer: { '@type': 'Answer', text: item.answer },
+              })),
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const facts = [
+    `<li><strong>Grupo:</strong> ${escapeHtml(info.group_name)}</li>`,
+    `<li><strong>Preço:</strong> grátis</li>`,
+    `<li><strong>Ofertas por dia:</strong> ${escapeHtml(info.offers_per_day)}</li>`,
+    `<li><strong>Lojas:</strong> ${escapeHtml(info.stores)}</li>`,
+    info.admins_only ? `<li><strong>Quem posta:</strong> só os administradores</li>` : '',
+  ].join('');
+
+  const actions = [
+    joinUrl ? `<a href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo</a>` : '',
+    info.channel_url
+      ? `<a href="${escapeHtml(info.channel_url)}" rel="nofollow noopener">Seguir o canal do WhatsApp</a>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const siblings = context.siblings.filter(other => other.slug !== page.slug);
+  const siblingLinks = siblings
+    .map(other => `<li><a href="${SITE_URL}${groupPagePath(other.slug)}">${escapeHtml(other.h1)}</a></li>`)
+    .join('');
+
+  const faqHtml = faq
+    .map(item => `<h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.answer)}</p>`)
+    .join('');
+
+  const body = chrome(
+    `
+      <main>
+        <article>
+          <h1>${escapeHtml(page.h1)}</h1>
+          ${page.updated_at ? `<p>Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time></p>` : ''}
+          <p>${escapeHtml(page.intro)}</p>
+          <ul>${facts}</ul>
+          ${actions ? `<p>${actions}</p>` : ''}
+          ${markdownToHtml(page.content || '')}
+          ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
+          ${siblingLinks ? `<h2>Outras páginas do grupo</h2><ul>${siblingLinks}</ul>` : ''}
+        </article>
+      </main>`,
+    trail.map((item, index) => (index === 0 ? { ...item, name: 'Cuponito' } : item)),
+    links
   );
 
   return { head: renderHead(meta, [schema]), body };

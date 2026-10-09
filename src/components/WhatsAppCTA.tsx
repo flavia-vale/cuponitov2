@@ -8,6 +8,10 @@ type Variant = 'urgency' | 'social-proof' | 'store';
 interface WhatsAppCTAProps {
   variant: Variant;
   storeName?: string;
+  /** Link de entrada próprio (ex.: Link Inteligente da página do grupo da loja). Padrão: link global. */
+  href?: string | null;
+  /** Página do grupo no site — link interno "como funciona", que também conta para o SEO. */
+  learnMoreHref?: string;
 }
 
 const config: Record<Variant, { icon: typeof MessageCircle; buttonText: string }> = {
@@ -27,12 +31,12 @@ function getText(variant: Variant, storeName?: string) {
   }
 }
 
-const WhatsAppCTA = ({ variant, storeName }: WhatsAppCTAProps) => {
+const WhatsAppCTA = ({ variant, storeName, href, learnMoreHref }: WhatsAppCTAProps) => {
   const { data: settings } = useSettings();
   const { icon: Icon, buttonText } = config[variant];
   const text = getText(variant, storeName);
   
-  const whatsappLink = settings?.global_links.whatsapp_group || '#';
+  const whatsappLink = href || settings?.global_links.whatsapp_group || '#';
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-6 border-none">
@@ -47,9 +51,16 @@ const WhatsAppCTA = ({ variant, storeName }: WhatsAppCTAProps) => {
             </svg>
           </div>
 
-          <p className="flex-1 text-sm font-medium text-[oklch(0.35_0.05_150)] md:text-base">
-            {text}
-          </p>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-[oklch(0.35_0.05_150)] md:text-base">
+              {text}
+            </p>
+            {learnMoreHref && (
+              <a href={learnMoreHref} className="mt-1 inline-block text-xs font-bold text-[oklch(0.45_0.15_150)] hover:underline md:text-sm">
+                Como funciona o grupo de ofertas
+              </a>
+            )}
+          </div>
 
           <a
             href={whatsappLink}
