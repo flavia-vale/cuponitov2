@@ -1,4 +1,5 @@
 import { escapeHtml } from './markdown';
+import { FLAVIA_VALE_LINKEDIN } from '../src/lib/authors';
 
 export const SITE_URL = 'https://www.cuponito.com.br';
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
@@ -38,6 +39,8 @@ const PRERENDER_STYLE = `<style>
     .pr th,.pr td{border:1px solid rgba(0,0,0,.12);padding:.5rem;text-align:left}
     .pr img{max-width:100%;height:auto}
     .pr footer{margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.12);font-size:.875rem}
+    .pr .cta{display:block;max-width:22rem;margin:1.25rem auto;padding:1rem 1.5rem;border-radius:999px;background:#25d366;color:#fff;font-weight:800;font-size:1.05rem;text-align:center;text-transform:uppercase}
+    .pr .cta-alt{display:block;text-align:center;font-weight:700}
   </style>`;
 
 /** Tags de <head> que precisam existir no HTML do servidor (sem JavaScript). */
@@ -151,7 +154,7 @@ export const FLAVIA_VALE_PERSON = {
   description:
     'Fundadora do Espelha Grupos, trabalha com tecnologia e opera grupos de ofertas desde 2023.',
   url: 'https://espelhagrupos.com.br/quem-somos',
-  sameAs: ['https://espelhagrupos.com.br/quem-somos', `${SITE_URL}/quem-somos`],
+  sameAs: ['https://espelhagrupos.com.br/quem-somos', `${SITE_URL}/quem-somos`, FLAVIA_VALE_LINKEDIN],
 };
 
 /** Formata data ISO como "18 de setembro de 2026" sem depender de Intl no Edge. */

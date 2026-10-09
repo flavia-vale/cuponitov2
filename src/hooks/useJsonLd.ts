@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import type { Coupon } from '@/hooks/useCoupons';
 import { SITE_URL } from '@/lib/seo';
+import { DEFAULT_CHANNEL_URL } from '@/lib/whatsappGroup';
+import { authorPersonSchema, FLAVIA_VALE_LINKEDIN, type AuthorProfile } from '@/lib/authors';
 
 function fallbackValidThrough() {
   return `${new Date().getFullYear()}-12-31`;
@@ -95,9 +97,8 @@ function orgSchema(name = 'Cuponito', url = SITE_URL) {
     url,
     description: "Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre.",
     logo: `${SITE_URL}/og-default.png`,
-    sameAs: [
-      "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
-    ],
+    // Canal do WhatsApp é perfil estável da marca; convite de grupo expira.
+    sameAs: [DEFAULT_CHANNEL_URL],
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
@@ -118,6 +119,7 @@ const FLAVIA_VALE_PERSON = {
   sameAs: [
     "https://espelhagrupos.com.br/quem-somos",
     `${SITE_URL}/quem-somos`,
+    FLAVIA_VALE_LINKEDIN,
   ],
 };
 
@@ -127,7 +129,7 @@ function aboutOrgSchema() {
     founder: FLAVIA_VALE_PERSON,
     sameAs: [
       "https://espelhagrupos.com.br/quem-somos",
-      "https://chat.whatsapp.com/KxLjSgr9xBi87F4zQxaT4C",
+      DEFAULT_CHANNEL_URL,
     ],
   };
 }
@@ -279,6 +281,8 @@ export interface BlogArticle {
   dateModified?: string;
   authorName?: string;
   authorUrl?: string;
+  /** Perfil completo da autora: vira o mesmo Person do HTML do servidor. */
+  author?: AuthorProfile;
   imageUrl?: string;
 }
 
@@ -293,11 +297,13 @@ function blogPostingSchema(article: BlogArticle) {
     url: canonicalUrl,
     datePublished: article.datePublished,
     dateModified: article.dateModified || article.datePublished,
-    author: {
-      "@type": "Person",
-      name: article.authorName || "Cuponito",
-      ...(article.authorUrl ? { url: article.authorUrl } : {}),
-    },
+    author: article.author
+      ? authorPersonSchema(article.author)
+      : {
+          "@type": "Person",
+          name: article.authorName || "Cuponito",
+          ...(article.authorUrl ? { url: article.authorUrl } : {}),
+        },
     publisher: orgSchema(),
     ...(article.imageUrl ? { image: article.imageUrl } : {}),
   };

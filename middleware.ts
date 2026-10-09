@@ -14,7 +14,8 @@
 
 import {
   fetchAllStores,
-  fetchAuthorName,
+  fetchAuthor,
+  fetchAuthorByName,
   fetchCategories,
   fetchCategory,
   fetchCategoryCoupons,
@@ -33,6 +34,7 @@ import {
 } from './prerender/data';
 import { injectIntoShell, SITE_URL } from './prerender/html';
 import { GROUP_HUB_SLUG, groupPageForStore, resolveJoinUrl } from './src/lib/whatsappGroup';
+import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
   renderAboutPage,
   renderBlogListPage,
@@ -148,8 +150,8 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(4),
     ]);
     if (!post) return null;
-    const authorName = await fetchAuthorName(post.author_id);
-    return renderBlogPost(post, authorName, { stores, posts });
+    const author = await fetchAuthor(post.author_id);
+    return renderBlogPost(post, author, { stores, posts });
   }
 
   const storeMatch = pathname.match(/^\/desconto\/([^/]+)\/?$/);
@@ -181,11 +183,12 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     // Supabase fora: lança para o middleware devolver a SPA em vez de um 404 falso.
     if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
     if (!page) return null;
-    const [groupSettings, siblings, stores, posts] = await Promise.all([
+    const [groupSettings, siblings, stores, posts, author] = await Promise.all([
       fetchGroupSettings(),
       fetchGroupPages(),
       fetchFeaturedStores(6),
       fetchFeaturedPosts(3),
+      fetchAuthorByName(FLAVIA_VALE_NAME),
     ]);
     return renderGroupPage(
       page,
@@ -193,6 +196,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
         info: groupSettings.info,
         joinUrl: resolveJoinUrl(page, groupSettings.globalJoinUrl),
         siblings,
+        author,
       },
       { stores, posts }
     );

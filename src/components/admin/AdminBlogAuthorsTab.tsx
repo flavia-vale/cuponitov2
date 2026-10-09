@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useBlogAuthors, type BlogAuthor } from '@/hooks/useBlog';
+import { safeExternalUrl } from '@/lib/whatsappGroup';
 
-interface FormState { name: string; bio: string; avatar_url: string; }
-const EMPTY: FormState = { name: '', bio: '', avatar_url: '' };
+interface FormState { name: string; bio: string; avatar_url: string; linkedin_url: string; job_title: string; }
+const EMPTY: FormState = { name: '', bio: '', avatar_url: '', linkedin_url: '', job_title: '' };
 
 export function AdminBlogAuthorsTab() {
   const queryClient = useQueryClient();
@@ -40,7 +41,7 @@ export function AdminBlogAuthorsTab() {
 
   const startEdit = (author: BlogAuthor) => {
     setEditing(author.id);
-    setForm({ name: author.name, bio: author.bio || '', avatar_url: author.avatar_url || '' });
+    setForm({ name: author.name, bio: author.bio || '', avatar_url: author.avatar_url || '', linkedin_url: author.linkedin_url || '', job_title: author.job_title || '' });
   };
 
   const cancelEdit = () => { setEditing(null); setForm(EMPTY); };
@@ -48,7 +49,19 @@ export function AdminBlogAuthorsTab() {
   const handleSave = async () => {
     if (!form.name) { toast({ title: 'Nome é obrigatório', variant: 'destructive' }); return; }
     setSaving(true);
-    const payload = { name: form.name, bio: form.bio, avatar_url: form.avatar_url };
+    const linkedinUrl = form.linkedin_url.trim();
+    if (linkedinUrl && !safeExternalUrl(linkedinUrl)) {
+      setSaving(false);
+      toast({ title: 'Link do LinkedIn inválido', description: 'Use um link que comece com https://', variant: 'destructive' });
+      return;
+    }
+    const payload = {
+      name: form.name,
+      bio: form.bio,
+      avatar_url: form.avatar_url,
+      linkedin_url: linkedinUrl || null,
+      job_title: form.job_title.trim() || null,
+    };
     let error;
     if (editing) {
       ({ error } = await supabase.from('blog_authors').update(payload).eq('id', editing));
@@ -86,6 +99,16 @@ export function AdminBlogAuthorsTab() {
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Bio</label>
             <Textarea value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Uma breve descrição do autor..." className="min-h-[60px] resize-none text-xs" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Cargo / formação</label>
+              <Input value={form.job_title} onChange={e => setForm(f => ({ ...f, job_title: e.target.value }))} placeholder="Ex: Redatora do Cuponito" className="h-9 text-xs" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">LinkedIn (aparece na assinatura dos posts)</label>
+              <Input value={form.linkedin_url} onChange={e => setForm(f => ({ ...f, linkedin_url: e.target.value }))} placeholder="https://www.linkedin.com/in/..." className="h-9 font-mono text-xs" />
+            </div>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Avatar</label>

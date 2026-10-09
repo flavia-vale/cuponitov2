@@ -35,12 +35,22 @@ export interface WhatsappGroupPageData {
   updated_at: string | null;
 }
 
+/**
+ * Link Inteligente do Espelha Grupos: troca de grupo quando um lota e conta
+ * clique por dia. Convite direto (chat.whatsapp.com) morre quando o grupo enche
+ * ou o convite é revogado — foi o que quebrou os botões antigos do site.
+ * Só vale como padrão: o link em uso vem de `site_settings.global_links`.
+ */
+export const DEFAULT_JOIN_URL = 'https://espelhagrupos.com.br/g/ofertas-fafaciane';
+
+export const DEFAULT_CHANNEL_URL = 'https://whatsapp.com/channel/0029Vb7lYdN30LKPIIWG2i2O';
+
 export const DEFAULT_GROUP_INFO: WhatsappGroupInfo = {
   group_name: 'Grupo de Ofertas Fafaciane',
   offers_per_day: 'cerca de 200',
   stores: 'Shopee, Mercado Livre, Amazon, Magalu e Shein',
   admins_only: true,
-  channel_url: '',
+  channel_url: DEFAULT_CHANNEL_URL,
 };
 
 export function groupPagePath(slug: string): string {
@@ -96,8 +106,8 @@ export function safeExternalUrl(value: string | null | undefined): string | null
 export function resolveJoinUrl(
   page: Pick<WhatsappGroupPageData, 'join_url'> | null | undefined,
   globalUrl: string | null | undefined
-): string | null {
-  return safeExternalUrl(page?.join_url) ?? safeExternalUrl(globalUrl);
+): string {
+  return safeExternalUrl(page?.join_url) ?? safeExternalUrl(globalUrl) ?? DEFAULT_JOIN_URL;
 }
 
 /** Página do grupo ligada à loja; sem página própria, a principal. */
