@@ -10,6 +10,11 @@ Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 - [ ] Gerar e mandar as 7 que faltam (itens 5 a 11): bots, espelhar, as 2 páginas
       do grupo e as 3 internas.
 
+## Sitemap
+
+- [ ] Search Console → Sitemaps → enviar `sitemap.xml` (se ainda não estiver lá; status deve ficar "Sucesso", ~110 páginas).
+- [ ] Bing Webmaster → Sitemaps → `https://www.cuponito.com.br/sitemap.xml`.
+
 ## Reindexação (Search Console → Inspecionar URL → Solicitar indexação; Bing → Enviar URLs)
 
 Só depois da migration rodar. Até 10 por dia.
