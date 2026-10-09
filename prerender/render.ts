@@ -34,6 +34,7 @@ import {
   groupFactsSentence,
   groupPagePath,
   parseGroupFaq,
+  safeExternalUrl,
   type WhatsappGroupInfo,
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
@@ -140,6 +141,7 @@ function authorBox(author: PrerenderAuthor | null): string {
   return `
           <aside aria-label="Sobre a autora">
             <h2>Sobre a autora</h2>
+            ${safeExternalUrl(author.avatar_url) ? `<img src="${escapeHtml(safeExternalUrl(author.avatar_url)!)}" alt="Foto de ${escapeHtml(author.name)}" width="96" height="96" loading="lazy" />` : ''}
             <p><strong>${escapeHtml(author.name)}</strong>${author.job_title ? ` · ${escapeHtml(author.job_title)}` : ''}</p>
             ${author.bio ? `<p>${escapeHtml(author.bio)}</p>` : ''}
             ${url ? `<p><a href="${escapeHtml(url)}" rel="author noopener">Perfil no LinkedIn</a></p>` : ''}
