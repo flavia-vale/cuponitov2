@@ -10,6 +10,13 @@ Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 - [ ] Gerar e mandar as 7 que faltam (itens 5 a 11): bots, espelhar, as 2 páginas
       do grupo e as 3 internas.
 
+## Títulos longos (Bing, 10/10)
+
+- [ ] Rodar `supabase/migrations/20261010120000_titulos_seo_curtos.sql` no SQL Editor do Supabase.
+- [ ] Depois, no Bing → Envio de URL, reenviar os 4: cashback-vs-cupom-qual-compensa, cupom-shopee-hoje,
+      mercado-livre-guia-para-economizar, presentes-dia-das-maes-comprar-com-desconto.
+- Regra para posts novos: título SEO (meta_title) com no máximo 55 caracteres, já com " | Cuponito".
+
 ## Sitemap
 
 - [ ] Search Console → Sitemaps → enviar `sitemap.xml` (se ainda não estiver lá; status deve ficar "Sucesso", ~110 páginas).
