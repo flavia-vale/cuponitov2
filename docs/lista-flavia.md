@@ -5,7 +5,7 @@ Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 ## Imagens do Gemini (docs/prompts-gemini-11-imagens.md)
 
 - [x] Lote 1 (itens 1 a 4): cashback, Shopee hoje, Mercado Livre e Dia das Mães.
-- [ ] Rodar a migration `supabase/migrations/20261009200000_capas_gemini_lote1.sql`
+- [x] Rodar a migration `supabase/migrations/20261009200000_capas_gemini_lote1.sql`
       no SQL Editor do Supabase, **depois** do deploy deste PR na Vercel.
 - [ ] Gerar e mandar as 7 que faltam (itens 5 a 11): bots, espelhar, as 2 páginas
       do grupo e as 3 internas.
@@ -19,10 +19,10 @@ Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 
 Só depois da migration rodar. Até 10 por dia.
 
-- [ ] https://www.cuponito.com.br/grupo-whatsapp
-- [ ] https://www.cuponito.com.br/grupo-whatsapp/shopee
-- [ ] https://www.cuponito.com.br/blog/cashback-vs-cupom-qual-compensa
-- [ ] https://www.cuponito.com.br/blog/cupom-shopee-hoje
+- [x] https://www.cuponito.com.br/grupo-whatsapp — pedido em 10/10/2026 (Google)
+- [x] https://www.cuponito.com.br/grupo-whatsapp/shopee — pedido em 10/10/2026 (Google)
+- [x] https://www.cuponito.com.br/blog/cashback-vs-cupom-qual-compensa — pedido em 10/10/2026 (Google)
+- [x] https://www.cuponito.com.br/blog/cupom-shopee-hoje — pedido em 10/10/2026 (Google)
 - [ ] https://www.cuponito.com.br/blog/mercado-livre-guia-para-economizar
 - [ ] https://www.cuponito.com.br/blog/presentes-dia-das-maes-comprar-com-desconto
 - [ ] https://www.cuponito.com.br/blog/cupom-shopee-vs-amazon-2026
