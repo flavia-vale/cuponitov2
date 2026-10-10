@@ -7,8 +7,11 @@ Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 - [x] Lote 1 (itens 1 a 4): cashback, Shopee hoje, Mercado Livre e Dia das Mães.
 - [x] Rodar a migration `supabase/migrations/20261009200000_capas_gemini_lote1.sql`
       no SQL Editor do Supabase, **depois** do deploy deste PR na Vercel.
-- [ ] Gerar e mandar as 7 que faltam (itens 5 a 11): bots, espelhar, as 2 páginas
-      do grupo e as 3 internas.
+- [x] Lote 2 (itens 7 a 11): 3 imagens dentro dos posts e as 2 das páginas do grupo.
+- [ ] Rodar `supabase/migrations/20261010130000_imagens_internas_e_grupo.sql` no SQL Editor,
+      **depois** do deploy na Vercel.
+- [ ] Mandar de novo, como arquivo, as capas dos itens 5 (bots) e 6 (espelhar): chegaram só
+      como prévia no chat, sem o arquivo.
 
 ## Títulos longos (Bing, 10/10)
 

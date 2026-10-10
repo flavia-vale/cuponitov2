@@ -16,6 +16,7 @@ import { SITE_URL } from '@/lib/seo';
 import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
+  firstContentImage,
   groupPagePath,
   parseGroupFaq,
   resolveJoinUrl,
@@ -92,6 +93,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
         title={page.title}
         description={page.meta_description}
         canonical={canonical}
+        ogImage={firstContentImage(page.content) ?? undefined}
         ogUpdatedTime={page.updated_at}
       />
       <Header />
@@ -147,7 +149,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
             className="mb-10"
           />
 
-          <div className="prose prose-sm max-w-none md:prose-base prose-headings:font-black prose-headings:text-[#1a1a1a] prose-a:font-bold prose-a:text-[#ff5200] prose-a:no-underline hover:prose-a:underline">
+          <div className="prose prose-sm max-w-none md:prose-base prose-headings:font-black prose-headings:text-[#1a1a1a] prose-a:font-bold prose-a:text-[#ff5200] prose-a:no-underline hover:prose-a:underline prose-img:w-full prose-img:rounded-2xl">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{page.content}</ReactMarkdown>
           </div>
 
