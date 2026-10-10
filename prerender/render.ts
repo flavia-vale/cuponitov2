@@ -31,6 +31,7 @@ import {
 import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
+  firstContentImage,
   groupFactsSentence,
   groupPagePath,
   parseGroupFaq,
@@ -411,6 +412,7 @@ export function renderGroupPage(
     description: page.meta_description,
     canonical,
     modifiedTime: page.updated_at,
+    ogImage: firstContentImage(page.content) ?? undefined,
   };
 
   const trail = [

@@ -100,6 +100,15 @@ export function safeExternalUrl(value: string | null | undefined): string | null
 }
 
 /**
+ * Primeira imagem `![alt](url)` do conteúdo da página: vira o og:image, para o
+ * link compartilhado no WhatsApp sair com a ilustração da página.
+ */
+export function firstContentImage(content: string | null | undefined): string | null {
+  const match = /!\[[^\]]*\]\(\s*([^)\s]+)/.exec(content ?? '');
+  return safeExternalUrl(match?.[1]);
+}
+
+/**
  * Link do botão "Entrar no grupo": o Link Inteligente da página, senão o link
  * global do site. Nunca `#`: botão que não leva a lugar nenhum perde o lead.
  */
