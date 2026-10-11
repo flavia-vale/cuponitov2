@@ -266,7 +266,7 @@ export function AdminWhatsappGroupsTab() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Link do botão Entrar no grupo" hint="Link Inteligente do Espelha Grupos. Vazio = link global (SEO & Config).">
-              <Input value={form.join_url} onChange={e => setForm(f => ({ ...f, join_url: e.target.value }))} placeholder="https://espelhagrupos.com.br/g/..." className="h-9 font-mono text-xs" />
+              <Input value={form.join_url} onChange={e => setForm(f => ({ ...f, join_url: e.target.value }))} placeholder="https://linkdivulgador.com.br/g/..." className="h-9 font-mono text-xs" />
             </Field>
             <Field label="Ordem">
               <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} className="h-9" />
