@@ -36,12 +36,12 @@ export interface WhatsappGroupPageData {
 }
 
 /**
- * Link Inteligente do Espelha Grupos: troca de grupo quando um lota e conta
+ * Link Inteligente (linkdivulgador.com.br): troca de grupo quando um lota e conta
  * clique por dia. Convite direto (chat.whatsapp.com) morre quando o grupo enche
  * ou o convite é revogado — foi o que quebrou os botões antigos do site.
  * Só vale como padrão: o link em uso vem de `site_settings.global_links`.
  */
-export const DEFAULT_JOIN_URL = 'https://espelhagrupos.com.br/g/ofertas-fafaciane';
+export const DEFAULT_JOIN_URL = 'https://linkdivulgador.com.br/g/ofertas-fafaciane';
 
 export const DEFAULT_CHANNEL_URL = 'https://whatsapp.com/channel/0029Vb7lYdN30LKPIIWG2i2O';
 

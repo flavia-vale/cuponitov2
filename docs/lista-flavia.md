@@ -44,7 +44,7 @@ Só depois da migration rodar. Até 10 por dia.
 
 - [ ] Nome do canal do WhatsApp com "ofertas" + "Shopee" no nome.
 - [ ] Cadastrar o grupo/canal em diretórios de grupos de WhatsApp.
-- [ ] Bio do Instagram com o link https://espelhagrupos.com.br/g/ofertas-fafaciane.
+- [ ] Bio do Instagram com o link https://linkdivulgador.com.br/g/ofertas-fafaciane.
 
 ## Medição
 
