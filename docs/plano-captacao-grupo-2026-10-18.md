@@ -29,6 +29,48 @@ O que conferi hoje, 18/10:
 
 **Resumo:** o funil está montado, mas quase sem gente entrando nele, sem medição e sem o laço viral.
 
+### 1.1 Os números que a Flávia mandou em 18/10 (painel do Link Inteligente + Search Console, 3 meses)
+
+| Dado | Valor | Leitura |
+|---|---|---|
+| Membros somando os 2 grupos do link | **173** (139 no "Grupo de Ofertas - Fafaciane", 34 no "NOVO Grupo…") | Ponto de partida real. Meta: completar 1 grupo. |
+| Cliques no Link Inteligente | **5 em 7 dias** (4 deles em 18/10, 1 foi o teste do Claude) | Ninguém entra porque **ninguém chega ao link**. O convite não é o gargalo. |
+| Cliques do Google no site inteiro | **5 em 3 meses**; 2 nos últimos 28 dias | O Cuponito **não tem tráfego orgânico** para converter. |
+| Impressões | ≈100 por dia desde 27/09, posição média 60 a 75 | O Google começou a mostrar o site há 3 semanas, ainda na página 6 ou 7. |
+| Páginas com impressão | Lojas grandes (AliExpress 730, Casas Bahia 255, China in Box 211 na posição 29) | Nenhuma busca de "grupo de ofertas" ainda; `/grupo-whatsapp` teve 1 impressão. |
+
+**O que isso muda:** com o site sem visitas, as frentes que só convertem quem já visita (F2) e as que dependem do Google
+ranquear (F3, F4, F5) **não enchem o grupo até 18/12**. Elas continuam no plano porque cada uma leva minutos de código e
+começa a render perto da Black Friday, mas a aposta de curto prazo passa a ser **levar o link a lugares onde já existe gente**:
+
+1. **F6, laço viral dentro do WhatsApp:** os 173 membros e o canal já recebem ≈200 ofertas por dia. Cada encaminhamento
+   precisa levar o link. É o único canal com gente hoje.
+2. **F7, rede de clientes do Espelha Grupos:** admins com grupos cheios, o público mais próximo que existe.
+3. **F8 e F9, diretórios e Pinterest:** lugares onde as pessoas já procuram "grupo de achadinhos".
+4. **F11, anúncio pago:** deixa de ser plano B. Sem ele, a conta de 17 entradas por dia não fecha.
+
+O Cuponito passa a ser **a página de destino que dá confiança** (prova social, fatos, ofertas de hoje) para o tráfego que
+essas frentes trazem, mais do que a fonte do tráfego.
+
+### 1.2 Grupos de nicho: agora não
+
+A pergunta de 18/10 foi se vale abrir grupos de nicho (bebê, casa, beleza…) além do grupo geral de achadinhos.
+
+**Recomendação: não abrir agora. Usar páginas de nicho que levam ao mesmo grupo geral, e abrir um grupo de nicho só quando
+os dados mostrarem um tema puxando entradas.**
+
+- Hoje entram 5 pessoas por semana. Abrir nichos divide esse pouco tráfego, e cada grupo novo nasce vazio. Grupo vazio
+  converte pior que grupo com 170 pessoas, porque quem entra vê pouca gente e pouca prova.
+- O geral também é o que mais aparece nas buscas: "grupo de ofertas" e "grupo de promoções" têm de 1 mil a 10 mil buscas
+  por mês cada, contra 100 a 1 mil das variações de nicho (dados de 09/10).
+- A promessa de nicho (mais específica e com menos ruído) é captada pelas páginas `/grupo-whatsapp/<tema>` (F3), sem custo
+  de operar outro grupo.
+- **Quando abrir:** quando um tema passar de ~20% dos cliques no `/entrar` (F1) **e** o grupo geral passar de 500 membros.
+  Se o Espelha Grupos já filtra ofertas por palavra-chave, o grupo de nicho sai quase sem trabalho: o mesmo robô espelha só
+  as ofertas do tema. Aí a página do tema troca de link, sem mexer em mais nada.
+- **Exceção, só se o filtro for automático:** um grupo **temporário de Black Friday** (de 10/11 a 02/12). É um tema que tem
+  pico de busca próprio ("grupo black friday whatsapp") e, depois, os membros vão para o grupo geral.
+
 ## 2. A meta em números
 
 - Um grupo de WhatsApp lota com **1.024 membros**. Em 61 dias (18/10 → 18/12) são **≈17 entradas por dia** em média.
@@ -37,12 +79,16 @@ O que conferi hoje, 18/10:
 
 Marcos (cumulativos, conferidos toda segunda por mim, seção 6):
 
-| Data | Membros | Gatilho se não bater |
+Ponto de partida (18/10): **173 membros** somando os 2 grupos do link (139 + 34). O Link Inteligente usa limite de 1.000 por
+grupo. Completar 1 grupo = levar o "NOVO Grupo" de 34 a 1.000, ou ≈ **870 entradas novas** (o link sempre manda para o mais
+vazio, então os dois enchem juntos: a meta real é ≈ 1.170 no total, ≈ 16 por dia).
+
+| Data | Membros (soma dos grupos) | Gatilho se não bater |
 |---|---|---|
-| 01/11 | 100 | Ligar o acelerador pago (F11) se a Flávia autorizar |
-| 15/11 | 300 | Dobrar páginas da F3 que já recebem impressão |
-| 30/11 (pós-Black Friday) | 700 | — |
-| 18/12 | 1.024 (grupo cheio; o Link Inteligente passa para o 2º) | — |
+| 01/11 | 300 | Ligar o anúncio pago (F11) se a Flávia autorizar |
+| 15/11 | 550 | Dobrar o que a F1 mostrar que converte |
+| 30/11 (pós-Black Friday) | 900 | — |
+| 18/12 | ≈1.170 (os 2 grupos perto de 1.000 cada; o Link Inteligente abre o 3º) | — |
 
 ## 3. As frentes
 
@@ -233,9 +279,11 @@ Agressivo sim; queimar o domínio, o número ou o grupo, não.
 
 ## 5. Cronograma
 
+Reordenado com os dados de 18/10 (seção 1.1): primeiro o que leva o link a quem já existe, depois o que depende do Google.
+
 | Semana | Entregas (todas minhas) |
 |---|---|
-| 18/10 a 24/10 | F1 completa (`/entrar`, tabela, aba Captação). F2 itens 1 a 6 (modal do cupom, expirado, QR, barra fixa, blog). `llms.txt`. F8 (lista para aprovar). Se o wabot for liberado: F6.1 e F6.3. |
+| 18/10 a 24/10 | **F6.1 e F6.3** (rodapé com link em toda oferta, mensagem semanal), se o wabot for liberado. **F11** montada para aprovar. **F8** (lista para aprovar). F1 completa (`/entrar`, tabela, aba Captação). F2 itens 1 a 6 (rápidos e prontos para quando o tráfego vier). `llms.txt`. |
 | 25/10 a 31/10 | F3: 9 primeiras páginas (achadinhos, promoções, cupons, Mercado Livre, Amazon, Black Friday, erro de preço, ofertas relâmpago, canal) + IndexNow. F4 posts 1, 2 e 4. F2 itens 7 a 10. |
 | 01/11 a 07/11 | Revisão do marco de 100. F5 (`/achadinhos-hoje` + feed). F3: 8 páginas restantes. F4 posts 3 e 5. Decisão sobre F11. |
 | 08/11 a 14/11 | Pico do 11.11. F7 (diretório + opção no Espelha Grupos). F4 post 6. Reforço das páginas da F3 que já têm impressão. |
@@ -253,11 +301,7 @@ Agressivo sim; queimar o domínio, o número ou o grupo, não.
 
 ## 7. O que preciso da Flávia (uma vez só, o resto é comigo)
 
-Dados, antes de começar. Não tenho estes números de rodadas anteriores:
-1. **Cliques do Link Inteligente** por dia desde 09/10 (painel do linkdivulgador) e **membros atuais** do grupo. Isso diz se o
-   problema é "ninguém clica" ou "clica e não entra".
-2. **Search Console, últimos 28 dias:** total de cliques e impressões do site e as 20 páginas com mais impressões
-   (exportar como planilha). Assim sei quanto tráfego a F2 tem para converter.
+Dados: ~~1. cliques do Link Inteligente e membros~~ e ~~2. Search Console~~ chegaram em 18/10 (seção 1.1).
 
 Acessos:
 3. **Liberar o repositório `wabot` nesta sessão** (o pedido de acesso foi bloqueado pela permissão automática). Sem ele
