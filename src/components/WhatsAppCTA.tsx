@@ -5,8 +5,8 @@ type Variant = 'urgency' | 'social-proof' | 'store';
 interface WhatsAppCTAProps {
   variant: Variant;
   storeName?: string;
-  /** Link de entrada próprio (ex.: Link Inteligente da página do grupo da loja). Padrão: link global. */
-  href?: string | null;
+  /** Página do grupo da loja (o link dela vale no botão). Padrão: link global. */
+  groupSlug?: string | null;
   /** Página do grupo no site — link interno "como funciona", que também conta para o SEO. */
   learnMoreHref?: string;
 }
@@ -31,14 +31,14 @@ function getCopy(variant: Variant, storeName?: string): { title: string; text: s
   }
 }
 
-const WhatsAppCTA = ({ variant, storeName, href, learnMoreHref }: WhatsAppCTAProps) => {
+const WhatsAppCTA = ({ variant, storeName, groupSlug, learnMoreHref }: WhatsAppCTAProps) => {
   const { title, text } = getCopy(variant, storeName);
   return (
     <div className="px-4 py-6">
       <GroupJoinCTA
         title={title}
         text={text}
-        href={href}
+        groupSlug={groupSlug}
         learnMoreHref={learnMoreHref ?? '/grupo-whatsapp'}
         source={variant}
         context={storeName ?? null}

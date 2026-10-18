@@ -24,6 +24,7 @@ import {
   fetchGroupPage,
   fetchGroupPages,
   fetchGroupSettings,
+  recordGroupJoinClick,
   fetchPost,
   fetchStore,
   fetchPublishedPosts,
@@ -33,7 +34,8 @@ import {
   fetchTopCoupons,
 } from './prerender/data';
 import { injectIntoShell, SITE_URL } from './prerender/html';
-import { GROUP_HUB_SLUG, groupPageForStore, resolveJoinUrl } from './src/lib/whatsappGroup';
+import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath, resolveJoinUrl } from './src/lib/whatsappGroup';
+import { buildJoinTrackingHref, isLikelyBot, JOIN_TRACKING_PATH, parseJoinTrackingQuery } from './src/lib/groupJoinTracking';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
   renderAboutPage,
@@ -66,6 +68,7 @@ export const config = {
     '/perguntas-frequentes',
     '/fale-conosco',
     '/termos-de-uso',
+    '/entrar',
     '/store/:path*',
     '/stores-2/:path*',
   ],
@@ -169,7 +172,8 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const groupPage = groupPageForStore(groupPages, store.slug);
     return renderStorePage(store, coupons, { stores, posts }, {
       page: groupPage,
-      joinUrl: resolveJoinUrl(groupPage, groupSettings.globalJoinUrl),
+      // O botão passa pelo /entrar (mede a página); o destino é resolvido lá, com a mesma regra.
+      joinUrl: buildJoinTrackingHref({ origin: 'html_store', groupSlug: groupPage?.slug, pagePath: `/desconto/${store.slug}` }),
       info: groupSettings.info,
     });
   }
@@ -194,7 +198,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       page,
       {
         info: groupSettings.info,
-        joinUrl: resolveJoinUrl(page, groupSettings.globalJoinUrl),
+        joinUrl: buildJoinTrackingHref({ origin: 'html_group_page', groupSlug: page.slug, pagePath: groupPagePath(page.slug) }),
         siblings,
         author,
       },
@@ -259,9 +263,46 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   return null;
 }
 
-export default async function middleware(request: Request): Promise<Response | undefined> {
+interface MiddlewareContext {
+  waitUntil?(promise: Promise<unknown>): void;
+}
+
+/**
+ * /entrar: grava de onde veio o clique no botão do grupo e redireciona para o
+ * link do grupo. O destino sai da página do grupo (`g`) ou do link global,
+ * nunca da URL. Supabase fora do ar → link padrão: o botão nunca quebra.
+ */
+async function handleJoinClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
+  const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'));
+  const [page, settings] = await Promise.all([
+    row.group_slug ? fetchGroupPage(row.group_slug) : Promise.resolve(null),
+    fetchGroupSettings(),
+  ]);
+  const destination = resolveJoinUrl(page ?? null, settings.globalJoinUrl);
+
+  if (!isLikelyBot(request.headers.get('user-agent'))) {
+    const recording = recordGroupJoinClick(row);
+    if (context?.waitUntil) context.waitUntil(recording);
+    else await recording;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: destination,
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
+  });
+}
+
+export default async function middleware(request: Request, context?: MiddlewareContext): Promise<Response | undefined> {
   const url = new URL(request.url);
   const { pathname } = url;
+
+  if (pathname === JOIN_TRACKING_PATH) {
+    return handleJoinClick(url, request, context);
+  }
 
   // 301 das URLs do site antigo (WordPress) — é o que o Bing ainda tem indexado.
   if (/^\/stores-2\/?/.test(pathname)) {

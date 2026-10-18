@@ -1,8 +1,8 @@
 import { Radio } from 'lucide-react';
-import { useSettings } from '@/hooks/useSettings';
+import { useRouterState } from '@tanstack/react-router';
 import { useWhatsappGroupInfo } from '@/hooks/useWhatsappGroupPages';
 import { trackEvent } from '@/lib/analytics';
-import { resolveJoinUrl } from '@/lib/whatsappGroup';
+import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
 
 const WhatsAppIcon = ({ className = 'h-6 w-6' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={`${className} fill-current`} aria-hidden="true">
@@ -13,8 +13,11 @@ const WhatsAppIcon = ({ className = 'h-6 w-6' }: { className?: string }) => (
 export interface GroupJoinCTAProps {
   title?: string;
   text?: string;
-  /** Link de entrada próprio da página; padrão: link global (Link Inteligente). */
-  href?: string | null;
+  /**
+   * Página do grupo cujo link vale (Link Inteligente próprio); sem ela, o link global.
+   * O botão passa pelo /entrar, que mede a página e resolve o destino.
+   */
+  groupSlug?: string | null;
   /** Página do grupo no site ("como funciona"), link interno. */
   learnMoreHref?: string;
   /** Origem do clique no analytics. */
@@ -31,15 +34,15 @@ export interface GroupJoinCTAProps {
 export default function GroupJoinCTA({
   title = 'Receba as ofertas no WhatsApp',
   text,
-  href,
+  groupSlug = null,
   learnMoreHref,
   source,
   context = null,
   className = '',
 }: GroupJoinCTAProps) {
-  const { data: settings } = useSettings();
   const info = useWhatsappGroupInfo();
-  const joinUrl = resolveJoinUrl({ join_url: href ?? null }, settings?.global_links.whatsapp_group);
+  const pathname = useRouterState({ select: state => state.location.pathname });
+  const joinUrl = buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname });
   const facts = [
     'Grátis',
     `${info.offers_per_day} ofertas por dia`,
@@ -61,7 +64,7 @@ export default function GroupJoinCTA({
       <a
         href={joinUrl}
         target="_blank"
-        rel="nofollow noopener noreferrer"
+        rel="nofollow noopener"
         onClick={() => trackEvent('whatsapp_click', { source, context })}
         className="group relative mx-auto mt-6 inline-flex w-full max-w-sm items-center justify-center gap-3 rounded-full bg-white px-8 py-4 text-lg font-black uppercase tracking-wide text-[#128C7E] shadow-lg transition-transform hover:scale-[1.03] active:scale-95 sm:w-auto"
       >

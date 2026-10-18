@@ -7,6 +7,7 @@ import {
   type WhatsappGroupInfo,
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
+import type { JoinClickRow } from '../src/lib/groupJoinTracking';
 
 const FALLBACK_SUPABASE_URL ='https://jyvmrkykukialdbcebei.supabase.co';
 const FALLBACK_SUPABASE_KEY =
@@ -318,4 +319,25 @@ export async function fetchPublishedPosts(limit = 30): Promise<PrerenderPostSumm
   return query<PrerenderPostSummary>(
     `blog_posts?status=eq.published&select=title,slug,excerpt,published_at,updated_at&order=published_at.desc&limit=${limit}`
   );
+}
+
+/** Grava um clique no botão do grupo (tabela `group_join_clicks`). Falha não impede o redirecionamento. */
+export async function recordGroupJoinClick(row: JoinClickRow): Promise<boolean> {
+  const { url, key } = credentials();
+  try {
+    const response = await fetch(`${url}/rest/v1/group_join_clicks`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(row),
+      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
