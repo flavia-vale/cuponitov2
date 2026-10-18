@@ -47,7 +47,7 @@ começa a render perto da Black Friday, mas a aposta de curto prazo passa a ser 
    precisa levar o link. É o único canal com gente hoje.
 2. **F7, rede de clientes do Espelha Grupos:** admins com grupos cheios, o público mais próximo que existe.
 3. **F8 e F9, diretórios e Pinterest:** lugares onde as pessoas já procuram "grupo de achadinhos".
-4. **F11, anúncio pago:** deixa de ser plano B. Sem ele, a conta de 17 entradas por dia não fecha.
+4. ~~F11, anúncio pago~~: recusado em 18/10. O peso dele passa para a F6 (laço viral) e a F7 (rede do Espelha Grupos).
 
 O Cuponito passa a ser **a página de destino que dá confiança** (prova social, fatos, ofertas de hoje) para o tráfego que
 essas frentes trazem, mais do que a fonte do tráfego.
@@ -85,7 +85,7 @@ vazio, então os dois enchem juntos: a meta real é ≈ 1.170 no total, ≈ 16 p
 
 | Data | Membros (soma dos grupos) | Gatilho se não bater |
 |---|---|---|
-| 01/11 | 300 | Ligar o anúncio pago (F11) se a Flávia autorizar |
+| 01/11 | 300 | Revisar a F6: se o convite já sai nas ofertas e não trouxe gente, testar outros textos e frequência |
 | 15/11 | 550 | Dobrar o que a F1 mostrar que converte |
 | 30/11 (pós-Black Friday) | 900 | — |
 | 18/12 | ≈1.170 (os 2 grupos perto de 1.000 cada; o Link Inteligente abre o 3º) | — |
@@ -199,6 +199,12 @@ Posts no blog, no template "extraível por IA" (`docs/ai-seo-sprint3-4/02-…`),
 
 ### F6. Laço viral dentro do próprio WhatsApp (dias 2 a 7), o maior multiplicador
 
+**O que o robô já tem (lido no wabot em 18/10):** `BotConfig.brandingGroupLink` + a variável `{{grupoLink}}` nos modelos
+de mensagem, e o "texto adicional" (`Group.relayFooterText`) para quem usa "manter texto original". Não precisa de código
+novo para o convite sair nas ofertas: precisa da conta da Flávia configurada. Atenção: nos modelos padrão, `{{cta}}`
+sorteia frases como "📲 Entre no nosso grupo oficial:" e logo abaixo vem `👉 {link}`, que é o link do **produto**; e
+`{{convitegrupo}}` sorteia um **aviso de preço**, não o convite. Pelo nome, os dois parecem convite e nenhum leva ao grupo.
+
 Grupo de ofertas cresce por **encaminhamento**: a membro vê a oferta, manda para a irmã, a irmã quer o grupo.
 Hoje a mensagem chega sem caminho de volta.
 
@@ -250,7 +256,7 @@ Com **um token da API do Pinterest** (a Flávia gera uma vez), eu:
 Uma tarefa agendada nesta conta, toda segunda às 9h: leio a tabela da F1, comparo com os marcos da seção 2, corto o que
 não converte, reforço o que converte e abro o PR da semana. Relato em 5 linhas o que mudou.
 
-### F11. Acelerador pago (opcional, a decisão é da Flávia porque gasta dinheiro)
+### F11. Acelerador pago: **recusado pela Flávia em 18/10** (fica registrado caso mude de ideia)
 
 Se em 01/11 estivermos abaixo de 100 membros, ou para garantir o pico de Black Friday:
 - **Google Ads, rede de pesquisa**, palavras "grupo de ofertas whatsapp", "grupo de promoções", "grupo de achadinhos",
@@ -283,7 +289,7 @@ Reordenado com os dados de 18/10 (seção 1.1): primeiro o que leva o link a que
 
 | Semana | Entregas (todas minhas) |
 |---|---|
-| 18/10 a 24/10 | **F6.1 e F6.3** (rodapé com link em toda oferta, mensagem semanal), se o wabot for liberado. **F11** montada para aprovar. **F8** (lista para aprovar). F1 completa (`/entrar`, tabela, aba Captação). F2 itens 1 a 6 (rápidos e prontos para quando o tráfego vier). `llms.txt`. |
+| 18/10 a 24/10 | **F6.1 e F6.3** (rodapé com link em toda oferta, mensagem semanal), se o wabot for liberado. **F8** (lista para aprovar). F1 completa (`/entrar`, tabela, aba Captação). F2 itens 1 a 6 (rápidos e prontos para quando o tráfego vier). `llms.txt`. |
 | 25/10 a 31/10 | F3: 9 primeiras páginas (achadinhos, promoções, cupons, Mercado Livre, Amazon, Black Friday, erro de preço, ofertas relâmpago, canal) + IndexNow. F4 posts 1, 2 e 4. F2 itens 7 a 10. |
 | 01/11 a 07/11 | Revisão do marco de 100. F5 (`/achadinhos-hoje` + feed). F3: 8 páginas restantes. F4 posts 3 e 5. Decisão sobre F11. |
 | 08/11 a 14/11 | Pico do 11.11. F7 (diretório + opção no Espelha Grupos). F4 post 6. Reforço das páginas da F3 que já têm impressão. |
