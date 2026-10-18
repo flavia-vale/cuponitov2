@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { resolveJoinUrl } from '@/lib/whatsappGroup';
+import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
 import { Link } from '@tanstack/react-router';
 import { Search, Sparkles, TrendingUp } from 'lucide-react';
 import Header from '@/components/Header';
 import { useBlogPosts, useBlogCategories } from '@/hooks/useBlog';
-import { useSettings } from '@/hooks/useSettings';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogCategoryFilter from '@/components/blog/BlogCategoryFilter';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
@@ -23,7 +22,6 @@ export default function BlogList() {
   const [search, setSearch] = useState('');
   const { data: allPosts, isLoading: postsLoading } = useBlogPosts();
   const { data: categories } = useBlogCategories();
-  const { data: settings } = useSettings();
 
   const filtered = useMemo(() => {
     if (!allPosts) return [];
@@ -52,7 +50,7 @@ export default function BlogList() {
   }, [selectedCategory, categories]);
 
   const contextualCouponQuery = selectedCategoryMeta?.name ?? (search.trim() || 'cupom');
-  const whatsappLink = resolveJoinUrl(null, settings?.global_links.whatsapp_group);
+  const whatsappLink = buildJoinTrackingHref({ origin: 'blog_sidebar', pagePath: '/blog' });
 
 
   return (

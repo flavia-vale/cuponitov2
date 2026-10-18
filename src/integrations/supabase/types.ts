@@ -692,6 +692,33 @@ export type Database = {
           },
         ]
       }
+      group_join_clicks: {
+        Row: {
+          created_at: string
+          device: string
+          group_slug: string | null
+          id: number
+          origin: string | null
+          page_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          device?: string
+          group_slug?: string | null
+          id?: never
+          origin?: string | null
+          page_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          device?: string
+          group_slug?: string | null
+          id?: never
+          origin?: string | null
+          page_path?: string | null
+        }
+        Relationships: []
+      }
       integration_providers: {
         Row: {
           active: boolean

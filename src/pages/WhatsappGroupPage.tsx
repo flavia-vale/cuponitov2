@@ -10,7 +10,6 @@ import AuthorBox from '@/components/blog/AuthorBox';
 import { useBlogAuthors } from '@/hooks/useBlog';
 import { authorProfileUrl, isFlavia } from '@/lib/authors';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSettings } from '@/hooks/useSettings';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
 import { SITE_URL } from '@/lib/seo';
 import {
@@ -19,7 +18,6 @@ import {
   firstContentImage,
   groupPagePath,
   parseGroupFaq,
-  resolveJoinUrl,
 } from '@/lib/whatsappGroup';
 
 const Footer = lazy(() => import('@/components/Footer'));
@@ -38,7 +36,6 @@ function formatUpdatedAt(iso: string | null | undefined): string | null {
 
 export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGroupPageProps) {
   const { data: pages, isLoading } = useWhatsappGroupPages();
-  const { data: settings } = useSettings();
   const info = useWhatsappGroupInfo();
   const { data: authors } = useBlogAuthors();
   const author = useMemo(() => authors?.find(item => isFlavia(item.name)) ?? null, [authors]);
@@ -46,7 +43,6 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
   const page = useMemo(() => pages?.find(item => item.slug === slug), [pages, slug]);
   const siblings = useMemo(() => (pages ?? []).filter(item => item.slug !== slug), [pages, slug]);
   const faq = useMemo(() => parseGroupFaq(page?.faq), [page]);
-  const joinUrl = resolveJoinUrl(page, settings?.global_links.whatsapp_group);
   const isHub = slug === GROUP_HUB_SLUG;
   const canonical = `${SITE_URL}${groupPagePath(slug)}`;
   const updatedAt = formatUpdatedAt(page?.updated_at);
@@ -143,7 +139,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
           <GroupJoinCTA
             title="Entrar no grupo de ofertas"
             text={info.channel_url ? 'Toque no botão e o WhatsApp abre o convite. Prefere não aparecer para ninguém? Siga o canal.' : 'Toque no botão e o WhatsApp abre o convite.'}
-            href={joinUrl}
+            groupSlug={page.slug}
             source="group_page"
             context={page.slug}
             className="mb-10"
@@ -167,7 +163,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
             </section>
           )}
 
-          <GroupJoinCTA title="Pronto para economizar?" href={joinUrl} source="group_page_footer" context={page.slug} className="mt-10" />
+          <GroupJoinCTA title="Pronto para economizar?" groupSlug={page.slug} source="group_page_footer" context={page.slug} className="mt-10" />
 
           {siblings.length > 0 && (
             <nav aria-label="Outras páginas do grupo" className="mt-10">

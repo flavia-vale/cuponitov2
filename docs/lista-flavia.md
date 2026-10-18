@@ -51,15 +51,8 @@ Só depois da migration rodar. Até 10 por dia.
 - [ ] 03 a 07/11: conferir cliques do Link Inteligente e impressões das páginas novas.
 - [ ] 07/12: rodada nas IAs (ChatGPT, Gemini, Google IA) perguntando por grupo de ofertas.
 
-## SEO/GEO do grupo, lote 1 (PR claude/seo-geo-grupo-lote1)
+## Medição do grupo (PR claude/medicao-grupo-entrar)
 
-- [ ] Rodar `supabase/migrations/20261018120000_grupo_paginas_tema_e_posts.sql` no SQL Editor, **depois** do deploy na Vercel.
-- [ ] Depois da migration, me avisar: eu aviso o Bing (IndexNow) das 6 URLs novas.
-- [ ] Search Console → Inspecionar URL → Solicitar indexação (até 10 por dia):
-  - https://www.cuponito.com.br/grupo-whatsapp/achadinhos
-  - https://www.cuponito.com.br/grupo-whatsapp/mercado-livre
-  - https://www.cuponito.com.br/grupo-whatsapp/amazon
-  - https://www.cuponito.com.br/grupo-whatsapp/shein
-  - https://www.cuponito.com.br/blog/grupo-de-ofertas-whatsapp-e-confiavel
-  - https://www.cuponito.com.br/blog/como-escolher-grupo-de-ofertas-whatsapp
-  - https://www.cuponito.com.br/grupo-whatsapp (título e seção de Black Friday novos)
+- [ ] Rodar `supabase/migrations/20261018150000_group_join_clicks.sql` no SQL Editor **antes** do deploy na Vercel
+      (sem a tabela os botões continuam funcionando, só não contam).
+- [ ] Depois de 7 dias: admin → "Captação do grupo" e comparar com os cliques do painel do Link Inteligente.
