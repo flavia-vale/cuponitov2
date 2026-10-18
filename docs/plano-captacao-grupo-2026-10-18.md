@@ -7,6 +7,16 @@ indexar 2 páginas. Este aqui ataca **todos os lugares onde já existe gente** e
 Regra deste plano: **toda ação é executada pelo Claude**. Quando uma ação precisa de algo que só a Flávia
 tem (uma senha, um token, um "sim" para gastar dinheiro), ela aparece na seção 7, uma vez, e o resto é comigo.
 
+> **Decisão da Flávia em 18/10 (vale sobre o resto do documento):** a captação é **só por SEO e GEO**.
+> Sem mexer nas configurações de espelhamento (F6 fora), sem anúncio pago (F11 fora) e sem Pinterest (F9 fora).
+> Ficam: F1 (medição), F2 (converter quem chega pela busca), F3, F4 e F5 (páginas e conteúdo), F7 (diretório próprio,
+> que é SEO) e F8 (diretórios externos que a IA cita, que é GEO). O lote 1 está no PR #80.
+>
+> **Expectativa honesta:** o Cuponito teve 5 cliques do Google em 3 meses. Página nova num domínio assim leva de 4 a 12
+> semanas para ranquear. O que tende a chegar antes da Black Friday: cauda longa por loja/tema, Bing e ChatGPT (o Bing
+> indexa em dias pelo IndexNow) e os diretórios que a IA já cita. Encher o grupo inteiro até 18/12 só por busca é
+> improvável; o objetivo realista é o grupo começar a receber gente da busca todo dia e crescer no pico de novembro.
+
 ---
 
 ## 1. Por que ninguém entrou (diagnóstico)
