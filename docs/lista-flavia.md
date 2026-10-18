@@ -50,3 +50,11 @@ Só depois da migration rodar. Até 10 por dia.
 
 - [ ] 03 a 07/11: conferir cliques do Link Inteligente e impressões das páginas novas.
 - [ ] 07/12: rodada nas IAs (ChatGPT, Gemini, Google IA) perguntando por grupo de ofertas.
+
+## Captação do grupo (docs/plano-captacao-grupo-2026-10-18.md, seção 7)
+
+- [ ] Mandar os cliques do Link Inteligente por dia desde 09/10 e o número atual de membros do grupo.
+- [ ] Search Console, últimos 28 dias: total do site e as 20 páginas com mais impressões (planilha).
+- [ ] Liberar o repositório `wabot` na sessão do Claude.
+- [ ] Confirmar os temas de ofertas do grupo (bebê, tecnologia, casa, beleza, moda…).
+- [ ] Responder sim/não: diretórios externos (F8), Pinterest (F9), Google Ads e teto diário (F11).
