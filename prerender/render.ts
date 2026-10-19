@@ -40,6 +40,7 @@ import {
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
 import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
+import { ACHADINHOS_PATH, offerTime, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 export interface FeaturedPost {
   title: string;
@@ -90,6 +91,7 @@ function chrome(
           <a href="${SITE_URL}/lojas">Lojas</a>
           <a href="${SITE_URL}/blog">Blog</a>
           <a href="${SITE_URL}${GROUP_BASE_PATH}">Grupo no WhatsApp</a>
+          <a href="${SITE_URL}${ACHADINHOS_PATH}">Achadinhos de hoje</a>
           <a href="${SITE_URL}/quem-somos">Quem somos</a>
         </nav>
         <nav aria-label="Trilha de navegação">${trail}</nav>
@@ -394,6 +396,20 @@ export interface GroupPageContext {
   siblings: Array<Pick<WhatsappGroupPageData, 'slug' | 'h1'>>;
   /** Quem mantém o grupo e assina a página (EEAT). */
   author: PrerenderAuthor | null;
+  /** Últimas ofertas reais do grupo (vazio = bloco não aparece). */
+  offers?: GroupOffer[];
+}
+
+/** Lista de ofertas reais do grupo: texto, loja, horário e o link da loja. */
+function offerListItems(offers: GroupOffer[]): string {
+  return offers
+    .map(offer => {
+      const time = offerTime(offer.sentAt);
+      return `<li><strong>${escapeHtml(storeLabel(offer.store))}</strong>${
+        time ? ` · <time datetime="${escapeHtml(offer.sentAt ?? '')}">${time}</time>` : ''
+      } — ${escapeHtml(offer.text)} <a href="${escapeHtml(offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
+    })
+    .join('');
 }
 
 export function renderGroupPage(
@@ -489,10 +505,113 @@ export function renderGroupPage(
           <p>${escapeHtml(page.intro)}</p>
           <ul>${facts}</ul>
           ${actions}
+          ${
+            context.offers && context.offers.length > 0
+              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6))}</ul><p><a href="${SITE_URL}${ACHADINHOS_PATH}">Ver todos os achadinhos de hoje</a></p>`
+              : ''
+          }
           ${markdownToHtml(page.content || '')}
           ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
           ${siblingLinks ? `<h2>Outras páginas do grupo</h2><ul>${siblingLinks}</ul>` : ''}
           ${authorBox(context.author)}
+        </article>
+      </main>`,
+    trail.map((item, index) => (index === 0 ? { ...item, name: 'Cuponito' } : item)),
+    links
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+// ── Achadinhos de hoje (ofertas reais do grupo) ─────────────────────────────
+
+export interface AchadinhosContext {
+  offers: GroupOffer[];
+  info: WhatsappGroupInfo;
+  /** Botão "Entrar no grupo" (passa pelo /entrar). */
+  joinUrl: string;
+  now?: Date;
+}
+
+export function renderAchadinhosPage(context: AchadinhosContext, links: ChromeLinks): RenderedPage {
+  const canonical = `${SITE_URL}${ACHADINHOS_PATH}`;
+  const { offers, info, joinUrl } = context;
+  const now = context.now ?? new Date();
+  const day = todayLabel(now);
+  const newest = offers.find(offer => offer.sentAt)?.sentAt ?? null;
+  const h1 = `Achadinhos de hoje, ${day}`;
+  const description = `Os achadinhos e ofertas que saíram hoje no grupo de WhatsApp do Cuponito: ${info.stores}. Atualizado ao longo do dia.`;
+
+  const meta: HeadMeta = {
+    title: 'Achadinhos de hoje: ofertas do dia | Cuponito',
+    description,
+    canonical,
+    modifiedTime: newest,
+    // Sem ofertas (feed desligado ou fora do ar) a página é só um aviso: não indexar.
+    ...(offers.length === 0 ? { robots: 'noindex, follow' } : {}),
+  };
+
+  const trail = [
+    { name: 'Página Inicial', url: `${SITE_URL}/` },
+    { name: 'Grupo no WhatsApp', url: `${SITE_URL}${GROUP_BASE_PATH}` },
+    { name: 'Achadinhos de hoje', url: canonical },
+  ];
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonical}#page`,
+        name: h1,
+        description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${SITE_URL}/#organization` },
+        ...(newest ? { dateModified: newest } : {}),
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb(trail),
+      ...(offers.length > 0
+        ? [
+            {
+              '@type': 'ItemList',
+              name: h1,
+              numberOfItems: offers.length,
+              itemListElement: offers.map((offer, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                name: offer.text,
+                url: offer.link,
+              })),
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const join = `<a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Receber os achadinhos no WhatsApp</a>`;
+
+  const body = chrome(
+    `
+      <main>
+        <article>
+          <h1>${escapeHtml(h1)}</h1>
+          <p>${
+            newest ? `Última oferta às <time datetime="${escapeHtml(newest)}">${offerTime(newest)}</time>. ` : ''
+          }Estas são as ofertas que saíram hoje no ${escapeHtml(info.group_name)}, o grupo de WhatsApp do Cuponito: ${escapeHtml(
+            groupFactsSentence(info)
+          )}</p>
+          ${join}
+          ${
+            offers.length > 0
+              ? `<h2>Ofertas que saíram no grupo</h2><ul>${offerListItems(offers)}</ul>`
+              : `<p>As ofertas de hoje aparecem aqui assim que saem no grupo. Enquanto isso, veja os <a href="${SITE_URL}/cupons">cupons de hoje</a>.</p>`
+          }
+          <h2>Como aproveitar</h2>
+          <p>Toque em "Ver oferta" para abrir o produto no site ou no aplicativo oficial da loja. Preço e estoque mudam rápido: confira o valor final no carrinho. Os links são de afiliado; o Cuponito pode receber uma comissão, sem custo extra para você.</p>
+          <p>Quer receber na hora, sem precisar abrir o site? Entre no <a href="${SITE_URL}${GROUP_BASE_PATH}">grupo de ofertas no WhatsApp</a> ou veja as páginas de <a href="${SITE_URL}${GROUP_BASE_PATH}/achadinhos">achadinhos</a>, <a href="${SITE_URL}${GROUP_BASE_PATH}/shopee">Shopee</a> e <a href="${SITE_URL}${GROUP_BASE_PATH}/mercado-livre">Mercado Livre</a>.</p>
+          ${join}
         </article>
       </main>`,
     trail.map((item, index) => (index === 0 ? { ...item, name: 'Cuponito' } : item)),

@@ -8,6 +8,7 @@ import {
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
+import { offerFeedUrl, parseGroupOffers, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 const FALLBACK_SUPABASE_URL ='https://jyvmrkykukialdbcebei.supabase.co';
 const FALLBACK_SUPABASE_KEY =
@@ -339,5 +340,26 @@ export async function recordGroupJoinClick(row: JoinClickRow): Promise<boolean> 
     return response.ok;
   } catch {
     return false;
+  }
+}
+
+const OFFER_FEED_TIMEOUT_MS = 3000;
+
+/**
+ * Ofertas reais do grupo (feed público do Link Inteligente). Qualquer falha ou
+ * feed desligado = lista vazia: a página sai sem o bloco, nunca quebra.
+ */
+export async function fetchGroupOffers(joinUrl: string | null): Promise<GroupOffer[]> {
+  const feedUrl = offerFeedUrl(joinUrl);
+  if (!feedUrl) return [];
+  try {
+    const response = await fetch(feedUrl, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(OFFER_FEED_TIMEOUT_MS),
+    });
+    if (!response.ok) return [];
+    return parseGroupOffers(await response.json());
+  } catch {
+    return [];
   }
 }

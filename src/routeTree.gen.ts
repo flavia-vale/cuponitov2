@@ -20,6 +20,7 @@ import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AdminblogRouteImport } from './routes/adminblog'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AchadinhosHojeRouteImport } from './routes/achadinhos-hoje'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GrupoWhatsappIndexRouteImport } from './routes/grupo-whatsapp.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -88,6 +89,13 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AchadinhosHojeRoute = AchadinhosHojeRouteImport.update({
+  id: '/achadinhos-hoje',
+  path: '/achadinhos-hoje',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/achadinhos-hoje.lazy').then((d) => d.Route),
+)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -161,6 +169,7 @@ const AdminAccessDeniedRoute = AdminAccessDeniedRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/achadinhos-hoje': typeof AchadinhosHojeRoute
   '/admin': typeof AdminRouteWithChildren
   '/adminblog': typeof AdminblogRoute
   '/blog': typeof BlogRouteWithChildren
@@ -186,6 +195,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/achadinhos-hoje': typeof AchadinhosHojeRoute
   '/adminblog': typeof AdminblogRoute
   '/como-funciona': typeof ComoFuncionaRoute
   '/cupons': typeof CuponsRoute
@@ -209,6 +219,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/achadinhos-hoje': typeof AchadinhosHojeRoute
   '/admin': typeof AdminRouteWithChildren
   '/adminblog': typeof AdminblogRoute
   '/blog': typeof BlogRouteWithChildren
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/achadinhos-hoje'
     | '/admin'
     | '/adminblog'
     | '/blog'
@@ -261,6 +273,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/achadinhos-hoje'
     | '/adminblog'
     | '/como-funciona'
     | '/cupons'
@@ -283,6 +296,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/achadinhos-hoje'
     | '/admin'
     | '/adminblog'
     | '/blog'
@@ -309,6 +323,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AchadinhosHojeRoute: typeof AchadinhosHojeRoute
   AdminRoute: typeof AdminRouteWithChildren
   AdminblogRoute: typeof AdminblogRoute
   BlogRoute: typeof BlogRouteWithChildren
@@ -401,6 +416,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/achadinhos-hoje': {
+      id: '/achadinhos-hoje'
+      path: '/achadinhos-hoje'
+      fullPath: '/achadinhos-hoje'
+      preLoaderRoute: typeof AchadinhosHojeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -536,6 +558,7 @@ const GrupoWhatsappRouteWithChildren = GrupoWhatsappRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AchadinhosHojeRoute: AchadinhosHojeRoute,
   AdminRoute: AdminRouteWithChildren,
   AdminblogRoute: AdminblogRoute,
   BlogRoute: BlogRouteWithChildren,
