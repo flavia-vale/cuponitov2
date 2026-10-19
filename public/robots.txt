@@ -5,6 +5,7 @@ Disallow: /admin/*
 Disallow: /adminblog
 Disallow: /login
 Disallow: /access-denied
+Disallow: /entrar
 
 # Política explícita para bots de IA (treino, descoberta e citação em resposta).
 # Os robôs de BUSCA das IAs (OAI-SearchBot, Claude-SearchBot, PerplexityBot) são

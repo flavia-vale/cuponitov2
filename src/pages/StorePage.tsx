@@ -16,7 +16,7 @@ import { getMonthYear, cn } from '@/lib/utils';
 import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
 import { useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath, resolveJoinUrl } from '@/lib/whatsappGroup';
+import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath } from '@/lib/whatsappGroup';
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 
@@ -178,7 +178,7 @@ export default function StorePage() {
                 <WhatsAppCTA
                   variant="store"
                   storeName={storeName}
-                  href={resolveJoinUrl(groupPage, settings?.global_links.whatsapp_group)}
+                  groupSlug={groupPage?.slug}
                   learnMoreHref={groupPagePath(groupPage?.slug ?? GROUP_HUB_SLUG)}
                 />
               </Suspense>

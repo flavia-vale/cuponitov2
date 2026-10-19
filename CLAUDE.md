@@ -28,6 +28,12 @@ Servir HTML diferente por user-agent é cloaking — não fazer, mesmo "só para
 O React monta com `createRoot().render()`, que substitui o conteúdo do container;
 trocar por `hydrateRoot` quebraria a página (erro de hidratação).
 
+### Botão do grupo de ofertas — SEMPRE pelo `/entrar`
+Todo link "Entrar no grupo" usa `buildJoinTrackingHref` (`src/lib/groupJoinTracking.ts`) ou
+`GroupJoinCTA`. O `/entrar` (middleware) grava a página de origem em `group_join_clicks` e
+resolve o destino. Link direto para `linkdivulgador`/`chat.whatsapp.com` some da medição
+(aba "Captação do grupo"). Nunca pôr o destino na URL do `/entrar` (redirecionamento aberto).
+
 ---
 
 ## ⚠️ LEMBRETES CRÍTICOS
