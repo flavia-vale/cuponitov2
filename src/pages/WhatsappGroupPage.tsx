@@ -6,6 +6,9 @@ import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Header from '@/components/Header';
 import SEOHead from '@/components/SEOHead';
 import GroupJoinCTA from '@/components/GroupJoinCTA';
+import GroupOfferList from '@/components/GroupOfferList';
+import { useGroupOffers } from '@/hooks/useGroupOffers';
+import { ACHADINHOS_PATH } from '@/lib/groupOfferFeed';
 import AuthorBox from '@/components/blog/AuthorBox';
 import { useBlogAuthors } from '@/hooks/useBlog';
 import { authorProfileUrl, isFlavia } from '@/lib/authors';
@@ -37,6 +40,7 @@ function formatUpdatedAt(iso: string | null | undefined): string | null {
 export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGroupPageProps) {
   const { data: pages, isLoading } = useWhatsappGroupPages();
   const info = useWhatsappGroupInfo();
+  const { data: offers } = useGroupOffers();
   const { data: authors } = useBlogAuthors();
   const author = useMemo(() => authors?.find(item => isFlavia(item.name)) ?? null, [authors]);
 
@@ -144,6 +148,16 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
             context={page.slug}
             className="mb-10"
           />
+
+          {offers && offers.length > 0 && (
+            <section className="mb-10">
+              <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">Saiu no grupo hoje</h2>
+              <GroupOfferList offers={offers.slice(0, 6)} />
+              <a href={ACHADINHOS_PATH} className="mt-4 inline-block font-bold text-[#ff5200] hover:underline">
+                Ver todos os achadinhos de hoje
+              </a>
+            </section>
+          )}
 
           <div className="prose prose-sm max-w-none md:prose-base prose-headings:font-black prose-headings:text-[#1a1a1a] prose-a:font-bold prose-a:text-[#ff5200] prose-a:no-underline hover:prose-a:underline prose-img:w-full prose-img:rounded-2xl">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{page.content}</ReactMarkdown>

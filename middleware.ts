@@ -21,6 +21,7 @@ import {
   fetchCategoryCoupons,
   fetchFeaturedPosts,
   fetchFeaturedStores,
+  fetchGroupOffers,
   fetchGroupPage,
   fetchGroupPages,
   fetchGroupSettings,
@@ -36,9 +37,11 @@ import {
 import { injectIntoShell, SITE_URL } from './prerender/html';
 import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath, resolveJoinUrl } from './src/lib/whatsappGroup';
 import { buildJoinTrackingHref, isLikelyBot, JOIN_TRACKING_PATH, parseJoinTrackingQuery } from './src/lib/groupJoinTracking';
+import { ACHADINHOS_FEED_PATH, ACHADINHOS_PATH } from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
   renderAboutPage,
+  renderAchadinhosPage,
   renderBlogListPage,
   renderBlogPost,
   renderCategoryPage,
@@ -69,6 +72,8 @@ export const config = {
     '/fale-conosco',
     '/termos-de-uso',
     '/entrar',
+    '/achadinhos-hoje',
+    '/achadinhos-hoje.json',
     '/store/:path*',
     '/stores-2/:path*',
   ],
@@ -144,6 +149,23 @@ const INSTITUTIONAL_ROUTES: Record<string, InstitutionalPage> = {
 };
 
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
+  if (pathname === ACHADINHOS_PATH) {
+    const [groupSettings, stores, posts] = await Promise.all([
+      fetchGroupSettings(),
+      fetchFeaturedStores(6),
+      fetchFeaturedPosts(3),
+    ]);
+    const offers = await fetchGroupOffers(resolveJoinUrl(null, groupSettings.globalJoinUrl));
+    return renderAchadinhosPage(
+      {
+        offers,
+        info: groupSettings.info,
+        joinUrl: buildJoinTrackingHref({ origin: 'html_achadinhos', pagePath: ACHADINHOS_PATH }),
+      },
+      { stores, posts }
+    );
+  }
+
   const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (blogMatch) {
     const slug = decodeURIComponent(blogMatch[1]);
@@ -194,6 +216,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
     ]);
+    const offers = await fetchGroupOffers(resolveJoinUrl(null, groupSettings.globalJoinUrl));
     return renderGroupPage(
       page,
       {
@@ -201,6 +224,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
         joinUrl: buildJoinTrackingHref({ origin: 'html_group_page', groupSlug: page.slug, pagePath: groupPagePath(page.slug) }),
         siblings,
         author,
+        offers,
       },
       { stores, posts }
     );
@@ -302,6 +326,19 @@ export default async function middleware(request: Request, context?: MiddlewareC
 
   if (pathname === JOIN_TRACKING_PATH) {
     return handleJoinClick(url, request, context);
+  }
+
+  // Ofertas do grupo para o React (mesma origem: o feed do Link Inteligente não libera CORS).
+  if (pathname === ACHADINHOS_FEED_PATH) {
+    const { globalJoinUrl } = await fetchGroupSettings();
+    const items = await fetchGroupOffers(resolveJoinUrl(null, globalJoinUrl));
+    return new Response(JSON.stringify({ items }), {
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'X-Robots-Tag': 'noindex',
+      },
+    });
   }
 
   // 301 das URLs do site antigo (WordPress) — é o que o Bing ainda tem indexado.

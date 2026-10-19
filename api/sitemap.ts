@@ -97,6 +97,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     urlEntry(`${BASE_URL}/cupons`, couponsLastmod, 'daily', 0.9),
     urlEntry(`${BASE_URL}/lojas`, storesLastmod, 'weekly', 0.8),
     urlEntry(`${BASE_URL}/blog`, postsLastmod, 'weekly', 0.7),
+    // Ofertas do grupo, refeitas ao longo do dia (feed do Link Inteligente).
+    urlEntry(`${BASE_URL}/achadinhos-hoje`, new Date().toISOString().split('T')[0], 'hourly', 0.8),
     urlEntry(`${BASE_URL}/quem-somos`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/como-funciona`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/fale-conosco`, null, 'monthly', 0.5),

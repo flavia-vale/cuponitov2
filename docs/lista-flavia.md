@@ -79,3 +79,11 @@ Só depois da migration rodar. Até 10 por dia.
       (sem a tabela os botões continuam funcionando, só não contam).
 - [ ] Depois de 7 dias: admin → "Captação do grupo" e comparar com os cliques do painel do Link Inteligente.
 - Obs.: em 19/10 o Claude gravou 2 cliques de teste com origem `teste_claude` (não são visitas reais).
+
+## Achadinhos de hoje (PR claude/achadinhos-hoje + wabot #2714)
+
+- [ ] wabot: mesclar o PR #2714 em `develop`, conferir no staging e depois levar para `main`.
+- [ ] Antes do deploy em `main`: acrescentar `SMART_LINK_PUBLIC_FEED=ofertas-fafaciane` no `.env` de `~/wabot` (VPS).
+- [ ] Depois: me avisar. Eu confiro `https://linkdivulgador.com.br/g/ofertas-fafaciane/ofertas.json` e a página
+      https://www.cuponito.com.br/achadinhos-hoje, e aviso o Bing.
+- Enquanto o feed não estiver ligado, a página mostra só um aviso e sai com `noindex` (o Google não indexa página vazia).
