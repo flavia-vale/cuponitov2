@@ -33,6 +33,10 @@ export interface WhatsappGroupPageData {
   join_url: string | null;
   sort_order: number;
   updated_at: string | null;
+  /** Grupo de nicho: nome do grupo no WhatsApp (vazio = o grupo geral). */
+  group_name?: string | null;
+  /** Grupo de nicho: o que chega nele (ex.: "tecnologia, games e informática"). */
+  topics?: string | null;
 }
 
 /**
@@ -119,13 +123,84 @@ export function resolveJoinUrl(
   return safeExternalUrl(page?.join_url) ?? safeExternalUrl(globalUrl) ?? DEFAULT_JOIN_URL;
 }
 
-/** Página do grupo ligada à loja; sem página própria, a principal. */
+/** Página de grupo de nicho: tem nome de grupo ou assuntos próprios. */
+export function isNichePage(page: Pick<WhatsappGroupPageData, 'group_name' | 'topics'> | null | undefined): boolean {
+  return Boolean(page?.group_name?.trim() || page?.topics?.trim());
+}
+
+/**
+ * Fatos do grupo que valem nesta página. Grupo de nicho troca o nome e o que
+ * chega; "ofertas por dia" é do grupo geral e sai, para não prometer volume
+ * que o nicho não tem.
+ */
+export function groupInfoForPage(
+  info: WhatsappGroupInfo,
+  page: Pick<WhatsappGroupPageData, 'group_name' | 'topics'> | null | undefined
+): WhatsappGroupInfo {
+  if (!isNichePage(page)) return info;
+  return {
+    ...info,
+    group_name: page?.group_name?.trim() || info.group_name,
+    stores: page?.topics?.trim() || info.stores,
+    offers_per_day: '',
+  };
+}
+
+/** Rótulo do fato "lojas": no nicho, o que chega é assunto, não loja. */
+export function groupTopicsLabel(page: Pick<WhatsappGroupPageData, 'group_name' | 'topics'> | null | undefined): string {
+  return isNichePage(page) ? 'Ofertas de' : 'Lojas';
+}
+
+/** Título da chamada do grupo: no nicho, o assunto dele; fora, o texto da página. */
+export function groupCtaTitle(
+  page: Pick<WhatsappGroupPageData, 'group_name' | 'topics'> | null | undefined,
+  info: WhatsappGroupInfo,
+  fallback: string
+): string {
+  return isNichePage(page) ? `Receba ofertas de ${info.stores} no WhatsApp` : fallback;
+}
+
+/**
+ * Grupo de nicho de uma lista de cupons: a categoria mais frequente decide
+ * (`coupon_categories.group_slug`, editável no painel). Sem nicho = null.
+ */
+export function nicheGroupSlug(
+  coupons: Array<{ category: string | null }>,
+  categories: Array<{ name: string; group_slug?: string | null }>
+): string | null {
+  const counts = new Map<string, number>();
+  for (const coupon of coupons) {
+    if (coupon.category) counts.set(coupon.category, (counts.get(coupon.category) ?? 0) + 1);
+  }
+  const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (!top) return null;
+  return categories.find(category => category.name === top)?.group_slug?.trim() || null;
+}
+
+/**
+ * Página do grupo para uma loja: a ligada a ela no painel; senão a do nicho
+ * dos cupons dela; senão a principal.
+ */
 export function groupPageForStore<T extends Pick<WhatsappGroupPageData, 'slug' | 'store_slug'>>(
   pages: T[],
-  storeSlug: string
+  storeSlug: string,
+  nicheSlug: string | null = null
 ): T | null {
   return (
     pages.find(page => page.store_slug === storeSlug) ??
+    (nicheSlug ? pages.find(page => page.slug === nicheSlug) : undefined) ??
+    pages.find(page => page.slug === GROUP_HUB_SLUG) ??
+    null
+  );
+}
+
+/** Página do grupo de um nicho (categoria); sem nicho publicado, a principal. */
+export function groupPageForNiche<T extends Pick<WhatsappGroupPageData, 'slug'>>(
+  pages: T[],
+  nicheSlug: string | null | undefined
+): T | null {
+  return (
+    (nicheSlug ? pages.find(page => page.slug === nicheSlug) : undefined) ??
     pages.find(page => page.slug === GROUP_HUB_SLUG) ??
     null
   );
@@ -135,7 +210,7 @@ export function groupPageForStore<T extends Pick<WhatsappGroupPageData, 'slug' |
 export function groupFactsSentence(info: WhatsappGroupInfo): string {
   const parts = [
     `${info.group_name}: grátis`,
-    `${info.offers_per_day} ofertas por dia de ${info.stores}`,
+    info.offers_per_day ? `${info.offers_per_day} ofertas por dia de ${info.stores}` : `ofertas de ${info.stores}`,
   ];
   if (info.admins_only) parts.push('só os administradores postam');
   return `${parts.join(', ')}.`;

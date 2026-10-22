@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCouponCategories, type CouponCategory } from '@/hooks/useCouponCategories';
+import { useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
+import { groupPagePath } from '@/lib/whatsappGroup';
 import { getErrorMessage } from '@/lib/errors';
 import { slugify } from '@/lib/slugify';
 
@@ -18,6 +20,7 @@ interface FormState {
   icon: string;
   color_hex: string;
   sort_order: string;
+  group_slug: string;
 }
 
 const EMPTY: FormState = {
@@ -27,11 +30,13 @@ const EMPTY: FormState = {
   icon: '',
   color_hex: '#FF4D00',
   sort_order: '0',
+  group_slug: '',
 };
 
 export function AdminCouponCategoriesTab() {
   const queryClient = useQueryClient();
   const { data: categories = [], isLoading } = useCouponCategories();
+  const { data: groupPages = [] } = useWhatsappGroupPages({ includeDrafts: true });
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
   const [editingOldName, setEditingOldName] = useState<string | null>(null);
@@ -47,6 +52,7 @@ export function AdminCouponCategoriesTab() {
       icon: cat.icon || '',
       color_hex: cat.color_hex || '#FF4D00',
       sort_order: String(cat.sort_order ?? 0),
+      group_slug: cat.group_slug ?? '',
     });
   };
 
@@ -74,6 +80,7 @@ export function AdminCouponCategoriesTab() {
         icon: form.icon.trim() || null,
         color_hex: form.color_hex,
         sort_order: parseInt(form.sort_order, 10) || 0,
+        group_slug: form.group_slug || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -196,6 +203,25 @@ export function AdminCouponCategoriesTab() {
             </div>
           </div>
 
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Grupo do nicho</label>
+            <select
+              value={form.group_slug}
+              onChange={e => setForm(f => ({ ...f, group_slug: e.target.value }))}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="">Grupo geral</option>
+              {groupPages.map(page => (
+                <option key={page.id} value={page.slug}>
+                  {page.group_name || page.h1} ({groupPagePath(page.slug)})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              O botão do WhatsApp na página desta categoria, e nas lojas em que ela é a mais comum, leva a este grupo.
+            </p>
+          </div>
+
           <div className="flex justify-end gap-2 pt-1">
             {editing && (
               <Button variant="ghost" size="sm" onClick={cancelEdit}>
@@ -248,6 +274,7 @@ export function AdminCouponCategoriesTab() {
                     <p className="truncate text-sm font-semibold text-foreground">{cat.name}</p>
                     <p className="text-[10px] font-mono text-muted-foreground">
                       /{cat.slug} · ordem {cat.sort_order}
+                      {cat.group_slug ? ` · grupo ${cat.group_slug}` : ''}
                     </p>
                   </div>
                   <div className="flex gap-1">

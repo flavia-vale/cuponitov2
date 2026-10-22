@@ -36,6 +36,8 @@ interface PageForm {
   content: string;
   faq: GroupFaqItem[];
   join_url: string;
+  group_name: string;
+  topics: string;
   is_published: boolean;
   sort_order: number;
 }
@@ -50,6 +52,8 @@ const EMPTY_PAGE: PageForm = {
   content: '',
   faq: [],
   join_url: '',
+  group_name: '',
+  topics: '',
   is_published: true,
   sort_order: 0,
 };
@@ -127,6 +131,8 @@ function toForm(page: WhatsappGroupPage): PageForm {
     content: page.content,
     faq: parseGroupFaq(page.faq),
     join_url: page.join_url ?? '',
+    group_name: page.group_name ?? '',
+    topics: page.topics ?? '',
     is_published: page.is_published,
     sort_order: page.sort_order,
   };
@@ -183,6 +189,8 @@ export function AdminWhatsappGroupsTab() {
           content: form.content,
           faq: parseGroupFaq(form.faq) as unknown as WhatsappGroupPage['faq'],
           join_url: form.join_url.trim() || null,
+          group_name: form.group_name.trim() || null,
+          topics: form.topics.trim() || null,
           is_published: form.is_published,
           sort_order: Number(form.sort_order) || 0,
         },
@@ -267,6 +275,12 @@ export function AdminWhatsappGroupsTab() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Link do botão Entrar no grupo" hint="Link Inteligente do Espelha Grupos. Vazio = link global (SEO & Config).">
               <Input value={form.join_url} onChange={e => setForm(f => ({ ...f, join_url: e.target.value }))} placeholder="https://linkdivulgador.com.br/g/..." className="h-9 font-mono text-xs" />
+            </Field>
+            <Field label="Nome do grupo de nicho" hint="Só para grupo de nicho. Vazio = usa os dados do grupo geral.">
+              <Input value={form.group_name} onChange={e => setForm(f => ({ ...f, group_name: e.target.value }))} placeholder="Promo Tech" className="h-9" />
+            </Field>
+            <Field label="O que chega no grupo de nicho" hint='Ex.: "tecnologia, games e informática". Aparece no botão: "Receba ofertas de ...".'>
+              <Input value={form.topics} onChange={e => setForm(f => ({ ...f, topics: e.target.value }))} className="h-9" />
             </Field>
             <Field label="Ordem">
               <Input type="number" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} className="h-9" />

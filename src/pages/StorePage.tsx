@@ -12,8 +12,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getMonthYear, cn } from '@/lib/utils';
 import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
-import { useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath } from '@/lib/whatsappGroup';
+import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
+import { useCouponCategories } from '@/hooks/useCouponCategories';
+import {
+  GROUP_HUB_SLUG,
+  groupCtaTitle,
+  groupInfoForPage,
+  groupPageForStore,
+  groupPagePath,
+  nicheGroupSlug,
+} from '@/lib/whatsappGroup';
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 
@@ -39,12 +47,16 @@ export default function StorePage() {
   const storeName = storeBrand?.name || slug?.replace(/cupom-desconto-/g, '').replace(/-/g, ' ') || '';
   const brandColor = storeBrand?.brand_color || '#FF4D00';
   const { data: groupPages } = useWhatsappGroupPages();
-  const groupPage = useMemo(
-    () => (slug ? groupPageForStore(groupPages ?? [], slug) : null),
-    [groupPages, slug]
-  );
+  const { data: categories } = useCouponCategories();
+  const groupInfo = useWhatsappGroupInfo();
 
   const storeCoupons = useMemo(() => storeCouponsData ?? [], [storeCouponsData]);
+
+  // Grupo da loja: o ligado a ela no painel, senão o do nicho dos cupons dela (mesma regra do HTML do servidor).
+  const groupPage = useMemo(
+    () => (slug ? groupPageForStore(groupPages ?? [], slug, nicheGroupSlug(storeCoupons, categories ?? [])) : null),
+    [groupPages, slug, storeCoupons, categories]
+  );
 
   const lastUpdated = useMemo(() => {
     if (!storeCoupons.length) return null;
@@ -159,11 +171,13 @@ export default function StorePage() {
 
               <GroupJoinCTA
                 compact
-                title={
+                title={groupCtaTitle(
+                  groupPage,
+                  groupInfoForPage(groupInfo, groupPage),
                   !isLoading && activeCoupons.length === 0
                     ? `Sem cupom da ${storeName} agora? Receba as ofertas no WhatsApp`
                     : 'Receba cupons e achadinhos no WhatsApp'
-                }
+                )}
                 groupSlug={groupPage?.slug}
                 source="store_top"
                 context={storeName || null}

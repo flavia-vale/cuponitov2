@@ -6,6 +6,9 @@ import { useCoupons } from '@/hooks/useCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
 import { useCouponCategories } from '@/hooks/useCouponCategories';
 import CouponCard from '@/components/CouponCard';
+import GroupJoinCTA from '@/components/GroupJoinCTA';
+import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
+import { groupCtaTitle, groupInfoForPage, groupPageForNiche } from '@/lib/whatsappGroup';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
@@ -33,6 +36,10 @@ export default function CategoryPage() {
   const matchedCategory = couponCategories.find(c => c.slug === (slug ?? ''));
   const categoryName = matchedCategory?.name;
   const description = matchedCategory?.description ?? '';
+  const { data: groupPages } = useWhatsappGroupPages();
+  const groupInfo = useWhatsappGroupInfo();
+  // Categoria com nicho (painel) leva ao grupo do nicho; sem nicho, ao grupo geral.
+  const groupPage = groupPageForNiche(groupPages ?? [], matchedCategory?.group_slug);
 
   const lastUpdatedLabel = useMemo(() => {
     const target = (coupons ?? []).filter(c => c.category === categoryName);
@@ -116,6 +123,14 @@ export default function CategoryPage() {
         </div>
 
         <p className="text-sm text-muted-foreground">{description}</p>
+
+        <GroupJoinCTA
+          compact
+          title={groupCtaTitle(groupPage, groupInfoForPage(groupInfo, groupPage), 'Receba cupons e achadinhos no WhatsApp')}
+          groupSlug={groupPage?.slug}
+          source="category_top"
+          context={slug ?? null}
+        />
 
         {lastUpdatedLabel && (
           <div className="rounded-xl border border-black/10 bg-[#faf9f7] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#666] sm:text-sm">

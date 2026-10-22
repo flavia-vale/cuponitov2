@@ -66,6 +66,8 @@ export interface PrerenderPost {
 }
 
 export interface PrerenderStore {
+  /** UUID da loja: é o que `coupons.store_id` guarda. */
+  id: string;
   slug: string;
   name: string;
   description: string | null;
@@ -97,6 +99,19 @@ export interface PrerenderCategory {
   description: string | null;
   icon: string | null;
   updated_at: string | null;
+  /** Página do grupo de nicho (migration 20261022150000; ausente antes dela). */
+  group_slug?: string | null;
+}
+
+const CATEGORY_COLUMNS = 'name,slug,description,icon,updated_at';
+
+/** Categorias com o grupo de nicho; coluna ainda não migrada = sem nicho, nunca 400. */
+async function tryCategories(filter: string): Promise<PrerenderCategory[] | null> {
+  const path = (columns: string) => `coupon_categories?${filter}&select=${columns}`;
+  return (
+    (await tryQuery<PrerenderCategory>(path(`${CATEGORY_COLUMNS},group_slug`))) ??
+    (await tryQuery<PrerenderCategory>(path(CATEGORY_COLUMNS)))
+  );
 }
 
 const POST_COLUMNS_BASE =
@@ -190,7 +205,7 @@ export async function fetchRecentPosts(limit = 6): Promise<Array<Pick<PrerenderP
 
 export async function fetchStore(slug: string): Promise<PrerenderStore | null> {
   const rows = await query<PrerenderStore>(
-    `stores?slug=eq.${encodeURIComponent(slug)}&select=slug,name,description,meta_description,logo_url,store_id,website_url&limit=1`
+    `stores?slug=eq.${encodeURIComponent(slug)}&select=id,slug,name,description,meta_description,logo_url,store_id,website_url&limit=1`
   );
   return rows[0] ?? null;
 }
@@ -206,17 +221,17 @@ const COUPON_COLUMNS =
   'id,code,title,description,discount,link,store,store_id,category,expiry,expiry_text,status,updated_at';
 
 export async function fetchStoreCoupons(store: PrerenderStore, limit = 40): Promise<PrerenderCoupon[]> {
+  // `coupons.store_id` é o UUID da loja (`stores.id`), não o `stores.store_id` (ID da rede
+  // de afiliados, ex.: "17729"): comparar com ele dava 400 e a loja saía sem cupom no HTML.
   const filters = [`store.eq.${store.name}`];
-  if (store.store_id) filters.push(`store_id.eq.${store.store_id}`);
+  if (store.id) filters.push(`store_id.eq.${store.id}`);
   return query<PrerenderCoupon>(
     `coupons?or=(${filters.map(f => encodeURIComponent(f)).join(',')})&status=is.true&${notExpired()}&select=${COUPON_COLUMNS}&order=updated_at.desc&limit=${limit}`
   );
 }
 
 export async function fetchCategory(slug: string): Promise<PrerenderCategory | null> {
-  const rows = await query<PrerenderCategory>(
-    `coupon_categories?slug=eq.${encodeURIComponent(slug)}&select=name,slug,description,icon,updated_at&limit=1`
-  );
+  const rows = (await tryCategories(`slug=eq.${encodeURIComponent(slug)}&limit=1`)) ?? [];
   return rows[0] ?? null;
 }
 
@@ -228,7 +243,7 @@ export async function fetchCategoryCoupons(categoryName: string, limit = 40): Pr
 
 export async function fetchFeaturedStores(limit = 12): Promise<PrerenderStore[]> {
   return query<PrerenderStore>(
-    `stores?active=is.true&select=slug,name,description,meta_description,logo_url,store_id,website_url&order=is_featured.desc&order=name&limit=${limit}`
+    `stores?active=is.true&select=id,slug,name,description,meta_description,logo_url,store_id,website_url&order=is_featured.desc&order=name&limit=${limit}`
   );
 }
 
@@ -254,7 +269,7 @@ export async function fetchStoreByLegacySlug(
   ];
   const filter = candidates.map(condition => encodeURIComponent(condition)).join(',');
   const rows = await tryQuery<PrerenderStore>(
-    `stores?or=(${filter})&select=slug,name,description,meta_description,logo_url,store_id,website_url&order=slug&limit=1`
+    `stores?or=(${filter})&select=id,slug,name,description,meta_description,logo_url,store_id,website_url&order=slug&limit=1`
   );
   if (!rows) return undefined;
   return rows[0] ?? null;
@@ -272,9 +287,7 @@ export async function fetchAllStores(limit = 80): Promise<PrerenderStore[]> {
 }
 
 export async function fetchCategories(limit = 40): Promise<PrerenderCategory[]> {
-  return query<PrerenderCategory>(
-    `coupon_categories?select=name,slug,description,icon,updated_at&order=sort_order&order=name&limit=${limit}`
-  );
+  return (await tryCategories(`order=sort_order&order=name&limit=${limit}`)) ?? [];
 }
 
 export async function fetchTopCoupons(limit = 40): Promise<PrerenderCoupon[]> {
@@ -293,20 +306,27 @@ export interface PrerenderPostSummary {
 
 const GROUP_PAGE_COLUMNS =
   'slug,store_slug,title,h1,meta_description,intro,content,faq,join_url,sort_order,updated_at';
+// Colunas dos grupos de nicho (migration 20261022150000): antes de ela rodar, pedir
+// a coluna devolve 400 e a página viraria 404. Por isso a segunda tentativa sem elas.
+const GROUP_PAGE_NICHE_COLUMNS = `${GROUP_PAGE_COLUMNS},group_name,topics`;
+
+async function tryGroupPages(filter: string): Promise<WhatsappGroupPageData[] | null> {
+  const path = (columns: string) => `whatsapp_group_pages?${filter}&select=${columns}`;
+  return (
+    (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_NICHE_COLUMNS))) ??
+    (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_COLUMNS)))
+  );
+}
 
 /** `undefined` = o Supabase falhou (não confundir com "página não existe"). */
 export async function fetchGroupPage(slug: string): Promise<WhatsappGroupPageData | null | undefined> {
-  const rows = await tryQuery<WhatsappGroupPageData>(
-    `whatsapp_group_pages?slug=eq.${encodeURIComponent(slug)}&is_published=is.true&select=${GROUP_PAGE_COLUMNS}&limit=1`
-  );
+  const rows = await tryGroupPages(`slug=eq.${encodeURIComponent(slug)}&is_published=is.true&limit=1`);
   if (rows === null) return undefined;
   return rows[0] ?? null;
 }
 
 export async function fetchGroupPages(): Promise<WhatsappGroupPageData[]> {
-  return query<WhatsappGroupPageData>(
-    `whatsapp_group_pages?is_published=is.true&select=${GROUP_PAGE_COLUMNS}&order=sort_order&order=slug`
-  );
+  return (await tryGroupPages('is_published=is.true&order=sort_order&order=slug')) ?? [];
 }
 
 /** Fatos do grupo (`whatsapp_group_info`) e link global, numa leitura só. */

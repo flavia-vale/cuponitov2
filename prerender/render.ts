@@ -32,7 +32,10 @@ import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
   firstContentImage,
+  groupCtaTitle,
   groupFactsSentence,
+  groupTopicsLabel,
+  isNichePage,
   groupPagePath,
   parseGroupFaq,
   safeExternalUrl,
@@ -289,19 +292,21 @@ function couponOfferList(listName: string, coupons: PrerenderCoupon[]) {
 }
 
 export interface StoreGroupCta {
-  page: Pick<WhatsappGroupPageData, 'slug'> | null;
+  /** Página do grupo que vale aqui (nicho ou principal). */
+  page: Pick<WhatsappGroupPageData, 'slug' | 'group_name' | 'topics'> | null;
   joinUrl: string | null;
+  /** Fatos já ajustados ao grupo da página (`groupInfoForPage`). */
   info: WhatsappGroupInfo;
 }
 
-/** Chamada para o grupo na página da loja, logo abaixo da descrição (antes da lista, como no React). */
-function storeGroupSection(storeName: string, cta: StoreGroupCta): string {
+/** Chamada para o grupo logo abaixo da descrição (antes da lista, como no React). */
+function groupCtaSection(fallbackTitle: string, cta: StoreGroupCta): string {
   const pageUrl = `${SITE_URL}${groupPagePath(cta.page?.slug ?? GROUP_HUB_SLUG)}`;
   const join = cta.joinUrl
     ? `<a class="cta" href="${escapeHtml(cta.joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>`
     : '';
   return `
-          <h2>Receba os cupons da ${escapeHtml(storeName)} no WhatsApp</h2>
+          <h2>${escapeHtml(groupCtaTitle(cta.page, cta.info, fallbackTitle))}</h2>
           <p>${escapeHtml(groupFactsSentence(cta.info))}</p>
           ${join}
           <p class="cta-alt"><a href="${pageUrl}">Como funciona o grupo de ofertas</a></p>`;
@@ -364,7 +369,7 @@ export function renderStorePage(
           <h1>Cupom de Desconto ${escapeHtml(store.name)}</h1>
           ${latestUpdate ? `<p>Atualizado em <time datetime="${escapeHtml(latestUpdate)}">${formatDatePtBr(latestUpdate)}</time></p>` : ''}
           <p>${escapeHtml(description)}</p>
-          ${groupCta ? storeGroupSection(store.name, groupCta) : ''}
+          ${groupCta ? groupCtaSection(`Receba os cupons da ${store.name} no WhatsApp`, groupCta) : ''}
           ${
             coupons.length > 0
               ? `<h2>Cupons ${escapeHtml(store.name)} ativos</h2><ul>${couponListItems(coupons)}</ul>`
@@ -472,8 +477,8 @@ export function renderGroupPage(
   const facts = [
     `<li><strong>Grupo:</strong> ${escapeHtml(info.group_name)}</li>`,
     `<li><strong>Preço:</strong> grátis</li>`,
-    `<li><strong>Ofertas por dia:</strong> ${escapeHtml(info.offers_per_day)}</li>`,
-    `<li><strong>Lojas:</strong> ${escapeHtml(info.stores)}</li>`,
+    info.offers_per_day ? `<li><strong>Ofertas por dia:</strong> ${escapeHtml(info.offers_per_day)}</li>` : '',
+    `<li><strong>${groupTopicsLabel(page)}:</strong> ${escapeHtml(info.stores)}</li>`,
     info.admins_only ? `<li><strong>Quem posta:</strong> só os administradores</li>` : '',
   ].join('');
 
@@ -507,7 +512,10 @@ export function renderGroupPage(
           ${actions}
           ${
             context.offers && context.offers.length > 0
-              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6))}</ul><p><a href="${SITE_URL}${ACHADINHOS_PATH}">Ver todos os achadinhos de hoje</a></p>`
+              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6))}</ul>${
+                  // /achadinhos-hoje é o feed do grupo geral: não é "ver todas" de um nicho.
+                  isNichePage(page) ? '' : `<p><a href="${SITE_URL}${ACHADINHOS_PATH}">Ver todos os achadinhos de hoje</a></p>`
+                }`
               : ''
           }
           ${markdownToHtml(page.content || '')}
@@ -626,7 +634,8 @@ export function renderAchadinhosPage(context: AchadinhosContext, links: ChromeLi
 export function renderCategoryPage(
   category: PrerenderCategory,
   coupons: PrerenderCoupon[],
-  links: ChromeLinks
+  links: ChromeLinks,
+  groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/categoria/${category.slug}`;
   const description =
@@ -667,6 +676,7 @@ export function renderCategoryPage(
         <article>
           <h1>Cupons de ${escapeHtml(category.name)}</h1>
           <p>${escapeHtml(description)}</p>
+          ${groupCta ? groupCtaSection('Receba cupons e achadinhos no WhatsApp', groupCta) : ''}
           ${
             coupons.length > 0
               ? `<ul>${couponListItems(coupons)}</ul>`

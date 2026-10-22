@@ -9,6 +9,8 @@ export interface CouponCategory {
   icon: string | null;
   color_hex: string;
   sort_order: number;
+  /** Página do grupo de nicho (`whatsapp_group_pages.slug`); vazio = grupo geral. */
+  group_slug?: string | null;
   created_at: string;
   updated_at: string;
 }
