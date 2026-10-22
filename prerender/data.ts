@@ -7,6 +7,7 @@ import {
   type WhatsappGroupInfo,
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
+import { notExpiredFilter } from '../src/lib/couponValidity';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
 import { offerFeedUrl, parseGroupOffers, type GroupOffer } from '../src/lib/groupOfferFeed';
 
@@ -196,6 +197,11 @@ export async function fetchStore(slug: string): Promise<PrerenderStore | null> {
 
 // Sem join com `stores` de propósito — a tabela não tem coluna `color` e o
 // join quebra em produção (erro 42703). Ver CLAUDE.md.
+/** Vencido não entra no HTML, igual ao React (`notExpiredFilter`). */
+function notExpired(): string {
+  return `or=(${encodeURIComponent(notExpiredFilter())})`;
+}
+
 const COUPON_COLUMNS =
   'id,code,title,description,discount,link,store,store_id,category,expiry,expiry_text,status,updated_at';
 
@@ -203,7 +209,7 @@ export async function fetchStoreCoupons(store: PrerenderStore, limit = 40): Prom
   const filters = [`store.eq.${store.name}`];
   if (store.store_id) filters.push(`store_id.eq.${store.store_id}`);
   return query<PrerenderCoupon>(
-    `coupons?or=(${filters.map(f => encodeURIComponent(f)).join(',')})&status=is.true&select=${COUPON_COLUMNS}&order=updated_at.desc&limit=${limit}`
+    `coupons?or=(${filters.map(f => encodeURIComponent(f)).join(',')})&status=is.true&${notExpired()}&select=${COUPON_COLUMNS}&order=updated_at.desc&limit=${limit}`
   );
 }
 
@@ -216,7 +222,7 @@ export async function fetchCategory(slug: string): Promise<PrerenderCategory | n
 
 export async function fetchCategoryCoupons(categoryName: string, limit = 40): Promise<PrerenderCoupon[]> {
   return query<PrerenderCoupon>(
-    `coupons?category=eq.${encodeURIComponent(categoryName)}&status=is.true&select=${COUPON_COLUMNS}&order=updated_at.desc&limit=${limit}`
+    `coupons?category=eq.${encodeURIComponent(categoryName)}&status=is.true&${notExpired()}&select=${COUPON_COLUMNS}&order=updated_at.desc&limit=${limit}`
   );
 }
 
@@ -273,7 +279,7 @@ export async function fetchCategories(limit = 40): Promise<PrerenderCategory[]> 
 
 export async function fetchTopCoupons(limit = 40): Promise<PrerenderCoupon[]> {
   return query<PrerenderCoupon>(
-    `coupons?status=is.true&select=${COUPON_COLUMNS}&order=is_featured.desc&order=updated_at.desc&limit=${limit}`
+    `coupons?status=is.true&${notExpired()}&select=${COUPON_COLUMNS}&order=is_featured.desc&order=updated_at.desc&limit=${limit}`
   );
 }
 
