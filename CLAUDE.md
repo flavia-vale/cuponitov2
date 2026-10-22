@@ -8,6 +8,25 @@
 
 ---
 
+## 🔎 SEO e GEO — PREMISSA DE TUDO (regra da Flávia, 22/10/2026)
+
+Tudo o que for construído precisa ser ótimo em SEO (Google/Bing) e GEO (respostas de IA).
+**Antes de construir** qualquer página, rota, slug, título, H1, meta description, texto, FAQ,
+chamada (CTA) ou post, **pedir à Flávia os dados e esperar a resposta**. Não inventar termos.
+
+Dados a pedir (o que fizer sentido para a entrega):
+- **Palavras-chave:** volume e concorrência (Planejador de Palavras-chave do Google), variações
+- **Google Trends:** tendência dos termos principais (12 meses), sazonalidade
+- **Search Console:** consultas e páginas com impressão relacionadas ao tema
+- **IAs:** o que ChatGPT, Perplexity, Gemini e a Visão geral de IA do Google respondem para as
+  perguntas-alvo e quais sites citam
+- **Concorrentes:** quem ranqueia e quem é citado para os termos
+
+O Claude pode levantar sozinho o que é público (autocompletar do Google, SERP, `npm run seo:robos`)
+para deixar o pedido mais curto — mas não substitui os dados acima. Sem os dados, não construir.
+
+---
+
 ## 🚨 REGRAS DE BANCO — NÃO VIOLAR
 
 ### `useCoupons.ts` — NUNCA adicionar join com `stores`
@@ -226,6 +245,8 @@ export function useCouponCategories() {
 - [ ] PR com testes manuais documentados
 
 ### Se a feature cria ou muda página PÚBLICA
+- [ ] Dados de palavras-chave, Trends, Search Console e respostas de IA pedidos à Flávia
+      **antes** de escrever (ver "SEO e GEO — premissa de tudo")
 - [ ] A rota entra no `prerender/render.ts` (ou reusa uma existente): sem HTML do
       servidor a página não existe para o Google nem para as IAs
 - [ ] `<h1>`, `<article>`, datas visíveis e JSON-LD no HTML, não só no React
