@@ -294,7 +294,7 @@ export interface StoreGroupCta {
   info: WhatsappGroupInfo;
 }
 
-/** Chamada para o grupo na página da loja: botão de entrar + link interno para a página do grupo. */
+/** Chamada para o grupo na página da loja, logo abaixo da descrição (antes da lista, como no React). */
 function storeGroupSection(storeName: string, cta: StoreGroupCta): string {
   const pageUrl = `${SITE_URL}${groupPagePath(cta.page?.slug ?? GROUP_HUB_SLUG)}`;
   const join = cta.joinUrl
@@ -364,12 +364,12 @@ export function renderStorePage(
           <h1>Cupom de Desconto ${escapeHtml(store.name)}</h1>
           ${latestUpdate ? `<p>Atualizado em <time datetime="${escapeHtml(latestUpdate)}">${formatDatePtBr(latestUpdate)}</time></p>` : ''}
           <p>${escapeHtml(description)}</p>
+          ${groupCta ? storeGroupSection(store.name, groupCta) : ''}
           ${
             coupons.length > 0
               ? `<h2>Cupons ${escapeHtml(store.name)} ativos</h2><ul>${couponListItems(coupons)}</ul>`
               : `<p>Não há cupons ativos da ${escapeHtml(store.name)} neste momento. Veja <a href="${SITE_URL}/cupons">todos os cupons</a> ou <a href="${SITE_URL}/lojas">as outras lojas</a>.</p>`
           }
-          ${groupCta ? storeGroupSection(store.name, groupCta) : ''}
         </article>
       </main>`,
     [

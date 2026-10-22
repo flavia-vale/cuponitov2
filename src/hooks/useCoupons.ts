@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
+import { notExpiredFilter } from '@/lib/couponValidity';
 
 export type Coupon = Tables<'coupons'>;
 
@@ -14,6 +15,7 @@ export function useCoupons() {
         .from('coupons')
         .select(COUPON_COLUMNS)
         .eq('status', true)
+        .or(notExpiredFilter())
         .order('is_flash', { ascending: false })
         .order('updated_at', { ascending: false })
         .limit(300);

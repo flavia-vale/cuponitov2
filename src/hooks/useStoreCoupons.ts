@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { COUPON_COLUMNS, type Coupon } from '@/hooks/useCoupons';
+import { notExpiredFilter } from '@/lib/couponValidity';
+
+// A KaBuM tem quase 14 mil cupons no banco: a página mostra os mais recentes.
+const STORE_COUPONS_LIMIT = 120;
 
 export function useStoreCoupons(storeId?: string, storeName?: string) {
   return useQuery<Coupon[]>({
@@ -17,9 +21,11 @@ export function useStoreCoupons(storeId?: string, storeName?: string) {
         .from('coupons')
         .select(COUPON_COLUMNS)
         .or(filters.join(','))
-        .order('status', { ascending: false })
+        .eq('status', true)
+        .or(notExpiredFilter())
         .order('is_flash', { ascending: false })
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .limit(STORE_COUPONS_LIMIT);
 
       const { data, error } = await query;
       if (error) throw error;

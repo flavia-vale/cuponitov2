@@ -1,17 +1,14 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
+import GroupJoinCTA from '@/components/GroupJoinCTA';
 import { Link, useParams } from '@tanstack/react-router';
 import Header from '@/components/Header';
 import FeaturedGuidesLinks from '@/components/blog/FeaturedGuidesLinks';
 import { useStoreCoupons } from '@/hooks/useStoreCoupons';
 import { useStoreBrands } from '@/hooks/useStoreBrands';
-import { useSettings } from '@/hooks/useSettings';
 import SEOHead from '@/components/SEOHead';
 import StoreCouponCard from '@/components/StoreCouponCard';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  ChevronRight, 
-} from 'lucide-react';
 import { getMonthYear, cn } from '@/lib/utils';
 import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
@@ -22,12 +19,15 @@ const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
 
 type FilterType = 'all' | 'code' | 'offer' | 'free';
 
+// Página com centenas de cartões empurrava o botão do grupo para o fim: mostra
+// um lote e carrega mais a pedido.
+const PAGE_SIZE = 12;
+
 export default function StorePage() {
   const { slug } = useParams({ strict: false });
   const { data: storeBrands, isLoading: storesLoading } = useStoreBrands();
-  const { data: settings } = useSettings();
   const [filter, setFilter] = useState<FilterType>('all');
-  const [showExpired, setShowExpired] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const monthYear = getMonthYear();
 
   const storeBrand = useMemo(() => {
@@ -38,7 +38,6 @@ export default function StorePage() {
   const { data: storeCouponsData, isLoading: couponsLoading } = useStoreCoupons(storeBrand?.id, storeBrand?.name);
   const storeName = storeBrand?.name || slug?.replace(/cupom-desconto-/g, '').replace(/-/g, ' ') || '';
   const brandColor = storeBrand?.brand_color || '#FF4D00';
-  const whatsappLink = settings?.global_links.whatsapp_group || '#';
   const { data: groupPages } = useWhatsappGroupPages();
   const groupPage = useMemo(
     () => (slug ? groupPageForStore(groupPages ?? [], slug) : null),
@@ -66,13 +65,8 @@ export default function StorePage() {
     }).replace('.', '').replace(',', ',');
   }, [storeCoupons]);
 
-  const activeCoupons = useMemo(() => {
-    return storeCoupons.filter(c => c.status);
-  }, [storeCoupons]);
-
-  const expiredCoupons = useMemo(() => {
-    return storeCoupons.filter(c => !c.status);
-  }, [storeCoupons]);
+  // useStoreCoupons já traz só os ativos e dentro da validade.
+  const activeCoupons = storeCoupons;
 
   const filteredCoupons = useMemo(() => {
     return activeCoupons.filter(c => {
@@ -137,7 +131,9 @@ export default function StorePage() {
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
                       <h1 className="text-[22px] font-bold text-[#1a1a1a]">Cupom de Desconto {storeName}</h1>
-                      <span className="bg-[#EAF3DE] text-[#2E7D32] text-[10px] font-bold px-[9px] py-0.5 rounded-[9px]">Verificado hoje</span>
+                      {activeCoupons.length > 0 && (
+                        <span className="bg-[#EAF3DE] text-[#2E7D32] text-[10px] font-bold px-[9px] py-0.5 rounded-[9px]">Verificado hoje</span>
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-3.5 text-xs text-[#888] mb-2.5">
                       <span>Atualizado em {lastUpdated ?? monthYear}</span>
@@ -161,18 +157,39 @@ export default function StorePage() {
                 </section>
               )}
 
+              <GroupJoinCTA
+                compact
+                title={
+                  !isLoading && activeCoupons.length === 0
+                    ? `Sem cupom da ${storeName} agora? Receba as ofertas no WhatsApp`
+                    : 'Receba cupons e achadinhos no WhatsApp'
+                }
+                groupSlug={groupPage?.slug}
+                source="store_top"
+                context={storeName || null}
+              />
+
               <div className="bg-white border border-[#e8e5e0] rounded-xl p-[12px_14px] flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-[#888] mr-1">Filtrar:</span>
-                <button onClick={() => setFilter('all')} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'all' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Todos ({activeCoupons.length})</button>
-                <button onClick={() => setFilter('code')} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'code' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Códigos ({activeCoupons.filter(c => c.code).length})</button>
-                <button onClick={() => setFilter('offer')} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'offer' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Ofertas ({activeCoupons.filter(c => !c.code && c.category !== 'Frete Grátis').length})</button>
-                <button onClick={() => setFilter('free')} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'free' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Frete grátis ({activeCoupons.filter(c => c.category === 'Frete Grátis').length})</button>
+                <button onClick={() => { setFilter('all'); setVisibleCount(PAGE_SIZE); }} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'all' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Todos ({activeCoupons.length})</button>
+                <button onClick={() => { setFilter('code'); setVisibleCount(PAGE_SIZE); }} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'code' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Códigos ({activeCoupons.filter(c => c.code).length})</button>
+                <button onClick={() => { setFilter('offer'); setVisibleCount(PAGE_SIZE); }} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'offer' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Ofertas ({activeCoupons.filter(c => !c.code && c.category !== 'Frete Grátis').length})</button>
+                <button onClick={() => { setFilter('free'); setVisibleCount(PAGE_SIZE); }} className={cn("border border-[#ddd] rounded-[20px] p-[5px_13px] text-xs cursor-pointer transition-all", filter === 'free' ? "bg-[#FF4D00] border-[#FF4D00] text-white" : "bg-white text-[#555] hover:border-[#FF4D00] hover:text-[#FF4D00]")}>Frete grátis ({activeCoupons.filter(c => c.category === 'Frete Grátis').length})</button>
               </div>
 
               <div className="space-y-2.5">
                 {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />) :
-                  filteredCoupons.map(coupon => <StoreCouponCard key={coupon.id} coupon={coupon} />)}
+                  filteredCoupons.slice(0, visibleCount).map(coupon => <StoreCouponCard key={coupon.id} coupon={coupon} />)}
               </div>
+
+              {!isLoading && filteredCoupons.length > visibleCount && (
+                <button
+                  onClick={() => setVisibleCount(count => count + PAGE_SIZE)}
+                  className="w-full rounded-xl border border-[#ddd] bg-white p-3 text-[13px] font-bold text-[#555] transition-colors hover:border-[#FF4D00] hover:text-[#FF4D00]"
+                >
+                  Ver mais cupons ({filteredCoupons.length - visibleCount})
+                </button>
+              )}
 
               <Suspense fallback={null}>
                 <WhatsAppCTA
@@ -183,15 +200,6 @@ export default function StorePage() {
                 />
               </Suspense>
 
-              {!isLoading && expiredCoupons.length > 0 && (
-                <div className="mt-6">
-                  <div className="flex items-center gap-2 cursor-pointer mb-3 group" onClick={() => setShowExpired(!showExpired)}>
-                    <ChevronRight size={16} className={cn("transition-transform text-[#888]", showExpired && "rotate-90")} />
-                    <span className="text-[13px] text-[#888]">Mostrar <strong>{expiredCoupons.length} cupons expirados</strong></span>
-                  </div>
-                  {showExpired && <div className="space-y-2.5">{expiredCoupons.map(coupon => <StoreCouponCard key={coupon.id} coupon={coupon} isExpired />)}</div>}
-                </div>
-              )}
               <FeaturedGuidesLinks className="mt-2" />
 
             </main>

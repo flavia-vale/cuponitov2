@@ -24,6 +24,8 @@ export interface GroupJoinCTAProps {
   source: string;
   context?: string | null;
   className?: string;
+  /** Faixa curta para o topo da página: título, fatos e botão, sem o canal. */
+  compact?: boolean;
 }
 
 /**
@@ -39,6 +41,7 @@ export default function GroupJoinCTA({
   source,
   context = null,
   className = '',
+  compact = false,
 }: GroupJoinCTAProps) {
   const info = useWhatsappGroupInfo();
   const pathname = useRouterState({ select: state => state.location.pathname });
@@ -48,6 +51,32 @@ export default function GroupJoinCTA({
     `${info.offers_per_day} ofertas por dia`,
     ...(info.admins_only ? ['só os admins postam'] : []),
   ];
+
+  if (compact) {
+    return (
+      <section
+        className={`flex w-full flex-col items-center gap-3 rounded-2xl bg-gradient-to-br from-[#25D366] to-[#128C7E] px-4 py-4 text-center text-white shadow-lg shadow-green-600/20 sm:flex-row sm:justify-between sm:px-6 sm:text-left ${className}`}
+      >
+        <div className="flex items-center gap-3">
+          <WhatsAppIcon className="hidden h-9 w-9 shrink-0 sm:block" />
+          <div>
+            <h2 className="text-base font-black leading-tight sm:text-lg">{title}</h2>
+            <p className="mt-0.5 text-xs font-semibold text-white/90">{text ?? facts.join(' · ')}</p>
+          </div>
+        </div>
+        <a
+          href={joinUrl}
+          target="_blank"
+          rel="nofollow noopener"
+          onClick={() => trackEvent('whatsapp_click', { source, context })}
+          className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-black uppercase tracking-wide text-[#128C7E] shadow transition-transform hover:scale-[1.03] active:scale-95 sm:w-auto"
+        >
+          <WhatsAppIcon className="h-5 w-5" />
+          Entrar no grupo grátis
+        </a>
+      </section>
+    );
+  }
 
   return (
     <section
