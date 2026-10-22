@@ -9,6 +9,11 @@ export const ACHADINHOS_PATH = '/achadinhos-hoje';
 /** Mesma origem do site: o navegador lê por aqui (o feed do Link Inteligente não libera CORS). */
 export const ACHADINHOS_FEED_PATH = '/achadinhos-hoje.json';
 
+/** Feed de uma página de grupo (`?g=<slug>`): o link dela decide qual grupo. Sem slug, o grupo geral. */
+export function groupOffersFeedPath(groupSlug?: string | null): string {
+  return groupSlug ? `${ACHADINHOS_FEED_PATH}?g=${encodeURIComponent(groupSlug)}` : ACHADINHOS_FEED_PATH;
+}
+
 export interface GroupOffer {
   text: string;
   link: string;

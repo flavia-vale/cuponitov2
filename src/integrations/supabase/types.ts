@@ -364,6 +364,7 @@ export type Database = {
           color_hex: string
           created_at: string
           description: string | null
+          group_slug: string | null
           icon: string | null
           id: string
           name: string
@@ -375,6 +376,7 @@ export type Database = {
           color_hex?: string
           created_at?: string
           description?: string | null
+          group_slug?: string | null
           icon?: string | null
           id?: string
           name: string
@@ -386,6 +388,7 @@ export type Database = {
           color_hex?: string
           created_at?: string
           description?: string | null
+          group_slug?: string | null
           icon?: string | null
           id?: string
           name?: string
@@ -1018,6 +1021,7 @@ export type Database = {
           content: string
           created_at: string
           faq: Json
+          group_name: string | null
           h1: string
           id: string
           intro: string
@@ -1026,6 +1030,7 @@ export type Database = {
           meta_description: string
           slug: string
           sort_order: number
+          topics: string | null
           store_slug: string | null
           title: string
           updated_at: string
@@ -1034,6 +1039,7 @@ export type Database = {
           content?: string
           created_at?: string
           faq?: Json
+          group_name?: string | null
           h1: string
           id?: string
           intro: string
@@ -1042,6 +1048,7 @@ export type Database = {
           meta_description: string
           slug: string
           sort_order?: number
+          topics?: string | null
           store_slug?: string | null
           title: string
           updated_at?: string
@@ -1050,6 +1057,7 @@ export type Database = {
           content?: string
           created_at?: string
           faq?: Json
+          group_name?: string | null
           h1?: string
           id?: string
           intro?: string
@@ -1058,6 +1066,7 @@ export type Database = {
           meta_description?: string
           slug?: string
           sort_order?: number
+          topics?: string | null
           store_slug?: string | null
           title?: string
           updated_at?: string

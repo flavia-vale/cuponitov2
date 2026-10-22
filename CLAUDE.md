@@ -33,6 +33,9 @@ Todo link "Entrar no grupo" usa `buildJoinTrackingHref` (`src/lib/groupJoinTrack
 `GroupJoinCTA`. O `/entrar` (middleware) grava a página de origem em `group_join_clicks` e
 resolve o destino. Link direto para `linkdivulgador`/`chat.whatsapp.com` some da medição
 (aba "Captação do grupo"). Nunca pôr o destino na URL do `/entrar` (redirecionamento aberto).
+O grupo certo de cada página sai de `src/lib/whatsappGroup.ts` (`groupPageForStore`,
+`groupPageForNiche`): loja ligada no painel → nicho da categoria (`coupon_categories.group_slug`)
+→ grupo geral. React e prerender usam a mesma regra; não decidir grupo em outro lugar.
 
 ---
 

@@ -19,7 +19,10 @@ import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
   firstContentImage,
+  groupInfoForPage,
   groupPagePath,
+  groupTopicsLabel,
+  isNichePage,
   parseGroupFaq,
 } from '@/lib/whatsappGroup';
 
@@ -39,12 +42,15 @@ function formatUpdatedAt(iso: string | null | undefined): string | null {
 
 export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGroupPageProps) {
   const { data: pages, isLoading } = useWhatsappGroupPages();
-  const info = useWhatsappGroupInfo();
-  const { data: offers } = useGroupOffers();
+  const globalInfo = useWhatsappGroupInfo();
   const { data: authors } = useBlogAuthors();
   const author = useMemo(() => authors?.find(item => isFlavia(item.name)) ?? null, [authors]);
 
   const page = useMemo(() => pages?.find(item => item.slug === slug), [pages, slug]);
+  const info = groupInfoForPage(globalInfo, page);
+  const niche = isNichePage(page);
+  // Página com link próprio (nicho) mostra as ofertas do grupo dela; as outras, as do grupo geral.
+  const { data: offers } = useGroupOffers(page?.join_url ? page.slug : null);
   const siblings = useMemo(() => (pages ?? []).filter(item => item.slug !== slug), [pages, slug]);
   const faq = useMemo(() => parseGroupFaq(page?.faq), [page]);
   const isHub = slug === GROUP_HUB_SLUG;
@@ -82,8 +88,8 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
   const facts = [
     { label: 'Grupo', value: info.group_name },
     { label: 'Preço', value: 'grátis' },
-    { label: 'Ofertas por dia', value: info.offers_per_day },
-    { label: 'Lojas', value: info.stores },
+    ...(info.offers_per_day ? [{ label: 'Ofertas por dia', value: info.offers_per_day }] : []),
+    { label: groupTopicsLabel(page), value: info.stores },
     ...(info.admins_only ? [{ label: 'Quem posta', value: 'só os administradores' }] : []),
   ];
 
@@ -153,9 +159,11 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
             <section className="mb-10">
               <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">Saiu no grupo hoje</h2>
               <GroupOfferList offers={offers.slice(0, 6)} />
-              <a href={ACHADINHOS_PATH} className="mt-4 inline-block font-bold text-[#ff5200] hover:underline">
-                Ver todos os achadinhos de hoje
-              </a>
+              {!niche && (
+                <a href={ACHADINHOS_PATH} className="mt-4 inline-block font-bold text-[#ff5200] hover:underline">
+                  Ver todos os achadinhos de hoje
+                </a>
+              )}
             </section>
           )}
 

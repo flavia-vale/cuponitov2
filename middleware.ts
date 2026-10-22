@@ -35,8 +35,22 @@ import {
   fetchTopCoupons,
 } from './prerender/data';
 import { injectIntoShell, SITE_URL } from './prerender/html';
-import { GROUP_HUB_SLUG, groupPageForStore, groupPagePath, resolveJoinUrl } from './src/lib/whatsappGroup';
-import { buildJoinTrackingHref, isLikelyBot, JOIN_TRACKING_PATH, parseJoinTrackingQuery } from './src/lib/groupJoinTracking';
+import {
+  GROUP_HUB_SLUG,
+  groupInfoForPage,
+  groupPageForNiche,
+  groupPageForStore,
+  groupPagePath,
+  nicheGroupSlug,
+  resolveJoinUrl,
+} from './src/lib/whatsappGroup';
+import {
+  buildJoinTrackingHref,
+  isLikelyBot,
+  JOIN_TRACKING_PATH,
+  parseJoinTrackingQuery,
+  sanitizeToken,
+} from './src/lib/groupJoinTracking';
 import { ACHADINHOS_FEED_PATH, ACHADINHOS_PATH } from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
@@ -184,19 +198,20 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const slug = decodeURIComponent(storeMatch[1]);
     const store = await fetchStore(slug);
     if (!store) return null;
-    const [coupons, stores, posts, groupPages, groupSettings] = await Promise.all([
+    const [coupons, stores, posts, groupPages, groupSettings, categories] = await Promise.all([
       fetchStoreCoupons(store),
       fetchFeaturedStores(8),
       fetchFeaturedPosts(3),
       fetchGroupPages(),
       fetchGroupSettings(),
+      fetchCategories(),
     ]);
-    const groupPage = groupPageForStore(groupPages, store.slug);
+    const groupPage = groupPageForStore(groupPages, store.slug, nicheGroupSlug(coupons, categories));
     return renderStorePage(store, coupons, { stores, posts }, {
       page: groupPage,
       // O botão passa pelo /entrar (mede a página); o destino é resolvido lá, com a mesma regra.
       joinUrl: buildJoinTrackingHref({ origin: 'html_store', groupSlug: groupPage?.slug, pagePath: `/desconto/${store.slug}` }),
-      info: groupSettings.info,
+      info: groupInfoForPage(groupSettings.info, groupPage),
     });
   }
 
@@ -216,11 +231,12 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
     ]);
-    const offers = await fetchGroupOffers(resolveJoinUrl(null, groupSettings.globalJoinUrl));
+    // Página de nicho mostra as ofertas do grupo dela (o link dela decide o feed).
+    const offers = await fetchGroupOffers(resolveJoinUrl(page, groupSettings.globalJoinUrl));
     return renderGroupPage(
       page,
       {
-        info: groupSettings.info,
+        info: groupInfoForPage(groupSettings.info, page),
         joinUrl: buildJoinTrackingHref({ origin: 'html_group_page', groupSlug: page.slug, pagePath: groupPagePath(page.slug) }),
         siblings,
         author,
@@ -235,12 +251,19 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const slug = decodeURIComponent(categoryMatch[1]);
     const category = await fetchCategory(slug);
     if (!category) return null;
-    const [coupons, stores, posts] = await Promise.all([
+    const [coupons, stores, posts, groupPages, groupSettings] = await Promise.all([
       fetchCategoryCoupons(category.name),
       fetchFeaturedStores(3),
       fetchFeaturedPosts(3),
+      fetchGroupPages(),
+      fetchGroupSettings(),
     ]);
-    return renderCategoryPage(category, coupons, { stores, posts });
+    const groupPage = groupPageForNiche(groupPages, category.group_slug);
+    return renderCategoryPage(category, coupons, { stores, posts }, {
+      page: groupPage,
+      joinUrl: buildJoinTrackingHref({ origin: 'html_category', groupSlug: groupPage?.slug, pagePath: `/categoria/${category.slug}` }),
+      info: groupInfoForPage(groupSettings.info, groupPage),
+    });
   }
 
   if (/^\/$/.test(pathname)) {
@@ -330,8 +353,13 @@ export default async function middleware(request: Request, context?: MiddlewareC
 
   // Ofertas do grupo para o React (mesma origem: o feed do Link Inteligente não libera CORS).
   if (pathname === ACHADINHOS_FEED_PATH) {
-    const { globalJoinUrl } = await fetchGroupSettings();
-    const items = await fetchGroupOffers(resolveJoinUrl(null, globalJoinUrl));
+    // `g` = página do grupo (nicho): o link dela decide o feed. Nunca uma URL vinda de fora.
+    const groupSlug = sanitizeToken(url.searchParams.get('g'));
+    const [{ globalJoinUrl }, page] = await Promise.all([
+      fetchGroupSettings(),
+      groupSlug ? fetchGroupPage(groupSlug) : Promise.resolve(null),
+    ]);
+    const items = await fetchGroupOffers(resolveJoinUrl(page ?? null, globalJoinUrl));
     return new Response(JSON.stringify({ items }), {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
