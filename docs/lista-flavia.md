@@ -87,3 +87,27 @@ Só depois da migration rodar. Até 10 por dia.
 - [ ] Depois: me avisar. Eu confiro `https://linkdivulgador.com.br/g/ofertas-fafaciane/ofertas.json` e a página
       https://www.cuponito.com.br/achadinhos-hoje, e aviso o Bing.
 - Enquanto o feed não estiver ligado, a página mostra só um aviso e sai com `noindex` (o Google não indexa página vazia).
+
+## Grupos de nicho (PRs #86, #88, #89)
+
+- [x] Migrations `20261023120000_paginas_de_ofertas.sql` e `20261023150000_conteudo_nichos.sql` rodadas (23/10).
+      Conferido pelo Claude: as 6 páginas novas respondem 200 e os 4 endereços antigos mandam 301.
+- [x] **Reindexação pedida no Google Search Console pela Flávia em 23/10** para:
+  - https://www.cuponito.com.br/grupo-whatsapp/celular
+  - https://www.cuponito.com.br/blog/decoracao-de-ano-novo-simples-e-barata
+  - https://www.cuponito.com.br/ofertas/iphone
+  - https://www.cuponito.com.br/ofertas/fraldas
+  - https://www.cuponito.com.br/grupo-whatsapp/pc-gamer
+  - https://www.cuponito.com.br/grupo-whatsapp/manicure
+  - https://www.cuponito.com.br/desconto/cupom-desconto-kabum-br
+  - https://www.cuponito.com.br/desconto/cupom-desconto-aliexpress-br-latam
+  - https://www.cuponito.com.br/grupo-whatsapp
+  - https://www.cuponito.com.br/categoria/tech
+- [x] IndexNow (Bing, que o ChatGPT consulta) enviado pelo Claude em 23/10 via `/api/indexnow`: as 10 acima
+      + /categoria/games, /categoria/infant-products, /categoria/beleza, /llms.txt e os 4 endereços antigos
+      (/grupo-whatsapp/tecnologia, /bebes, /salao-de-beleza, /festas) para o Bing registrar o 301. Resposta 200.
+- [ ] Ligar o feed `ofertas.json` dos grupos de nicho no wabot (VPS): em `~/wabot/.env`,
+      `SMART_LINK_PUBLIC_FEED=ofertas-fafaciane,promo-tech,promo-celular,promo-iphone,promo-bebes,promo-festas,promo-salao`
+      e depois `pm2 restart api`. Me avisar: eu confiro cada `ofertas.json` e as páginas de ofertas.
+- Obs.: o feed do wabot só devolve as ofertas das **últimas 36 h**. O Promo iPhone posta ~2 por semana,
+  então `/ofertas/iphone` fica vazia na maior parte dos dias mesmo com o feed ligado.
