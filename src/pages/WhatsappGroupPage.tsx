@@ -91,7 +91,11 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
   const facts = [
     { label: 'Grupo', value: info.group_name },
     { label: 'Preço', value: 'grátis' },
-    ...(info.offers_per_day ? [{ label: 'Ofertas por dia', value: info.offers_per_day }] : []),
+    ...(info.offers_per_day
+      ? [{ label: 'Ofertas por dia', value: info.offers_per_day }]
+      : info.volume
+        ? [{ label: 'Quantas ofertas', value: info.volume }]
+        : []),
     { label: groupTopicsLabel(page), value: info.stores },
     ...(info.admins_only ? [{ label: 'Quem posta', value: 'só os administradores' }] : []),
   ];

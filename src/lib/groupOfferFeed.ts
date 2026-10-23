@@ -92,6 +92,30 @@ export function storeLabel(store: string | null | undefined): string {
   return STORE_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
 }
 
+const SAO_PAULO_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' });
+
+/**
+ * Página de ofertas de grupo com pouco volume (iPhone: ~2 por semana) mostra
+ * ofertas de dias atrás; passado deste prazo o preço já não vale.
+ */
+export const OFFER_MAX_AGE_DAYS = 30;
+
+/** Ofertas dos últimos `days` dias; sem data, fica (o feed só traz as recentes). */
+export function recentOffers(offers: GroupOffer[], days = OFFER_MAX_AGE_DAYS, now: Date = new Date()): GroupOffer[] {
+  const limit = now.getTime() - days * 86_400_000;
+  return offers.filter(offer => !offer.sentAt || Date.parse(offer.sentAt) >= limit);
+}
+
+/** "14h05" se saiu hoje; "21/10 · 14h05" se saiu antes (horário de São Paulo). */
+export function offerWhen(iso: string | null | undefined, now: Date = new Date()): string | null {
+  const time = offerTime(iso);
+  if (!time || !iso) return null;
+  const date = new Date(iso);
+  if (SAO_PAULO_DAY.format(date) === SAO_PAULO_DAY.format(now)) return time;
+  const day = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' });
+  return `${day} · ${time}`;
+}
+
 /** "14h05", no horário de São Paulo. */
 export function offerTime(iso: string | null | undefined): string | null {
   if (!iso) return null;

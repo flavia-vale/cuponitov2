@@ -1,7 +1,7 @@
 import { Radio } from 'lucide-react';
 import { useRouterState } from '@tanstack/react-router';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { groupInfoForPage } from '@/lib/whatsappGroup';
+import { groupInfoForPage, groupVolumeFact } from '@/lib/whatsappGroup';
 import { trackEvent } from '@/lib/analytics';
 import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
 
@@ -45,14 +45,15 @@ export default function GroupJoinCTA({
   compact = false,
 }: GroupJoinCTAProps) {
   const globalInfo = useWhatsappGroupInfo();
-  const { data: pages } = useWhatsappGroupPages();
+  // Com rascunhos: página despublicada pode guardar só o link de um grupo de nicho (ex.: festas).
+  const { data: pages } = useWhatsappGroupPages({ includeDrafts: true });
   // Grupo de nicho: nome e assuntos dele, não os do grupo geral.
   const info = groupInfoForPage(globalInfo, pages?.find(page => page.slug === groupSlug));
   const pathname = useRouterState({ select: state => state.location.pathname });
   const joinUrl = buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname });
   const facts = [
     'Grátis',
-    ...(info.offers_per_day ? [`${info.offers_per_day} ofertas por dia`] : []),
+    ...(groupVolumeFact(info) ? [groupVolumeFact(info)!] : []),
     ...(info.admins_only ? ['só os admins postam'] : []),
   ];
 

@@ -186,7 +186,7 @@ export default function BlogPost() {
               <AuthorBox author={author} />
             </article>
             <div className="mt-10 sm:mt-16">
-              <BlogWhatsAppCTA />
+              <BlogWhatsAppCTA groupSlug={post.group_slug} context={post.slug} />
             </div>
             {relatedPosts.length > 0 && (
               <section className="mt-12 border-t border-black/5 pt-8 sm:mt-20 sm:pt-12">

@@ -71,3 +71,30 @@ Pendente antes dos textos: respostas das IAs (com sites citados), top 5 do Googl
 `/ofertas/<slug>` (React `OffersPage`, prerender `renderOffersPage`, sitemap, painel), com as
 ofertas do grupo filtradas por `offer_terms`. As 4 páginas de 22/10 estão no ar desde 22/10
 23:32 UTC; a migration de conteúdo vai renomeá-las e o middleware manda 301 dos endereços antigos.
+
+## Conteúdo de 23/10 (migration 20261023150000)
+
+Grupos reorganizados pela Flávia em 23/10: o Promo Tech virou **Promo Tech Nerd** (PC, peças,
+notebook, monitor, videogame, jogos, TV; ~200/dia) e ganharam grupo próprio **Promo Celular**
+(~5/dia) e **Promo iPhone** (~2/semana, só novo). Só admins postam em todos.
+
+Dados novos (Planejador 23/10): "iphone em promoção"/"iphone barato" 10–100 mil, "grupo de
+promoção de iphone" 10–100 → iPhone vira página de ofertas. Tech Nerd: "tv em promoção" 10–100 mil
+(+900% no ano), PS5, placa de vídeo, notebook gamer, jogos 1–10 mil. Respostas de IA: o ChatGPT
+já cita "Promo Tech — Cuponito" para "tem grupo de promoção de celular no WhatsApp?".
+
+| Página | Grupo | Antes |
+|---|---|---|
+| `/grupo-whatsapp/celular` | Promo Celular | `/grupo-whatsapp/tecnologia` (301) |
+| `/grupo-whatsapp/pc-gamer` | Promo Tech Nerd | — |
+| `/ofertas/iphone` | Promo iPhone | — |
+| `/ofertas/fraldas` | Promo Bebês | `/grupo-whatsapp/bebes` (301) |
+| `/grupo-whatsapp/manicure` | Promo Salão | `/grupo-whatsapp/salao-de-beleza` (301) |
+| `/blog/decoracao-de-ano-novo-simples-e-barata` | Promo Festas | `/grupo-whatsapp/festas` (301) |
+
+A linha `festas` fica despublicada e só guarda o link do grupo: o `/entrar` e o botão do post
+leem página despublicada (`fetchJoinPage`). Posts têm `group_slug` (painel: "Grupo do WhatsApp do
+post"). Ofertas com mais de 30 dias saem das páginas de ofertas; as de dias anteriores mostram a data.
+
+Próximo: `/ofertas/tv`, `/ofertas/ps5`, `/ofertas/placa-de-video` quando o feed do Tech Nerd
+mostrar ofertas suficientes de cada um.

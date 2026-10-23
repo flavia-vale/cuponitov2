@@ -44,7 +44,7 @@ import {
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
 import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
-import { ACHADINHOS_PATH, offerTime, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
+import { ACHADINHOS_PATH, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 export interface FeaturedPost {
   title: string;
@@ -158,7 +158,8 @@ function authorBox(author: PrerenderAuthor | null): string {
 export function renderBlogPost(
   post: PrerenderPost,
   author: PrerenderAuthor | null,
-  links: ChromeLinks
+  links: ChromeLinks,
+  groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/blog/${post.slug}`;
   const publishedIso = post.published_at || post.created_at || null;
@@ -217,6 +218,7 @@ export function renderBlogPost(
           ${post.excerpt ? `<p>${escapeHtml(post.excerpt)}</p>` : ''}
           ${post.cover_image ? `<img src="${escapeHtml(post.cover_image)}" alt="${escapeHtml(post.title)}" />` : ''}
           ${markdownToHtml(post.content || '', { demoteHeadings: 1 })}
+          ${groupCta ? groupCtaSection('Receba as ofertas no WhatsApp', groupCta) : ''}
           ${authorBox(author)}
         </article>
       </main>`,
@@ -298,11 +300,13 @@ export interface StoreGroupCta {
   joinUrl: string | null;
   /** Fatos já ajustados ao grupo da página (`groupInfoForPage`). */
   info: WhatsappGroupInfo;
+  /** "Como funciona o grupo": padrão é a página do grupo; página só de link (despublicada) aponta para o hub. */
+  learnMoreUrl?: string;
 }
 
 /** Chamada para o grupo logo abaixo da descrição (antes da lista, como no React). */
 function groupCtaSection(fallbackTitle: string, cta: StoreGroupCta): string {
-  const pageUrl = `${SITE_URL}${cta.page ? pagePath(cta.page) : groupPagePath(GROUP_HUB_SLUG)}`;
+  const pageUrl = `${SITE_URL}${cta.learnMoreUrl ?? (cta.page ? pagePath(cta.page) : groupPagePath(GROUP_HUB_SLUG))}`;
   const join = cta.joinUrl
     ? `<a class="cta" href="${escapeHtml(cta.joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>`
     : '';
@@ -410,7 +414,7 @@ export interface GroupPageContext {
 function offerListItems(offers: GroupOffer[]): string {
   return offers
     .map(offer => {
-      const time = offerTime(offer.sentAt);
+      const time = offerWhen(offer.sentAt);
       return `<li><strong>${escapeHtml(storeLabel(offer.store))}</strong>${
         time ? ` · <time datetime="${escapeHtml(offer.sentAt ?? '')}">${time}</time>` : ''
       } — ${escapeHtml(offer.text)} <a href="${escapeHtml(offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
@@ -478,7 +482,11 @@ export function renderGroupPage(
   const facts = [
     `<li><strong>Grupo:</strong> ${escapeHtml(info.group_name)}</li>`,
     `<li><strong>Preço:</strong> grátis</li>`,
-    info.offers_per_day ? `<li><strong>Ofertas por dia:</strong> ${escapeHtml(info.offers_per_day)}</li>` : '',
+    info.offers_per_day
+      ? `<li><strong>Ofertas por dia:</strong> ${escapeHtml(info.offers_per_day)}</li>`
+      : info.volume
+        ? `<li><strong>Quantas ofertas:</strong> ${escapeHtml(info.volume)}</li>`
+        : '',
     `<li><strong>${groupTopicsLabel(page)}:</strong> ${escapeHtml(info.stores)}</li>`,
     info.admins_only ? `<li><strong>Quem posta:</strong> só os administradores</li>` : '',
   ].join('');

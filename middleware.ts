@@ -23,6 +23,7 @@ import {
   fetchFeaturedStores,
   fetchGroupOffers,
   fetchGroupPage,
+  fetchJoinPage,
   fetchGroupPages,
   fetchGroupSettings,
   recordGroupJoinClick,
@@ -53,7 +54,13 @@ import {
   parseJoinTrackingQuery,
   sanitizeToken,
 } from './src/lib/groupJoinTracking';
-import { ACHADINHOS_FEED_PATH, ACHADINHOS_PATH, filterOffersByTerms, parseOfferTerms } from './src/lib/groupOfferFeed';
+import {
+  ACHADINHOS_FEED_PATH,
+  ACHADINHOS_PATH,
+  filterOffersByTerms,
+  parseOfferTerms,
+  recentOffers,
+} from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
   renderAboutPage,
@@ -152,6 +159,18 @@ function safeDecode(segment: string): string | null {
   }
 }
 
+/**
+ * Páginas de nicho de 22/10 (escritas sem dados de busca) renomeadas em 23/10
+ * pela migration 20261023150000. Só vale quando a página antiga não existe mais:
+ * antes da migration rodar, o endereço antigo continua respondendo normalmente.
+ */
+const RENAMED_GROUP_PAGES: Record<string, string> = {
+  '/grupo-whatsapp/tecnologia': '/grupo-whatsapp/celular',
+  '/grupo-whatsapp/bebes': '/ofertas/fraldas',
+  '/grupo-whatsapp/salao-de-beleza': '/grupo-whatsapp/manicure',
+  '/grupo-whatsapp/festas': '/blog/decoracao-de-ano-novo-simples-e-barata',
+};
+
 async function findRenamedPost(pathname: string): Promise<string | null> {
   const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (!blogMatch) return null;
@@ -193,8 +212,24 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(4),
     ]);
     if (!post) return null;
-    const author = await fetchAuthor(post.author_id);
-    return renderBlogPost(post, author, { stores, posts });
+    const groupSlug = post.group_slug?.trim() || null;
+    const [author, joinPage, publishedPage, groupSettings] = await Promise.all([
+      fetchAuthor(post.author_id),
+      groupSlug ? fetchJoinPage(groupSlug) : Promise.resolve(null),
+      groupSlug ? fetchGroupPage(groupSlug) : Promise.resolve(null),
+      groupSlug ? fetchGroupSettings() : Promise.resolve(null),
+    ]);
+    // Post com grupo de nicho: botão desse grupo no fim do artigo, como no React.
+    const groupCta =
+      joinPage && groupSettings
+        ? {
+            page: joinPage,
+            joinUrl: buildJoinTrackingHref({ origin: 'html_blog_post', groupSlug: joinPage.slug, pagePath: `/blog/${post.slug}` }),
+            info: groupInfoForPage(groupSettings.info, joinPage),
+            learnMoreUrl: publishedPage ? pagePath(publishedPage) : groupPagePath(GROUP_HUB_SLUG),
+          }
+        : undefined;
+    return renderBlogPost(post, author, { stores, posts }, groupCta);
   }
 
   const storeMatch = pathname.match(/^\/desconto\/([^/]+)\/?$/);
@@ -266,9 +301,11 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
     ]);
-    const offers = filterOffersByTerms(
-      await fetchGroupOffers(resolveJoinUrl(page, groupSettings.globalJoinUrl)),
-      parseOfferTerms(page.offer_terms)
+    const offers = recentOffers(
+      filterOffersByTerms(
+        await fetchGroupOffers(resolveJoinUrl(page, groupSettings.globalJoinUrl)),
+        parseOfferTerms(page.offer_terms)
+      )
     );
     return renderOffersPage(
       page,
@@ -359,7 +396,8 @@ interface MiddlewareContext {
 async function handleJoinClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
   const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'));
   const [page, settings] = await Promise.all([
-    row.group_slug ? fetchGroupPage(row.group_slug) : Promise.resolve(null),
+    // Publicada ou não: página despublicada pode guardar só o link do grupo (ex.: festas).
+    row.group_slug ? fetchJoinPage(row.group_slug) : Promise.resolve(null),
     fetchGroupSettings(),
   ]);
   const destination = resolveJoinUrl(page ?? null, settings.globalJoinUrl);
@@ -434,6 +472,9 @@ export default async function middleware(request: Request, context?: MiddlewareC
     if (!page) {
       const renamed = await findRenamedPost(pathname);
       if (renamed) return movedPermanently(`${SITE_URL}/blog/${renamed}`);
+
+      const renamedGroupPage = RENAMED_GROUP_PAGES[pathname.replace(/\/$/, '')];
+      if (renamedGroupPage) return movedPermanently(`${SITE_URL}${renamedGroupPage}`);
 
       // Slug inexistente: 404 de verdade, não soft 404. A SPA ainda monta por
       // cima e mostra a tela de "não encontrado" para quem está no navegador.

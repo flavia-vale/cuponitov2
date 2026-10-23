@@ -55,6 +55,9 @@ resolve o destino. Link direto para `linkdivulgador`/`chat.whatsapp.com` some da
 O grupo certo de cada página sai de `src/lib/whatsappGroup.ts` (`groupPageForStore`,
 `groupPageForNiche`): loja ligada no painel → nicho da categoria (`coupon_categories.group_slug`)
 → grupo geral. React e prerender usam a mesma regra; não decidir grupo em outro lugar.
+Página do grupo **despublicada** pode existir só para guardar o link de um grupo (ex.: `festas`,
+usada pelo botão de um post via `blog_posts.group_slug`): o `/entrar` lê qualquer página
+(`fetchJoinPage`). Página renomeada ganha 301 em `RENAMED_GROUP_PAGES` (`middleware.ts`).
 
 ---
 

@@ -22,6 +22,8 @@ export interface WhatsappGroupInfo {
   stores: string;
   admins_only: boolean;
   channel_url: string;
+  /** Grupo de nicho: volume em frase pronta ("cerca de 5 ofertas por dia"). Vazio = não informado. */
+  volume?: string;
 }
 
 export interface WhatsappGroupPageData {
@@ -44,6 +46,8 @@ export interface WhatsappGroupPageData {
   page_type?: string | null;
   /** Página de ofertas: termos que filtram as ofertas do grupo (separados por vírgula). */
   offer_terms?: string | null;
+  /** Grupo de nicho: quantas ofertas chegam, em frase pronta ("cerca de 2 ofertas por semana"). */
+  offer_volume?: string | null;
 }
 
 /**
@@ -151,7 +155,7 @@ export function isNichePage(page: Pick<WhatsappGroupPageData, 'group_name' | 'to
  */
 export function groupInfoForPage(
   info: WhatsappGroupInfo,
-  page: Pick<WhatsappGroupPageData, 'group_name' | 'topics'> | null | undefined
+  page: Pick<WhatsappGroupPageData, 'group_name' | 'topics' | 'offer_volume'> | null | undefined
 ): WhatsappGroupInfo {
   if (!isNichePage(page)) return info;
   return {
@@ -159,7 +163,14 @@ export function groupInfoForPage(
     group_name: page?.group_name?.trim() || info.group_name,
     stores: page?.topics?.trim() || info.stores,
     offers_per_day: '',
+    volume: page?.offer_volume?.trim() || '',
   };
+}
+
+/** Fato "quantas ofertas" para listas: o do grupo geral ou o volume do nicho. */
+export function groupVolumeFact(info: WhatsappGroupInfo): string | null {
+  if (info.offers_per_day) return `${info.offers_per_day} ofertas por dia`;
+  return info.volume || null;
 }
 
 /** Rótulo do fato "lojas": no nicho, o que chega é assunto, não loja. */
@@ -227,6 +238,7 @@ export function groupFactsSentence(info: WhatsappGroupInfo): string {
   const parts = [
     `${info.group_name}: grátis`,
     info.offers_per_day ? `${info.offers_per_day} ofertas por dia de ${info.stores}` : `ofertas de ${info.stores}`,
+    ...(!info.offers_per_day && info.volume ? [info.volume] : []),
   ];
   if (info.admins_only) parts.push('só os administradores postam');
   return `${parts.join(', ')}.`;
