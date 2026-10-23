@@ -157,6 +157,7 @@ export type Database = {
           cta_config: Json | null
           excerpt: string
           featured: boolean
+          group_slug: string | null
           id: string
           images_json: Json | null
           meta_description: string
@@ -178,6 +179,7 @@ export type Database = {
           cta_config?: Json | null
           excerpt?: string
           featured?: boolean
+          group_slug?: string | null
           id?: string
           images_json?: Json | null
           meta_description?: string
@@ -199,6 +201,7 @@ export type Database = {
           cta_config?: Json | null
           excerpt?: string
           featured?: boolean
+          group_slug?: string | null
           id?: string
           images_json?: Json | null
           meta_description?: string
@@ -1029,6 +1032,7 @@ export type Database = {
           join_url: string | null
           meta_description: string
           offer_terms: string | null
+          offer_volume: string | null
           page_type: string
           slug: string
           sort_order: number
@@ -1049,6 +1053,7 @@ export type Database = {
           join_url?: string | null
           meta_description: string
           offer_terms?: string | null
+          offer_volume?: string | null
           page_type?: string
           slug: string
           sort_order?: number
@@ -1069,6 +1074,7 @@ export type Database = {
           join_url?: string | null
           meta_description?: string
           offer_terms?: string | null
+          offer_volume?: string | null
           page_type?: string
           slug?: string
           sort_order?: number

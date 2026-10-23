@@ -13,7 +13,7 @@ import { useBlogAuthors } from '@/hooks/useBlog';
 import { useGroupOffers } from '@/hooks/useGroupOffers';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
 import { authorProfileUrl, isFlavia } from '@/lib/authors';
-import { filterOffersByTerms, parseOfferTerms } from '@/lib/groupOfferFeed';
+import { filterOffersByTerms, parseOfferTerms, recentOffers } from '@/lib/groupOfferFeed';
 import { SITE_URL } from '@/lib/seo';
 import {
   firstContentImage,
@@ -50,7 +50,10 @@ export default function OffersPage({ slug }: { slug: string }) {
   const info = groupInfoForPage(globalInfo, page);
   const faq = useMemo(() => parseGroupFaq(page?.faq), [page]);
   const { data: feed, isLoading: offersLoading } = useGroupOffers(page ? page.slug : null);
-  const offers = useMemo(() => filterOffersByTerms(feed ?? [], parseOfferTerms(page?.offer_terms)), [feed, page]);
+  const offers = useMemo(
+    () => recentOffers(filterOffersByTerms(feed ?? [], parseOfferTerms(page?.offer_terms))),
+    [feed, page]
+  );
   const newest = offers.find(offer => offer.sentAt)?.sentAt ?? null;
   const modified = [newest, page?.updated_at].filter((date): date is string => Boolean(date)).sort().pop() ?? null;
   const updatedAt = formatUpdatedAt(modified);

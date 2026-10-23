@@ -1,12 +1,12 @@
 import { ExternalLink } from 'lucide-react';
-import { offerTime, storeLabel, type GroupOffer } from '@/lib/groupOfferFeed';
+import { offerWhen, storeLabel, type GroupOffer } from '@/lib/groupOfferFeed';
 
 /** Ofertas reais do grupo: loja, horário, texto e o link da loja. Mesmo conteúdo do HTML do servidor. */
 export default function GroupOfferList({ offers }: { offers: GroupOffer[] }) {
   return (
     <ul className="space-y-3">
       {offers.map(offer => {
-        const time = offerTime(offer.sentAt);
+        const time = offerWhen(offer.sentAt);
         return (
           <li key={offer.link} className="rounded-2xl border border-border bg-white p-4 shadow-sm">
             <p className="mb-1 text-xs font-black uppercase tracking-wide text-[#ff5200]">

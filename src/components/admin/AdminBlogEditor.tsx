@@ -14,6 +14,7 @@ import { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import { getErrorMessage } from '@/lib/errors';
 import { slugify } from '@/lib/slugify';
 import { pingIndexNow } from '@/lib/indexnow';
+import { useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
 import type { Database, Json } from '@/integrations/supabase/types';
 
 interface Props {
@@ -56,6 +57,9 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
     rawCta && typeof rawCta === 'object' && !Array.isArray(rawCta) ? (rawCta as InlineCouponConfig) : null;
   const [hasCta, setHasCta] = useState(!!initialCta);
   const [ctaConfig, setCtaConfig] = useState<InlineCouponConfig>(initialCta ?? {});
+
+  const [groupSlug, setGroupSlug] = useState(post?.group_slug ?? '');
+  const { data: groupPages = [] } = useWhatsappGroupPages({ includeDrafts: true });
 
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingCtaLogo, setUploadingCtaLogo] = useState(false);
@@ -145,6 +149,8 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
       meta_description: metaDescription,
       cta_config: ctaConfigValue,
       schema_json: schemaJsonValue,
+      // Coluna nova: só vai quando já existe no banco (post lido com ela) ou quando foi escolhida.
+      ...(groupSlug || (post && 'group_slug' in post) ? { group_slug: groupSlug || null } : {}),
       updated_at: new Date().toISOString(),
       published_at: isPublished && !post?.published_at ? new Date().toISOString() : post?.published_at,
     };
@@ -234,6 +240,22 @@ export function AdminBlogEditor({ post, onSave, onCancel }: Props) {
                     {authors.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Grupo do WhatsApp do post</label>
+                <select
+                  value={groupSlug}
+                  onChange={e => setGroupSlug(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Grupo geral</option>
+                  {groupPages.map(page => (
+                    <option key={page.id} value={page.slug}>
+                      {page.group_name || page.h1}{page.is_published ? '' : ' (só link)'}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-muted-foreground">O botão "Entrar no grupo" no fim do post leva a este grupo.</p>
               </div>
             </CardContent>
           </Card>

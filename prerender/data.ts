@@ -59,6 +59,8 @@ export interface PrerenderPost {
   meta_title: string | null;
   meta_description: string | null;
   schema_json: unknown;
+  /** Página do grupo do post (botão do WhatsApp); ausente antes da migration 20261023150000. */
+  group_slug?: string | null;
   published_at: string | null;
   updated_at: string | null;
   created_at: string | null;
@@ -123,6 +125,10 @@ export async function fetchPost(slug: string): Promise<PrerenderPost | null> {
 
   // `schema_json` é recente: antes da migration rodar, pedi-lo devolve 400 e
   // levaria o post inteiro a virar 404. Sem a coluna, segue sem o schema extra.
+  // `group_slug` (grupo do post) é ainda mais recente: mesma lógica, uma camada a mais.
+  const withGroup = await tryQuery<PrerenderPost>(path(`${POST_COLUMNS_BASE},schema_json,group_slug`));
+  if (withGroup) return withGroup[0] ?? null;
+
   const withSchema = await tryQuery<PrerenderPost>(path(`${POST_COLUMNS_BASE},schema_json`));
   if (withSchema) return withSchema[0] ?? null;
 
@@ -309,16 +315,20 @@ const GROUP_PAGE_COLUMNS =
 // Colunas novas entram por camadas (migrations 20261022150000 e 20261023120000): antes
 // de elas rodarem, pedir a coluna devolve 400 e a página viraria 404. Por isso as
 // tentativas seguintes sem elas.
-const GROUP_PAGE_NICHE_COLUMNS = `${GROUP_PAGE_COLUMNS},group_name,topics`;
-const GROUP_PAGE_OFFERS_COLUMNS = `${GROUP_PAGE_NICHE_COLUMNS},page_type,offer_terms`;
+// Da mais nova para a mais antiga: a primeira que o banco aceitar vale.
+const GROUP_PAGE_COLUMN_TIERS = [
+  `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms,offer_volume`,
+  `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms`,
+  `${GROUP_PAGE_COLUMNS},group_name,topics`,
+  GROUP_PAGE_COLUMNS,
+];
 
 async function tryGroupPages(filter: string): Promise<WhatsappGroupPageData[] | null> {
-  const path = (columns: string) => `whatsapp_group_pages?${filter}&select=${columns}`;
-  return (
-    (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_OFFERS_COLUMNS))) ??
-    (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_NICHE_COLUMNS))) ??
-    (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_COLUMNS)))
-  );
+  for (const columns of GROUP_PAGE_COLUMN_TIERS) {
+    const rows = await tryQuery<WhatsappGroupPageData>(`whatsapp_group_pages?${filter}&select=${columns}`);
+    if (rows) return rows;
+  }
+  return null;
 }
 
 /** `undefined` = o Supabase falhou (não confundir com "página não existe"). */
@@ -326,6 +336,16 @@ export async function fetchGroupPage(slug: string): Promise<WhatsappGroupPageDat
   const rows = await tryGroupPages(`slug=eq.${encodeURIComponent(slug)}&is_published=is.true&limit=1`);
   if (rows === null) return undefined;
   return rows[0] ?? null;
+}
+
+/**
+ * Página que guarda o link de um grupo, publicada ou não: o /entrar e o botão de
+ * um post usam o link de uma página despublicada (ex.: festas, cujo endereço
+ * redireciona para o post de ano novo).
+ */
+export async function fetchJoinPage(slug: string): Promise<WhatsappGroupPageData | null> {
+  const rows = await tryGroupPages(`slug=eq.${encodeURIComponent(slug)}&limit=1`);
+  return rows?.[0] ?? null;
 }
 
 export async function fetchGroupPages(): Promise<WhatsappGroupPageData[]> {
