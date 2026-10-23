@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useCouponCategories, type CouponCategory } from '@/hooks/useCouponCategories';
 import { useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { groupPagePath } from '@/lib/whatsappGroup';
+import { pagePath } from '@/lib/whatsappGroup';
 import { getErrorMessage } from '@/lib/errors';
 import { slugify } from '@/lib/slugify';
 
@@ -213,7 +213,7 @@ export function AdminCouponCategoriesTab() {
               <option value="">Grupo geral</option>
               {groupPages.map(page => (
                 <option key={page.id} value={page.slug}>
-                  {page.group_name || page.h1} ({groupPagePath(page.slug)})
+                  {page.group_name || page.h1} ({pagePath(page)})
                 </option>
               ))}
             </select>

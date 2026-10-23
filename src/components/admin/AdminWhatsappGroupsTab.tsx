@@ -17,7 +17,8 @@ import {
 } from '@/hooks/useWhatsappGroupPages';
 import {
   GROUP_HUB_SLUG,
-  groupPagePath,
+  isOffersPage,
+  pagePath,
   parseGroupFaq,
   safeExternalUrl,
   type GroupFaqItem,
@@ -38,6 +39,8 @@ interface PageForm {
   join_url: string;
   group_name: string;
   topics: string;
+  page_type: 'group' | 'offers';
+  offer_terms: string;
   is_published: boolean;
   sort_order: number;
 }
@@ -54,6 +57,8 @@ const EMPTY_PAGE: PageForm = {
   join_url: '',
   group_name: '',
   topics: '',
+  page_type: 'group',
+  offer_terms: '',
   is_published: true,
   sort_order: 0,
 };
@@ -133,6 +138,8 @@ function toForm(page: WhatsappGroupPage): PageForm {
     join_url: page.join_url ?? '',
     group_name: page.group_name ?? '',
     topics: page.topics ?? '',
+    page_type: isOffersPage(page) ? 'offers' : 'group',
+    offer_terms: page.offer_terms ?? '',
     is_published: page.is_published,
     sort_order: page.sort_order,
   };
@@ -191,6 +198,8 @@ export function AdminWhatsappGroupsTab() {
           join_url: form.join_url.trim() || null,
           group_name: form.group_name.trim() || null,
           topics: form.topics.trim() || null,
+          page_type: form.page_type,
+          offer_terms: form.offer_terms.trim() || null,
           is_published: form.is_published,
           sort_order: Number(form.sort_order) || 0,
         },
@@ -203,7 +212,7 @@ export function AdminWhatsappGroupsTab() {
   };
 
   const handleDelete = async (page: WhatsappGroupPage) => {
-    if (!confirm(`Excluir a página "${page.h1}"? O endereço ${groupPagePath(page.slug)} passa a dar 404.`)) return;
+    if (!confirm(`Excluir a página "${page.h1}"? O endereço ${pagePath(page)} passa a dar 404.`)) return;
     try {
       await deletePage.mutateAsync(page.id);
       toast({ title: 'Página excluída' });
@@ -224,7 +233,22 @@ export function AdminWhatsappGroupsTab() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Slug" hint={`"${GROUP_HUB_SLUG}" = /grupo-whatsapp. Outros = /grupo-whatsapp/<slug>.`}>
+            <Field label="Tipo de página" hint="Página do grupo: /grupo-whatsapp/<slug>. Página de ofertas: /ofertas/<slug>, com as ofertas do grupo no topo.">
+              <select
+                value={form.page_type}
+                onChange={e => setForm(f => ({ ...f, page_type: e.target.value === 'offers' ? 'offers' : 'group' }))}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="group">Página do grupo</option>
+                <option value="offers">Página de ofertas do dia</option>
+              </select>
+            </Field>
+            {form.page_type === 'offers' && (
+              <Field label="Termos das ofertas" hint='Só entram as ofertas do grupo com um destes termos, separados por vírgula. Ex.: "fralda, fraldas". Vazio = todas.'>
+                <Input value={form.offer_terms} onChange={e => setForm(f => ({ ...f, offer_terms: e.target.value }))} className="h-9" />
+              </Field>
+            )}
+            <Field label="Slug" hint={`"${GROUP_HUB_SLUG}" = /grupo-whatsapp. Outros = /grupo-whatsapp/<slug> ou /ofertas/<slug>.`}>
               <Input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} placeholder="mercado-livre" className="h-9 font-mono text-xs" />
             </Field>
             <Field label="Loja ligada" hint="O botão do WhatsApp na página dessa loja aponta para esta página.">
@@ -317,10 +341,10 @@ export function AdminWhatsappGroupsTab() {
                     <p className="truncate text-sm font-semibold text-foreground">
                       {page.h1} {!page.is_published && <span className="text-xs font-normal text-muted-foreground">(rascunho)</span>}
                     </p>
-                    <p className="font-mono text-[10px] text-muted-foreground">{groupPagePath(page.slug)}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">{pagePath(page)}</p>
                   </div>
                   <div className="flex gap-1">
-                    <a href={groupPagePath(page.slug)} target="_blank" rel="noopener noreferrer">
+                    <a href={pagePath(page)} target="_blank" rel="noopener noreferrer">
                       <Button variant="ghost" size="icon" className="h-7 w-7"><ExternalLink className="h-3.5 w-3.5" /></Button>
                     </a>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditing(page.id); setForm(toForm(page)); }}>

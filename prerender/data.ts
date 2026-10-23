@@ -306,13 +306,16 @@ export interface PrerenderPostSummary {
 
 const GROUP_PAGE_COLUMNS =
   'slug,store_slug,title,h1,meta_description,intro,content,faq,join_url,sort_order,updated_at';
-// Colunas dos grupos de nicho (migration 20261022150000): antes de ela rodar, pedir
-// a coluna devolve 400 e a página viraria 404. Por isso a segunda tentativa sem elas.
+// Colunas novas entram por camadas (migrations 20261022150000 e 20261023120000): antes
+// de elas rodarem, pedir a coluna devolve 400 e a página viraria 404. Por isso as
+// tentativas seguintes sem elas.
 const GROUP_PAGE_NICHE_COLUMNS = `${GROUP_PAGE_COLUMNS},group_name,topics`;
+const GROUP_PAGE_OFFERS_COLUMNS = `${GROUP_PAGE_NICHE_COLUMNS},page_type,offer_terms`;
 
 async function tryGroupPages(filter: string): Promise<WhatsappGroupPageData[] | null> {
   const path = (columns: string) => `whatsapp_group_pages?${filter}&select=${columns}`;
   return (
+    (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_OFFERS_COLUMNS))) ??
     (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_NICHE_COLUMNS))) ??
     (await tryQuery<WhatsappGroupPageData>(path(GROUP_PAGE_COLUMNS)))
   );

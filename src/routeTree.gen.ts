@@ -25,6 +25,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as GrupoWhatsappIndexRouteImport } from './routes/grupo-whatsapp.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as OfertasSlugRouteImport } from './routes/ofertas.$slug'
 import { Route as GrupoWhatsappSlugRouteImport } from './routes/grupo-whatsapp.$slug'
 import { Route as DescontoSlugRouteImport } from './routes/desconto.$slug'
 import { Route as CategoriaSlugRouteImport } from './routes/categoria.$slug'
@@ -118,6 +119,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any).lazy(() => import('./routes/admin.index.lazy').then((d) => d.Route))
+const OfertasSlugRoute = OfertasSlugRouteImport.update({
+  id: '/ofertas/$slug',
+  path: '/ofertas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/ofertas.$slug.lazy').then((d) => d.Route))
 const GrupoWhatsappSlugRoute = GrupoWhatsappSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
   '/grupo-whatsapp/$slug': typeof GrupoWhatsappSlugRoute
+  '/ofertas/$slug': typeof OfertasSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/grupo-whatsapp/': typeof GrupoWhatsappIndexRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
   '/grupo-whatsapp/$slug': typeof GrupoWhatsappSlugRoute
+  '/ofertas/$slug': typeof OfertasSlugRoute
   '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
   '/grupo-whatsapp': typeof GrupoWhatsappIndexRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/categoria/$slug': typeof CategoriaSlugRoute
   '/desconto/$slug': typeof DescontoSlugRoute
   '/grupo-whatsapp/$slug': typeof GrupoWhatsappSlugRoute
+  '/ofertas/$slug': typeof OfertasSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
   '/grupo-whatsapp/': typeof GrupoWhatsappIndexRoute
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/desconto/$slug'
     | '/grupo-whatsapp/$slug'
+    | '/ofertas/$slug'
     | '/admin/'
     | '/blog/'
     | '/grupo-whatsapp/'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/desconto/$slug'
     | '/grupo-whatsapp/$slug'
+    | '/ofertas/$slug'
     | '/admin'
     | '/blog'
     | '/grupo-whatsapp'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/desconto/$slug'
     | '/grupo-whatsapp/$slug'
+    | '/ofertas/$slug'
     | '/admin/'
     | '/blog/'
     | '/grupo-whatsapp/'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   TermosDeUsoRoute: typeof TermosDeUsoRoute
   CategoriaSlugRoute: typeof CategoriaSlugRoute
   DescontoSlugRoute: typeof DescontoSlugRoute
+  OfertasSlugRoute: typeof OfertasSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/ofertas/$slug': {
+      id: '/ofertas/$slug'
+      path: '/ofertas/$slug'
+      fullPath: '/ofertas/$slug'
+      preLoaderRoute: typeof OfertasSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/grupo-whatsapp/$slug': {
       id: '/grupo-whatsapp/$slug'
@@ -572,6 +592,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosDeUsoRoute: TermosDeUsoRoute,
   CategoriaSlugRoute: CategoriaSlugRoute,
   DescontoSlugRoute: DescontoSlugRoute,
+  OfertasSlugRoute: OfertasSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

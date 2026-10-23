@@ -21,6 +21,7 @@ import {
   groupPageForStore,
   groupPagePath,
   nicheGroupSlug,
+  pagePath,
 } from '@/lib/whatsappGroup';
 
 const WhatsAppCTA = lazy(() => import('@/components/WhatsAppCTA'));
@@ -210,7 +211,7 @@ export default function StorePage() {
                   variant="store"
                   storeName={storeName}
                   groupSlug={groupPage?.slug}
-                  learnMoreHref={groupPagePath(groupPage?.slug ?? GROUP_HUB_SLUG)}
+                  learnMoreHref={groupPage ? pagePath(groupPage) : groupPagePath(GROUP_HUB_SLUG)}
                 />
               </Suspense>
 

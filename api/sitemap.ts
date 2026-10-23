@@ -15,6 +15,23 @@ function groupPagePath(slug: string): string {
   return slug === 'principal' ? '/grupo-whatsapp' : `/grupo-whatsapp/${slug}`
 }
 
+// Mesma regra de `pagePath`: página de ofertas mora em /ofertas/<slug>.
+function pagePath(page: { slug: string; page_type?: string | null }): string {
+  return page.page_type === 'offers' ? `/ofertas/${page.slug}` : groupPagePath(page.slug)
+}
+
+type GroupPageRow = { slug: string; updated_at: string | null; page_type?: string | null }
+
+/** Páginas do grupo e de ofertas; coluna `page_type` ainda não migrada = todas são do grupo. */
+async function fetchGroupPages(): Promise<GroupPageRow[]> {
+  const query = (columns: string) =>
+    supabase.from('whatsapp_group_pages').select(columns).eq('is_published', true).order('sort_order')
+  const withType = await query('slug, updated_at, page_type')
+  if (!withType.error) return (withType.data ?? []) as unknown as GroupPageRow[]
+  const base = await query('slug, updated_at')
+  return (base.data ?? []) as unknown as GroupPageRow[]
+}
+
 function formatDate(dateStr?: string | null): string | null {
   if (!dateStr) return null
   return dateStr.split('T')[0]
@@ -45,7 +62,7 @@ function latestDate(rows: Array<{ updated_at?: string | null }>): string | null 
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const [storesResult, postsResult, categoriesResult, couponsResult, groupPagesResult] = await Promise.all([
+  const [storesResult, postsResult, categoriesResult, couponsResult, groupPages] = await Promise.all([
     supabase
       .from('stores')
       .select('slug, updated_at')
@@ -67,11 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq('status', true)
       .order('updated_at', { ascending: false })
       .limit(1),
-    supabase
-      .from('whatsapp_group_pages')
-      .select('slug, updated_at')
-      .eq('is_published', true)
-      .order('sort_order'),
+    fetchGroupPages(),
   ])
 
   const stores = storesResult.data ?? []
@@ -79,7 +92,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const categories = categoriesResult.data ?? []
   const coupons = couponsResult.data ?? []
   // Tabela ausente (migration ainda não aplicada) devolve erro: sitemap segue sem as páginas do grupo.
-  const groupPages = groupPagesResult.data ?? []
 
   // Páginas estáticas — ordem reflete importância para crawlers.
   // As institucionais saem sem lastmod (não mudam com o deploy); as de
@@ -105,7 +117,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     urlEntry(`${BASE_URL}/perguntas-frequentes`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/termos-de-uso`, null, 'monthly', 0.4),
     ...groupPages.map(page =>
-      urlEntry(`${BASE_URL}${groupPagePath(page.slug)}`, formatDate(page.updated_at), 'weekly', 0.8)
+      urlEntry(`${BASE_URL}${pagePath(page)}`, formatDate(page.updated_at), 'weekly', 0.8)
     ),
     ...categories.map(category =>
       urlEntry(

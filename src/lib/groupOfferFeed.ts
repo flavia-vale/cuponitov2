@@ -33,6 +33,27 @@ export function offerFeedUrl(joinUrl: string | null | undefined): string | null 
   return `https://${url.host}/g/${match[1]}/ofertas.json`;
 }
 
+function normalizeText(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/** Termos da página de ofertas ("fralda, fraldas") → lista normalizada, sem vazios. */
+export function parseOfferTerms(raw: string | null | undefined): string[] {
+  return String(raw ?? '')
+    .split(',')
+    .map(term => normalizeText(term.trim()))
+    .filter(Boolean);
+}
+
+/** Ofertas cujo texto contém algum dos termos (sem acento, sem caixa). Sem termos = todas. */
+export function filterOffersByTerms(offers: GroupOffer[], terms: string[]): GroupOffer[] {
+  if (terms.length === 0) return offers;
+  return offers.filter(offer => {
+    const text = normalizeText(offer.text);
+    return terms.some(term => text.includes(term));
+  });
+}
+
 /** Resposta do feed (dado de fora) → só itens com texto e link http(s). */
 export function parseGroupOffers(raw: unknown, max = 40): GroupOffer[] {
   const items = (raw as { items?: unknown } | null)?.items;
