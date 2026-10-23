@@ -8,6 +8,9 @@ export const GROUP_HUB_SLUG = 'principal';
 
 export const GROUP_BASE_PATH = '/grupo-whatsapp';
 
+/** Páginas de ofertas do dia por nicho (mesma tabela das páginas do grupo, `page_type = 'offers'`). */
+export const OFFERS_BASE_PATH = '/ofertas';
+
 export interface GroupFaqItem {
   question: string;
   answer: string;
@@ -37,6 +40,10 @@ export interface WhatsappGroupPageData {
   group_name?: string | null;
   /** Grupo de nicho: o que chega nele (ex.: "tecnologia, games e informática"). */
   topics?: string | null;
+  /** `offers` = página de ofertas (/ofertas/<slug>); vazio ou `group` = página do grupo. */
+  page_type?: string | null;
+  /** Página de ofertas: termos que filtram as ofertas do grupo (separados por vírgula). */
+  offer_terms?: string | null;
 }
 
 /**
@@ -59,6 +66,15 @@ export const DEFAULT_GROUP_INFO: WhatsappGroupInfo = {
 
 export function groupPagePath(slug: string): string {
   return slug === GROUP_HUB_SLUG ? GROUP_BASE_PATH : `${GROUP_BASE_PATH}/${slug}`;
+}
+
+export function isOffersPage(page: Pick<WhatsappGroupPageData, 'page_type'> | null | undefined): boolean {
+  return page?.page_type === 'offers';
+}
+
+/** Endereço da página pelo tipo: /ofertas/<slug> ou /grupo-whatsapp/<slug>. */
+export function pagePath(page: Pick<WhatsappGroupPageData, 'slug' | 'page_type'>): string {
+  return isOffersPage(page) ? `${OFFERS_BASE_PATH}/${page.slug}` : groupPagePath(page.slug);
 }
 
 /** Valor do `site_settings` mesclado com o padrão: chave faltando não pode sumir da página. */

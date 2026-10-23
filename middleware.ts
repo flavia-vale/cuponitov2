@@ -41,7 +41,9 @@ import {
   groupPageForNiche,
   groupPageForStore,
   groupPagePath,
+  isOffersPage,
   nicheGroupSlug,
+  pagePath,
   resolveJoinUrl,
 } from './src/lib/whatsappGroup';
 import {
@@ -51,7 +53,7 @@ import {
   parseJoinTrackingQuery,
   sanitizeToken,
 } from './src/lib/groupJoinTracking';
-import { ACHADINHOS_FEED_PATH, ACHADINHOS_PATH } from './src/lib/groupOfferFeed';
+import { ACHADINHOS_FEED_PATH, ACHADINHOS_PATH, filterOffersByTerms, parseOfferTerms } from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
   renderAboutPage,
@@ -63,6 +65,7 @@ import {
   renderGroupPage,
   renderHomePage,
   renderInstitutionalPage,
+  renderOffersPage,
   renderStorePage,
   renderStoresPage,
   type InstitutionalPage,
@@ -80,6 +83,7 @@ export const config = {
     '/categoria/:slug',
     '/grupo-whatsapp',
     '/grupo-whatsapp/:slug',
+    '/ofertas/:slug',
     '/quem-somos',
     '/como-funciona',
     '/perguntas-frequentes',
@@ -223,7 +227,8 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const page = await fetchGroupPage(slug);
     // Supabase fora: lança para o middleware devolver a SPA em vez de um 404 falso.
     if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
-    if (!page) return null;
+    // Página de ofertas só existe em /ofertas/<slug>: aqui seria conteúdo duplicado.
+    if (!page || isOffersPage(page)) return null;
     const [groupSettings, siblings, stores, posts, author] = await Promise.all([
       fetchGroupSettings(),
       fetchGroupPages(),
@@ -238,6 +243,38 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       {
         info: groupInfoForPage(groupSettings.info, page),
         joinUrl: buildJoinTrackingHref({ origin: 'html_group_page', groupSlug: page.slug, pagePath: groupPagePath(page.slug) }),
+        siblings,
+        author,
+        offers,
+      },
+      { stores, posts }
+    );
+  }
+
+  const offersMatch = pathname.match(/^\/ofertas\/([^/]+)\/?$/);
+  if (offersMatch) {
+    const slug = safeDecode(offersMatch[1]);
+    if (!slug) return null;
+    const page = await fetchGroupPage(slug);
+    // Supabase fora: lança para o middleware devolver a SPA em vez de um 404 falso.
+    if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
+    if (!page || !isOffersPage(page)) return null;
+    const [groupSettings, siblings, stores, posts, author] = await Promise.all([
+      fetchGroupSettings(),
+      fetchGroupPages(),
+      fetchFeaturedStores(6),
+      fetchFeaturedPosts(3),
+      fetchAuthorByName(FLAVIA_VALE_NAME),
+    ]);
+    const offers = filterOffersByTerms(
+      await fetchGroupOffers(resolveJoinUrl(page, groupSettings.globalJoinUrl)),
+      parseOfferTerms(page.offer_terms)
+    );
+    return renderOffersPage(
+      page,
+      {
+        info: groupInfoForPage(groupSettings.info, page),
+        joinUrl: buildJoinTrackingHref({ origin: 'html_offers_page', groupSlug: page.slug, pagePath: pagePath(page) }),
         siblings,
         author,
         offers,

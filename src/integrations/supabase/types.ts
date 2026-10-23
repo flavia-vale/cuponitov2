@@ -1028,6 +1028,8 @@ export type Database = {
           is_published: boolean
           join_url: string | null
           meta_description: string
+          offer_terms: string | null
+          page_type: string
           slug: string
           sort_order: number
           topics: string | null
@@ -1046,6 +1048,8 @@ export type Database = {
           is_published?: boolean
           join_url?: string | null
           meta_description: string
+          offer_terms?: string | null
+          page_type?: string
           slug: string
           sort_order?: number
           topics?: string | null
@@ -1064,6 +1068,8 @@ export type Database = {
           is_published?: boolean
           join_url?: string | null
           meta_description?: string
+          offer_terms?: string | null
+          page_type?: string
           slug?: string
           sort_order?: number
           topics?: string | null

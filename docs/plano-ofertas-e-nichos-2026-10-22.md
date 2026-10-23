@@ -51,3 +51,23 @@ como padrão para o que não for de nicho.
 
 Cuidado: o programa da **Amazon** restringe mostrar preço que não venha da API deles. Para Amazon,
 "preço no momento do envio" com horário, ou sem preço.
+
+## Revisão de 23/10: formatos pelos dados de busca
+
+As páginas de nicho de 22/10 foram escritas sem dados. Com o Planejador de Palavras-chave
+(faixas mensais; "500" = 100 a 1 mil):
+
+| Nicho | Busca | "grupo de…" | Formato aprovado |
+|---|---|---|---|
+| Tecnologia | "celular em promoção hoje" e variações (100–1 mil cada) | "grupo de promoção de celular", "…de peças de pc", "grupo whatsapp promoção celular", "grupo de ofertas pc gamer" (100–1 mil, subindo) | página do grupo `/grupo-whatsapp/celular-e-pc` |
+| Bebês | "promoção de fralda", "fraldas em promoção", por tamanho (10 mil–100 mil cada); "fralda barata" (1–10 mil) | "grupo de promoção de fraldas" (10–100) | página de ofertas `/ofertas/fraldas` |
+| Salão | "esmalte(s) em promoção" (1–10 mil, concorrência alta) | "grupo de manicure whatsapp" + 8 variações (10–100 cada, concorrência 0–3) | página do grupo `/grupo-whatsapp/manicure` |
+| Festas | "decoração de festa simples e barata" (1–10 mil); ano novo (1–10 mil, +900% em 3 meses) | nenhuma | posts sazonais no blog |
+
+Pendente antes dos textos: respostas das IAs (com sites citados), top 5 do Google para
+"grupo de manicure whatsapp" e "balões promoção" (intenção duvidosa) e Trends.
+
+**Técnico (PR desta revisão):** `page_type = 'offers'` em `whatsapp_group_pages` vira
+`/ofertas/<slug>` (React `OffersPage`, prerender `renderOffersPage`, sitemap, painel), com as
+ofertas do grupo filtradas por `offer_terms`. As 4 páginas de 22/10 estão no ar desde 22/10
+23:32 UTC; a migration de conteúdo vai renomeá-las e o middleware manda 301 dos endereços antigos.

@@ -37,6 +37,7 @@ import {
   groupTopicsLabel,
   isNichePage,
   groupPagePath,
+  pagePath,
   parseGroupFaq,
   safeExternalUrl,
   type WhatsappGroupInfo,
@@ -293,7 +294,7 @@ function couponOfferList(listName: string, coupons: PrerenderCoupon[]) {
 
 export interface StoreGroupCta {
   /** Página do grupo que vale aqui (nicho ou principal). */
-  page: Pick<WhatsappGroupPageData, 'slug' | 'group_name' | 'topics'> | null;
+  page: Pick<WhatsappGroupPageData, 'slug' | 'group_name' | 'topics' | 'page_type'> | null;
   joinUrl: string | null;
   /** Fatos já ajustados ao grupo da página (`groupInfoForPage`). */
   info: WhatsappGroupInfo;
@@ -301,7 +302,7 @@ export interface StoreGroupCta {
 
 /** Chamada para o grupo logo abaixo da descrição (antes da lista, como no React). */
 function groupCtaSection(fallbackTitle: string, cta: StoreGroupCta): string {
-  const pageUrl = `${SITE_URL}${groupPagePath(cta.page?.slug ?? GROUP_HUB_SLUG)}`;
+  const pageUrl = `${SITE_URL}${cta.page ? pagePath(cta.page) : groupPagePath(GROUP_HUB_SLUG)}`;
   const join = cta.joinUrl
     ? `<a class="cta" href="${escapeHtml(cta.joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>`
     : '';
@@ -398,7 +399,7 @@ export interface GroupPageContext {
   info: WhatsappGroupInfo;
   joinUrl: string | null;
   /** Demais páginas do grupo publicadas, para linkar entre si. */
-  siblings: Array<Pick<WhatsappGroupPageData, 'slug' | 'h1'>>;
+  siblings: Array<Pick<WhatsappGroupPageData, 'slug' | 'h1' | 'page_type'>>;
   /** Quem mantém o grupo e assina a página (EEAT). */
   author: PrerenderAuthor | null;
   /** Últimas ofertas reais do grupo (vazio = bloco não aparece). */
@@ -491,7 +492,7 @@ export function renderGroupPage(
 
   const siblings = context.siblings.filter(other => other.slug !== page.slug);
   const siblingLinks = siblings
-    .map(other => `<li><a href="${SITE_URL}${groupPagePath(other.slug)}">${escapeHtml(other.h1)}</a></li>`)
+    .map(other => `<li><a href="${SITE_URL}${pagePath(other)}">${escapeHtml(other.h1)}</a></li>`)
     .join('');
 
   const faqHtml = faq
@@ -521,6 +522,130 @@ export function renderGroupPage(
           ${markdownToHtml(page.content || '')}
           ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
           ${siblingLinks ? `<h2>Outras páginas do grupo</h2><ul>${siblingLinks}</ul>` : ''}
+          ${authorBox(context.author)}
+        </article>
+      </main>`,
+    trail.map((item, index) => (index === 0 ? { ...item, name: 'Cuponito' } : item)),
+    links
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+// ── Página de ofertas do dia por nicho (/ofertas/<slug>) ────────────────────
+//
+// Mesma tabela das páginas do grupo (`page_type = 'offers'`). A busca do nicho é
+// "X em promoção hoje": as ofertas reais do grupo vêm primeiro, filtradas pelos
+// termos da página; o texto fixo e o FAQ vêm depois.
+
+export function renderOffersPage(
+  page: WhatsappGroupPageData,
+  context: GroupPageContext,
+  links: ChromeLinks
+): RenderedPage {
+  const canonical = `${SITE_URL}${pagePath(page)}`;
+  const faq = parseGroupFaq(page.faq);
+  const offers = context.offers ?? [];
+  const { info, joinUrl } = context;
+  const newest = offers.find(offer => offer.sentAt)?.sentAt ?? null;
+  const modified = [newest, page.updated_at].filter((date): date is string => Boolean(date)).sort().pop() ?? null;
+
+  const meta: HeadMeta = {
+    title: page.title,
+    description: page.meta_description,
+    canonical,
+    modifiedTime: modified,
+    ogImage: firstContentImage(page.content) ?? undefined,
+  };
+
+  const trail = [
+    { name: 'Página Inicial', url: `${SITE_URL}/` },
+    { name: page.h1, url: canonical },
+  ];
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonical}#page`,
+        name: page.h1,
+        description: page.meta_description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${SITE_URL}/#organization` },
+        ...(modified ? { dateModified: modified } : {}),
+        ...(context.author ? { author: authorPersonSchema(context.author) } : {}),
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb(trail),
+      ...(offers.length > 0
+        ? [
+            {
+              '@type': 'ItemList',
+              name: page.h1,
+              numberOfItems: offers.length,
+              itemListElement: offers.map((offer, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                name: offer.text,
+                url: offer.link,
+              })),
+            },
+          ]
+        : []),
+      ...(faq.length > 0
+        ? [
+            {
+              '@type': 'FAQPage',
+              '@id': `${canonical}#faq`,
+              mainEntity: faq.map(item => ({
+                '@type': 'Question',
+                name: item.question,
+                acceptedAnswer: { '@type': 'Answer', text: item.answer },
+              })),
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const join = joinUrl
+    ? `<a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>`
+    : '';
+  const ctaTitle = escapeHtml(groupCtaTitle(page, info, 'Receba as ofertas no WhatsApp'));
+
+  const siblingLinks = context.siblings
+    .filter(other => other.slug !== page.slug)
+    .map(other => `<li><a href="${SITE_URL}${pagePath(other)}">${escapeHtml(other.h1)}</a></li>`)
+    .join('');
+
+  const faqHtml = faq
+    .map(item => `<h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.answer)}</p>`)
+    .join('');
+
+  const body = chrome(
+    `
+      <main>
+        <article>
+          <h1>${escapeHtml(page.h1)}</h1>
+          <p>
+            ${context.author ? authorByline(context.author) : ''}
+            ${modified ? `· Atualizado em <time datetime="${escapeHtml(modified)}">${formatDatePtBr(modified)}</time>` : ''}
+          </p>
+          <p>${escapeHtml(page.intro)}</p>
+          <h2>${ctaTitle}</h2>
+          <p>${escapeHtml(groupFactsSentence(info))}</p>
+          ${join}
+          ${
+            offers.length > 0
+              ? `<h2>Ofertas de hoje</h2><ul>${offerListItems(offers)}</ul>`
+              : `<p>As ofertas de hoje aparecem aqui assim que saem no grupo. Para receber na hora, entre no grupo.</p>`
+          }
+          ${markdownToHtml(page.content || '')}
+          ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
+          ${join}
+          ${siblingLinks ? `<h2>Veja também</h2><ul>${siblingLinks}</ul>` : ''}
           ${authorBox(context.author)}
         </article>
       </main>`,
