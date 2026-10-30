@@ -1,7 +1,7 @@
-import { Radio } from 'lucide-react';
+import { Radio, Send } from 'lucide-react';
 import { useRouterState } from '@tanstack/react-router';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { groupInfoForPage, groupVolumeFact } from '@/lib/whatsappGroup';
+import { groupInfoForPage, groupVolumeFact, safeTelegramUrl } from '@/lib/whatsappGroup';
 import { trackEvent } from '@/lib/analytics';
 import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
 
@@ -48,9 +48,14 @@ export default function GroupJoinCTA({
   // Com rascunhos: página despublicada pode guardar só o link de um grupo de nicho (ex.: festas).
   const { data: pages } = useWhatsappGroupPages({ includeDrafts: true });
   // Grupo de nicho: nome e assuntos dele, não os do grupo geral.
-  const info = groupInfoForPage(globalInfo, pages?.find(page => page.slug === groupSlug));
+  const groupPage = pages?.find(page => page.slug === groupSlug);
+  const info = groupInfoForPage(globalInfo, groupPage);
   const pathname = useRouterState({ select: state => state.location.pathname });
   const joinUrl = buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname });
+  // Canal do Telegram da página: também passa pelo /entrar, que resolve o destino.
+  const telegramUrl = safeTelegramUrl(groupPage?.telegram_url)
+    ? buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, channel: 'telegram' })
+    : null;
   const facts = [
     'Grátis',
     ...(groupVolumeFact(info) ? [groupVolumeFact(info)!] : []),
@@ -79,6 +84,17 @@ export default function GroupJoinCTA({
           <WhatsAppIcon className="h-5 w-5" />
           Entrar no grupo grátis
         </a>
+        {telegramUrl && (
+          <a
+            href={telegramUrl}
+            target="_blank"
+            rel="nofollow noopener"
+            onClick={() => trackEvent('whatsapp_click', { source: `${source}_telegram`, context })}
+            className="text-xs font-bold text-white underline-offset-4 hover:underline sm:text-sm"
+          >
+            Prefere Telegram?
+          </a>
+        )}
       </section>
     );
   }
@@ -119,6 +135,17 @@ export default function GroupJoinCTA({
             className="inline-flex items-center gap-1.5 text-white underline-offset-4 hover:underline"
           >
             <Radio className="h-4 w-4" /> Prefere o canal? Seguir o canal
+          </a>
+        )}
+        {telegramUrl && (
+          <a
+            href={telegramUrl}
+            target="_blank"
+            rel="nofollow noopener"
+            onClick={() => trackEvent('whatsapp_click', { source: `${source}_telegram`, context })}
+            className="inline-flex items-center gap-1.5 text-white underline-offset-4 hover:underline"
+          >
+            <Send className="h-4 w-4" /> Prefere Telegram? Entrar no canal
           </a>
         )}
         {learnMoreHref && (
