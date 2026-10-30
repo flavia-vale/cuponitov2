@@ -265,8 +265,11 @@ do "grupo de". O "grupo de promoção de tênis no WhatsApp" virou H2 e pergunta
 
 O HTML do servidor, o autor, a data visível, o JSON-LD (FAQPage, autor, breadcrumb), o sitemap e os
 links "Veja também" para as outras páginas de grupo já saem do template (`renderOffersPage`). Não
-precisou de código novo. Os links internos novos chegam de 4 páginas: `/grupo-whatsapp`, `pc-gamer`,
-das lojas Netshoes/Nike/Adidas (categoria Esportes → Promo Tênis) e da loja Netshoes (ligada no painel).
+precisou de código novo. Links internos para as páginas novas: o "Veja também" de todas as páginas de
+grupo e de ofertas, a seção de Black Friday do `/grupo-whatsapp`, o `pc-gamer` (TV) e a loja Netshoes
+(ligada ao Promo Tênis pelo `store_slug`). A categoria Esportes também aponta para o Promo Tênis, mas
+Nike e Adidas não têm cupom ativo nessa categoria (conferido em 30/10). Ligar essas lojas no painel,
+se quiser.
 
 **Ordem para pôr no ar:** (1) criar os links `promo-tv` e `promo-tenis`; (2) ligar o feed `ofertas.json`
 dos dois no Espelha Grupos (sem ele a página sai sem "Ofertas de hoje"); (3) rodar a migration;
