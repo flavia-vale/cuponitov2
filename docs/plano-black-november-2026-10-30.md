@@ -225,3 +225,27 @@ telegram", "promoção peças de pc telegram" e "canal de promoções telegram".
 
 Técnico: o botão do Telegram também precisa passar pelo `/entrar` (regra do CLAUDE.md). Hoje cada
 página do grupo tem um destino só. O botão "Prefere Telegram?" pede um segundo destino por página.
+
+### 7.5 Google Trends (Brasil, jan/2025 a 30/10/2026, mensal, índice 0–100 dentro da comparação)
+
+| Termo | out/25 | **nov/25** | dez/25 | média de 2026 | out/26 |
+|---|---|---|---|---|---|
+| black friday tv | 10 | **100** | 11 | 2–4 | 8 |
+| black friday celular | 6 | **60** | 7 | 1–2 | 6 |
+| black friday tênis | 1 | **25** | 2 | 0–1 | 1 |
+| black friday whey | 0 | **11** | 1 | 0 | 0 |
+| tenis em promoção | 10 | **15** | 11 | 9–11 | 9 |
+| whey promoção | 5 | **8** | 6 | 6–9 | 6 |
+
+Leitura:
+1. **O pico é só novembro.** Em dezembro tudo volta ao nível de outubro. O que não estiver no ar e
+   indexado no começo de novembro perde a janela.
+2. **A TV é a maior busca de Black Friday**: o dobro do celular e 4 vezes o tênis. Por isso `/ofertas/tv`
+   (grupo Tech Nerd) vira a primeira página nova.
+3. Outubro de 2026 está igual a outubro de 2025: a expectativa é um novembro do mesmo tamanho.
+4. **O tênis é o único nicho que se sustenta depois da Black Friday.** "tenis em promoção" fica em
+   9–11 o ano todo e é a maior busca de produto do Planejador (10–100 mil por variação). A busca de
+   Black Friday de TV e celular morre em dezembro, mas o grupo de tênis continua com assunto.
+5. Consultas relacionadas a "black friday tênis": **feminino** domina ("tênis feminino black friday" 94,
+   contra 35 do masculino). Marcas: Nike e Adidas, com **New Balance (+30%) e On (+40%) subindo**. Lojas:
+   Netshoes e Centauro. A página `/grupo-whatsapp/tenis` fala primeiro com quem procura tênis feminino.
