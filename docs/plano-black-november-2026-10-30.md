@@ -249,3 +249,33 @@ Leitura:
 5. Consultas relacionadas a "black friday tênis": **feminino** domina ("tênis feminino black friday" 94,
    contra 35 do masculino). Marcas: Nike e Adidas, com **New Balance (+30%) e On (+40%) subindo**. Lojas:
    Netshoes e Centauro. A página `/grupo-whatsapp/tenis` fala primeiro com quem procura tênis feminino.
+
+## 8. Entregue em 30/10: migration `20261030180000_black_friday_tv_tenis.sql`
+
+| Página | Grupo | Busca principal |
+|---|---|---|
+| `/ofertas/tv` (nova) | Promo TV (`promo-tv`) | "tv em promoção" 10–100 mil; "black friday tv" 1–10 mil |
+| `/ofertas/tenis` (nova) | Promo Tênis (`promo-tenis`, ~50/dia) | "tenis em promoção" 10–100 mil; "grupo de promoção de tênis whatsapp" 100–1 mil; "tenis black friday" 1–10 mil |
+| `/grupo-whatsapp` | geral | seção "Grupo de Black Friday no WhatsApp: escolha pelo assunto", com os 6 grupos |
+| `/grupo-whatsapp/pc-gamer` | Tech Nerd | link para o Promo TV |
+| `/grupo-whatsapp/celular` | Promo Celular | Black Friday: desconto falso e comparadores |
+
+Formato "página de ofertas" (como `/ofertas/iphone`) porque a busca do produto é 100 vezes a busca
+do "grupo de". O "grupo de promoção de tênis no WhatsApp" virou H2 e pergunta da FAQ.
+
+O HTML do servidor, o autor, a data visível, o JSON-LD (FAQPage, autor, breadcrumb), o sitemap e os
+links "Veja também" para as outras páginas de grupo já saem do template (`renderOffersPage`). Não
+precisou de código novo. Os links internos novos chegam de 4 páginas: `/grupo-whatsapp`, `pc-gamer`,
+das lojas Netshoes/Nike/Adidas (categoria Esportes → Promo Tênis) e da loja Netshoes (ligada no painel).
+
+**Ordem para pôr no ar:** (1) criar os links `promo-tv` e `promo-tenis`; (2) ligar o feed `ofertas.json`
+dos dois no Espelha Grupos (sem ele a página sai sem "Ofertas de hoje"); (3) rodar a migration;
+(4) avisar o Claude para mandar IndexNow e rodar `npm run seo:entrega`.
+
+**Não feitas, de propósito:**
+- `/ofertas/ps5` e `/ofertas/notebook`: o feed que o site lê traz só as últimas 40 ofertas do Tech Nerd
+  (poucas horas), e em 30/10 havia 0 de PS5 e 0 de notebook. A página sairia vazia, o que o Google
+  trata como conteúdo fino. Esperar ter grupo próprio ou feed maior.
+- Post "como saber se a promoção da Black Friday é real": falta o volume no Planejador. As dicas
+  entraram nas páginas de TV, tênis e celular.
+- Botão do Telegram: precisa do canal criado e de um segundo destino no `/entrar`.

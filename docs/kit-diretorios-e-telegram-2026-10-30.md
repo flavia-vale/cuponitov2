@@ -26,6 +26,7 @@ Inteligente passar para o próximo, o link do diretório precisa ser trocado (o 
 | Promo Salão | https://chat.whatsapp.com/H0FEnHXmYrbCFnvEG4mGth | Beleza / Promoções |
 | Promo Festas | https://chat.whatsapp.com/EW65HfG7YqPAJfpfnkgkko | Festas / Promoções |
 | **Promo Tênis** (criar, seção 3) | — | Esportes / Moda / Promoções |
+| **Promo TV** (criar, seção 3) | — | Tecnologia / Promoções |
 
 Regras para todos (campo "regras" ou "descrição"): só os administradores postam · grátis ·
 sem pedido de Pix ou de dados · links das lojas oficiais · pode haver link de afiliado.
@@ -105,6 +106,15 @@ quase 3 vezes o masculino na Black Friday, e New Balance (+30%) e On (+40%) est�
 
 Com o link pronto, o Claude cadastra a página `/grupo-whatsapp/tenis`, a categoria e as lojas
 (Netshoes, Centauro) ligadas ao grupo.
+
+### Promo TV (decidido pela Flávia em 30/10)
+
+- **Nome do grupo:** `Promo TV — TV em Promoção`
+- **Link Inteligente:** `promo-tv`
+- **Descrição do grupo:** `Só promoções de TV e Smart TV, com o preço do momento e o link da loja oficial. Na Black Friday (27/11), as ofertas de TV saem aqui. Só os administradores postam. Grátis. Mais em cuponito.com.br`
+- **Curta (diretórios):** `Só promoções de TV e Smart TV, com o link da loja oficial. Só admins postam. Grátis.`
+
+Por quê: TV é a maior busca de Black Friday ("black friday tv" teve índice 100 no Trends de nov/2025, contra 60 do celular) e "tv em promoção" tem de 10 mil a 100 mil buscas por mês.
 
 ## 4. Telegram: um canal, começando por PC
 
