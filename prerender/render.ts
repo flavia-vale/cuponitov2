@@ -402,12 +402,21 @@ export function renderStorePage(
 export interface GroupPageContext {
   info: WhatsappGroupInfo;
   joinUrl: string | null;
+  /** Botão "Prefere Telegram?" (passa pelo /entrar); só quando a página tem canal do Telegram. */
+  telegramJoinUrl?: string | null;
   /** Demais páginas do grupo publicadas, para linkar entre si. */
   siblings: Array<Pick<WhatsappGroupPageData, 'slug' | 'h1' | 'page_type'>>;
   /** Quem mantém o grupo e assina a página (EEAT). */
   author: PrerenderAuthor | null;
   /** Últimas ofertas reais do grupo (vazio = bloco não aparece). */
   offers?: GroupOffer[];
+}
+
+/** Alternativa ao WhatsApp: o canal do Telegram com as mesmas ofertas. */
+function telegramLink(href: string | null | undefined): string {
+  return href
+    ? `<p class="cta-alt"><a href="${escapeHtml(href)}" rel="nofollow noopener">Prefere Telegram? Entrar no canal do Telegram</a></p>`
+    : '';
 }
 
 /** Lista de ofertas reais do grupo: texto, loja, horário e o link da loja. */
@@ -493,6 +502,7 @@ export function renderGroupPage(
 
   const actions = [
     joinUrl ? `<a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>` : '',
+    telegramLink(context.telegramJoinUrl),
     info.channel_url
       ? `<p class="cta-alt"><a href="${escapeHtml(info.channel_url)}" rel="nofollow noopener">Prefere o canal? Seguir o canal do WhatsApp</a></p>`
       : '',
@@ -619,7 +629,7 @@ export function renderOffersPage(
   };
 
   const join = joinUrl
-    ? `<a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>`
+    ? `<a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a>${telegramLink(context.telegramJoinUrl)}`
     : '';
   const ctaTitle = escapeHtml(groupCtaTitle(page, info, 'Receba as ofertas no WhatsApp'));
 

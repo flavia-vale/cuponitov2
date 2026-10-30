@@ -48,6 +48,8 @@ export interface WhatsappGroupPageData {
   offer_terms?: string | null;
   /** Grupo de nicho: quantas ofertas chegam, em frase pronta ("cerca de 2 ofertas por semana"). */
   offer_volume?: string | null;
+  /** Canal do Telegram com as mesmas ofertas (https://t.me/<nome>). Vazio = sem botão do Telegram. */
+  telegram_url?: string | null;
 }
 
 /**
@@ -141,6 +143,27 @@ export function resolveJoinUrl(
   globalUrl: string | null | undefined
 ): string {
   return safeExternalUrl(page?.join_url) ?? safeExternalUrl(globalUrl) ?? DEFAULT_JOIN_URL;
+}
+
+/** Canal do Telegram: só `https://t.me/<nome>`. Qualquer outro endereço não vira botão nem destino do /entrar. */
+export function safeTelegramUrl(value: string | null | undefined): string | null {
+  const url = safeExternalUrl(value);
+  if (!url) return null;
+  const { protocol, hostname, pathname } = new URL(url);
+  if (protocol !== 'https:' || hostname !== 't.me' || !/^\/[A-Za-z0-9_]{4,32}\/?$/.test(pathname)) return null;
+  return url;
+}
+
+export type JoinChannel = 'whatsapp' | 'telegram';
+
+/** Destino do /entrar: o canal do Telegram quando pedido e cadastrado na página; senão o link do WhatsApp. */
+export function resolveJoinDestination(
+  page: Pick<WhatsappGroupPageData, 'join_url' | 'telegram_url'> | null | undefined,
+  globalUrl: string | null | undefined,
+  channel: JoinChannel
+): string {
+  const telegram = channel === 'telegram' ? safeTelegramUrl(page?.telegram_url) : null;
+  return telegram ?? resolveJoinUrl(page, globalUrl);
 }
 
 /** Página de grupo de nicho: tem nome de grupo ou assuntos próprios. */

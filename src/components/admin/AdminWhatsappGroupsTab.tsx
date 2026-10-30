@@ -21,6 +21,7 @@ import {
   pagePath,
   parseGroupFaq,
   safeExternalUrl,
+  safeTelegramUrl,
   type GroupFaqItem,
   type WhatsappGroupInfo,
 } from '@/lib/whatsappGroup';
@@ -42,6 +43,7 @@ interface PageForm {
   page_type: 'group' | 'offers';
   offer_terms: string;
   offer_volume: string;
+  telegram_url: string;
   is_published: boolean;
   sort_order: number;
 }
@@ -61,6 +63,7 @@ const EMPTY_PAGE: PageForm = {
   page_type: 'group',
   offer_terms: '',
   offer_volume: '',
+  telegram_url: '',
   is_published: true,
   sort_order: 0,
 };
@@ -143,6 +146,7 @@ function toForm(page: WhatsappGroupPage): PageForm {
     page_type: isOffersPage(page) ? 'offers' : 'group',
     offer_terms: page.offer_terms ?? '',
     offer_volume: page.offer_volume ?? '',
+    telegram_url: page.telegram_url ?? '',
     is_published: page.is_published,
     sort_order: page.sort_order,
   };
@@ -186,6 +190,10 @@ export function AdminWhatsappGroupsTab() {
       toast({ title: 'Link de entrada inválido', description: 'Use um link que comece com https://', variant: 'destructive' });
       return;
     }
+    if (form.telegram_url && !safeTelegramUrl(form.telegram_url)) {
+      toast({ title: 'Canal do Telegram inválido', description: 'Use o link público do canal. Ex.: https://t.me/promotechnerd', variant: 'destructive' });
+      return;
+    }
 
     try {
       await savePage.mutateAsync({
@@ -204,6 +212,7 @@ export function AdminWhatsappGroupsTab() {
           ...(hasColumn('group_name') ? { group_name: form.group_name.trim() || null, topics: form.topics.trim() || null } : {}),
           ...(hasColumn('page_type') ? { page_type: form.page_type, offer_terms: form.offer_terms.trim() || null } : {}),
           ...(hasColumn('offer_volume') ? { offer_volume: form.offer_volume.trim() || null } : {}),
+          ...(hasColumn('telegram_url') ? { telegram_url: form.telegram_url.trim() || null } : {}),
           is_published: form.is_published,
           sort_order: Number(form.sort_order) || 0,
         },
@@ -307,6 +316,11 @@ export function AdminWhatsappGroupsTab() {
             <Field label="Quantas ofertas (grupo de nicho)" hint='Frase pronta e verdadeira. Ex.: "cerca de 5 ofertas por dia", "cerca de 2 ofertas por semana".'>
               <Input value={form.offer_volume} onChange={e => setForm(f => ({ ...f, offer_volume: e.target.value }))} className="h-9" />
             </Field>
+            {hasColumn('telegram_url') && (
+              <Field label="Canal do Telegram (opcional)" hint='Link público do canal com as mesmas ofertas. Aparece o botão "Prefere Telegram?".'>
+                <Input value={form.telegram_url} onChange={e => setForm(f => ({ ...f, telegram_url: e.target.value }))} placeholder="https://t.me/..." className="h-9 font-mono text-xs" />
+              </Field>
+            )}
             <Field label="Nome do grupo de nicho" hint="Só para grupo de nicho. Vazio = usa os dados do grupo geral.">
               <Input value={form.group_name} onChange={e => setForm(f => ({ ...f, group_name: e.target.value }))} placeholder="Promo Tech" className="h-9" />
             </Field>
