@@ -3,6 +3,10 @@
 Faltam **12 dias para o 11.11 (qua 11/11)** e **28 dias para a Black Friday (sex 27/11)**. Cyber Monday
 é seg 30/11 e o 12.12 cai num sábado. Este plano diz onde pôr o esforço até lá e quais grupos abrir.
 
+> **Revisão da tarde de 30/10 (seção 7) vale sobre as seções 3 e 4:** com o Planejador, o grupo de
+> **tênis** está confirmado, o de **suplementos** saiu, o de **perfume** entrou para o Natal e a página
+> "grupo de Black Friday" deixou de ser prioridade.
+
 Valem as regras de antes: captação por **SEO e GEO** (decisão de 18/10), nada de página escrita sem os
 dados de busca e de IA (CLAUDE.md), todo botão pelo `/entrar`, grupo decidido em `src/lib/whatsappGroup.ts`.
 
@@ -156,3 +160,68 @@ as respostas.
 - O Espelha Grupos consegue tirar quantas ofertas de **tênis** e de **suplemento** por dia dos grupos que
   já espelhamos? (gatilho da seção 3)
 - Frente F: sim ou não?
+
+---
+
+## 7. Revisão da tarde de 30/10: Planejador e respostas do ChatGPT
+
+### 7.1 Planejador (Brasil, out/2025 a set/2026; faixas: 50 = 10–100, 500 = 100–1 mil, 5000 = 1–10 mil, 50000 = 10–100 mil)
+
+| Tema | "grupo de…" | Busca do produto | Black Friday | Decisão |
+|---|---|---|---|---|
+| **Tênis** | "grupo de promoção de tênis whatsapp" **100–1 mil** | "tenis em promoção", "tênis nike promoção", "tênis feminino promoção" **10–100 mil** cada; "tênis de corrida promoção" 1–10 mil | "tenis black friday" 1–10 mil, **+900% em 3 meses**; "black friday nike" e "black friday netshoes" 1–10 mil | **Abrir o Promo Tênis** |
+| **Perfume** | "grupo de promoção de perfumes whatsapp" **100–1 mil, +900% no ano** | "promoção boticário" 10–100 mil; "perfume em promoção" e "perfume masculino promoção" 1–10 mil | não medido | **Segundo grupo, para o Natal** (abrir depois do tênis estar rodando) |
+| Suplementos | "grupo de promoção de suplementos" 10–100 | "whey promoção", "creatina promoção" 1–10 mil | "black friday whey" e "black friday creatina" 100–1 mil | **Não abrir grupo.** Quase ninguém procura grupo de suplemento |
+| Black Friday (genérico) | "grupo black friday whatsapp" e "grupo de ofertas black friday" **10–100** | "black friday 2026" 10–100 mil | por produto: celular, iPhone, TV, PS5, notebook **1–10 mil cada**, quase todos +900% em 3 meses | **Sem página "grupo de Black Friday".** A Black Friday entra nas páginas de produto |
+
+O Planejador não trouxe a série mensal (as colunas mensais vieram vazias). Os números acima são a
+média do ano, e o pico de novembro fica acima dela.
+
+### 7.2 O que muda nas frentes
+
+- **Frente A (página de Black Friday):** sai a página nova `/grupo-whatsapp/black-friday`. Fica uma seção
+  "Black Friday 2026: onde chegam as ofertas" na `/grupo-whatsapp`, que o ChatGPT já leu e aceitou, com os
+  grupos de nicho lado a lado. Isso responde ao GEO ("tem grupo de black friday no whatsapp?") sem criar
+  página para uma busca de 10–100.
+- **Frente B (ofertas por produto) vira a principal:** seção "Black Friday 2026" em `/grupo-whatsapp/celular`
+  e `/ofertas/iphone`; páginas novas `/ofertas/tv`, `/ofertas/ps5` e `/ofertas/notebook` (1–10 mil de busca
+  de Black Friday cada) no grupo Tech Nerd, se o feed tiver oferta de cada uma.
+- **Tênis:** página `/grupo-whatsapp/tenis` com seção de Black Friday (Nike, Netshoes, corrida), assim que
+  o link `promo-tenis` existir.
+
+### 7.3 O que o ChatGPT respondeu, sem ninguém pedir pelo Cuponito
+
+| Pergunta | Quem ele citou | O Cuponito? |
+|---|---|---|
+| tem grupo de black friday no whatsapp? | Gorilão da Promoção (`/black-friday`), Canaltech (via reviewhonesto), **gruposwhats.app**, Lupa Deals | Não |
+| grupo de promoção de tênis no whatsapp | **gruposbrasil.com.br** (TênisClub), **gruposwhats.app** (2 grupos), Esporte em Oferta | Não |
+| grupo de promoção de whey | Top Fit Achados, Ninja das Ofertas, Fiscal do Whey (via **telegrupos.com.br**) | Não |
+| grupo de promoção de celular no whatsapp | 2 grupos do **gruposwhats.app** e "Promo Tech" | Sim, com o **nome antigo** (Promo Tech, não Promo Celular) |
+| como saber se a promoção da black friday é real | Buscapé, Zoom, Google Shopping, gov.br (Senacon) | Não |
+
+Leitura:
+1. **O ChatGPT cita diretório de grupos** (gruposwhats.app, gruposbrasil, telegrupos), porque a página
+   tem "nome do grupo + link de entrada". Cadastrar os nossos grupos nesses diretórios é a ação de GEO
+   mais direta que existe hoje. É a F8 do plano de 18/10, que precisa do sim da Flávia por ser
+   publicação em nome dela.
+2. Quando a Flávia perguntou "por que não o Cuponito?", o ChatGPT elogiou a página. Isso não vale como
+   dado: ele concorda com quem pergunta. O que vale são as respostas sem pergunta direcionada (tabela acima).
+3. **Ponto real que ele achou:** `/grupo-whatsapp/celular` diz "só celular" e "iPhone tem grupo
+   próprio", mas o "Saiu no grupo hoje" (o feed real do Promo Celular, conferido em 30/10) mostra
+   iPhone 17, powerbank e Smart TV LG. A página mostra a verdade: é o **grupo** que está recebendo oferta
+   de fora do tema. A correção é no filtro do Espelha Grupos, não na página. Filtrar só no site
+   esconderia o que o grupo manda.
+4. Robôs de IA: conferido em 30/10, o `robots.txt` libera OAI-SearchBot, GPTBot e ChatGPT-User.
+   A parte técnica não é o gargalo.
+
+### 7.4 Telegram
+
+A Flávia já publica no Telegram. Recomendação: **canal, não grupo.** No canal só os admins postam (a
+mesma promessa dos nossos grupos), não tem limite de membros e o canal aparece na busca do próprio
+Telegram pelo nome e pelo @. O tema é o que aparece com "telegram" no autocompletar: **peças de PC**.
+Proposta de nome: "Promoção de Peças de PC e Placa de Vídeo | Promo Tech Nerd", com @ curto e
+descritivo (conferir se está livre). Antes de fechar o nome: medir no Planejador "grupo de promoção
+telegram", "promoção peças de pc telegram" e "canal de promoções telegram".
+
+Técnico: o botão do Telegram também precisa passar pelo `/entrar` (regra do CLAUDE.md). Hoje cada
+página do grupo tem um destino só. O botão "Prefere Telegram?" pede um segundo destino por página.
