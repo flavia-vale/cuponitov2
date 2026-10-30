@@ -17,6 +17,7 @@ dados de busca e de IA (CLAUDE.md), todo botão pelo `/entrar`, grupo decidido e
 | "tv em promoção" de 10 mil a 100 mil buscas/mês, **+900% no ano**; PS5, placa de vídeo, notebook gamer e jogos de 1 mil a 10 mil | Planejador, 23/10 | Na Black Friday o assunto mais procurado é eletrônico. É o tema do Tech Nerd. |
 | "iphone em promoção" e "iphone barato" de 10 mil a 100 mil | Planejador, 23/10 | A página `/ofertas/iphone` já está no ar na hora certa. |
 | Autocompletar do Google para **"grupo de promoção de…"**, em ordem: peças de pc, celular, **tênis whatsapp**, peças de pc whatsapp, **perfumes** whatsapp, perfumes, **suplementos** whatsapp, **ferramentas** whatsapp, **eletrodomésticos** whatsapp | Google, 30/10 | Os dois primeiros temas já são nossos e funcionam. O **tênis** é o próximo da fila. |
+| Prints da Flávia (navegador dela, 30/10), "grupo de promo…": peças de pc, promoções whatsapp, peças de pc whatsapp, **tênis whatsapp**, promoções telegram, **perfumes whatsapp**, **placa de video**, celular, **suplementos whatsapp**, peças de pc telegram, tênis | Google, 30/10 | Mesma ordem do autocompletar sem login: tênis logo depois de PC e celular. **Placa de vídeo** aparece sozinha (vai para o Tech Nerd). **Telegram** aparece 3 vezes (seção 3). |
 | Autocompletar de **"grupo de ofertas de…"**: celulares, ferramentas, notebook, **tênis**, peças de pc, ar condicionado, iphone | Google, 30/10 | O tênis aparece de novo. |
 | Autocompletar de "grupo black friday": **whatsapp**, telegram, vip, ofertas | Google, 30/10 | Existe a busca "grupo black friday whatsapp". |
 | Autocompletar de "whey promoção": **black friday**, mercado livre, growth, dux; "creatina promoção": growth, black skull, mercado livre | Google, 30/10 | O suplemento tem demanda própria de Black Friday. |
@@ -44,6 +45,11 @@ ChatGPT pegam em dias.
 | Perfume | Aparece em "grupo de promoção de perfumes whatsapp" e "perfume árabe" | Médio | Reserva para dezembro (Natal e presente) |
 | Grupo "Black Friday" temporário | "grupo black friday whatsapp" existe | Sim, mas morre em 01/12 | **Não abrir grupo.** Fazer uma **página** de Black Friday que manda cada pessoa para o grupo de nicho dela (seção 4) |
 | Ferramentas, eletrodomésticos, ar-condicionado | Aparecem no autocompletar | Médio | Ar-condicionado e eletro vão para o Tech Nerd ou para o geral; não abrir grupo agora |
+
+**Telegram:** "grupo de promoções telegram" e "grupo de promoção de peças de pc telegram" aparecem no
+autocompletar. Quem busca isso não quer WhatsApp. Pergunta para a Flávia: o Espelha Grupos já publica num
+canal do Telegram? Se publica, o tema de PC ganha uma segunda porta sem criar outro grupo. Se não publica,
+fica para depois da Black Friday.
 
 **Gatilho para abrir o grupo de tênis** (os três juntos):
 1. Planejador: "grupo de promoção de tênis" (e variações com whatsapp) com 100 a 1 mil buscas ou mais, e
