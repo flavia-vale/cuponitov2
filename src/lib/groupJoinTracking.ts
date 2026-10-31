@@ -7,7 +7,12 @@
 // resolve o link pela página do grupo (`g`) ou pelo link global, como o botão
 // fazia antes.
 
+import type { JoinChannel } from './whatsappGroup';
+
 export const JOIN_TRACKING_PATH = '/entrar';
+
+/** Sufixo da origem para os cliques que vão ao Telegram: a aba Captação separa sem coluna nova. */
+const TELEGRAM_ORIGIN_SUFFIX = '_telegram';
 
 const TOKEN_MAX = 60;
 const PATH_MAX = 200;
@@ -36,9 +41,11 @@ export interface JoinTrackingParams {
   groupSlug?: string | null;
   /** Página do site em que o botão estava. */
   pagePath?: string | null;
+  /** `telegram` = o canal do Telegram da página do grupo. Padrão: WhatsApp. */
+  channel?: JoinChannel;
 }
 
-export function buildJoinTrackingHref({ origin, groupSlug, pagePath }: JoinTrackingParams): string {
+export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = 'whatsapp' }: JoinTrackingParams): string {
   const params = new URLSearchParams();
   const o = sanitizeToken(origin);
   const g = sanitizeToken(groupSlug);
@@ -46,6 +53,7 @@ export function buildJoinTrackingHref({ origin, groupSlug, pagePath }: JoinTrack
   if (o) params.set('o', o);
   if (g) params.set('g', g);
   if (p) params.set('p', p);
+  if (channel === 'telegram') params.set('d', 'telegram');
   const query = params.toString();
   return query ? `${JOIN_TRACKING_PATH}?${query}` : JOIN_TRACKING_PATH;
 }
@@ -57,9 +65,15 @@ export interface JoinClickRow {
   device: 'mobile' | 'desktop';
 }
 
+/** Canal pedido no /entrar (`d`). Qualquer outro valor é WhatsApp. */
+export function parseJoinChannel(search: URLSearchParams): JoinChannel {
+  return search.get('d') === 'telegram' ? 'telegram' : 'whatsapp';
+}
+
 export function parseJoinTrackingQuery(search: URLSearchParams, userAgent: string | null): JoinClickRow {
+  const origin = sanitizeToken(search.get('o'), TOKEN_MAX - TELEGRAM_ORIGIN_SUFFIX.length);
   return {
-    origin: sanitizeToken(search.get('o')),
+    origin: origin && parseJoinChannel(search) === 'telegram' ? `${origin}${TELEGRAM_ORIGIN_SUFFIX}` : origin,
     group_slug: sanitizeToken(search.get('g')),
     page_path: sanitizePagePath(search.get('p')),
     device: /mobi|android|iphone|ipad/i.test(userAgent ?? '') ? 'mobile' : 'desktop',

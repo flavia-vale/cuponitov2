@@ -1033,6 +1033,7 @@ export type Database = {
           meta_description: string
           offer_terms: string | null
           offer_volume: string | null
+          telegram_url: string | null
           page_type: string
           slug: string
           sort_order: number
@@ -1054,6 +1055,7 @@ export type Database = {
           meta_description: string
           offer_terms?: string | null
           offer_volume?: string | null
+          telegram_url?: string | null
           page_type?: string
           slug: string
           sort_order?: number
@@ -1075,6 +1077,7 @@ export type Database = {
           meta_description?: string
           offer_terms?: string | null
           offer_volume?: string | null
+          telegram_url?: string | null
           page_type?: string
           slug?: string
           sort_order?: number

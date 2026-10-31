@@ -282,3 +282,51 @@ dos dois no Espelha Grupos (sem ele a página sai sem "Ofertas de hoje"); (3) ro
 - Post "como saber se a promoção da Black Friday é real": falta o volume no Planejador. As dicas
   entraram nas páginas de TV, tênis e celular.
 - Botão do Telegram: precisa do canal criado e de um segundo destino no `/entrar`.
+
+## 9. Entregue em 31/10: Telegram, whey e Black Friday no iPhone e no PC
+
+Migration `20261031120000_telegram_e_whey.sql` (rodar depois da de 30/10) e código:
+
+| O quê | Onde |
+|---|---|
+| Coluna `whatsapp_group_pages.telegram_url` + campo "Canal do Telegram" no painel | migration, `AdminWhatsappGroupsTab` |
+| Botão "Prefere Telegram?" no React e no HTML do servidor, só onde a página tem canal | `GroupJoinCTA`, `prerender/render.ts` |
+| `/entrar?d=telegram` manda para o canal **cadastrado na página** (nunca para um link da URL); o clique entra na Captação com origem `<origem>_telegram` | `middleware.ts`, `groupJoinTracking.ts`, `whatsappGroup.ts` |
+| Canal `https://t.me/promotechnerd` ligado ao `pc-gamer` | migration |
+| `/ofertas/whey` (Promo Fit, `promo-fit-whey-suplemento`) | migration |
+| Seção "iPhone na Black Friday 2026" em `/ofertas/iphone` | migration |
+| Seções "Grupo de promoção de placa de vídeo e peças de PC" e "Também no Telegram" em `/grupo-whatsapp/pc-gamer` | migration |
+| Promo Fit e canal do Telegram na lista de grupos por assunto do `/grupo-whatsapp` | migration |
+
+O prerender só pede `telegram_url` numa camada nova do `tryGroupPages`: antes da migration rodar,
+cai na camada anterior e a página continua no ar (regra do CLAUDE.md).
+
+Whey como **página de ofertas**: "whey promoção" e "creatina promoção" têm 1–10 mil buscas cada, e
+"grupo de promoção de suplementos" só 10–100. O texto ensina o **preço por grama de proteína**, o
+critério que o ChatGPT disse usar para comparar grupos de whey.
+
+## 10. Google Ads: teste pequeno, só com medição
+
+Custo por clique no topo da página (Planejador, faixa baixa–alta):
+
+| Termo | Buscas/mês | CPC |
+|---|---|---|
+| grupo de promoção de tênis whatsapp | 100–1 mil | R$ 0,84–1,97 |
+| grupo de promoção de perfumes whatsapp | 100–1 mil | R$ 0,70–1,89 |
+| black friday tv | 1–10 mil | R$ 0,33–1,06 |
+| black friday celular | 1–10 mil | R$ 0,28–1,32 |
+| black friday iphone | 1–10 mil | R$ 0,27–1,08 |
+| tenis em promoção | 10–100 mil | R$ 0,19–0,98 |
+| whey promoção | 1–10 mil | R$ 0,26–1,82 |
+
+Conta de padaria (a confirmar com dado real): com o clique a ~R$ 1, se 15% a 25% de quem chega na
+página clica em "Entrar" e 60% a 70% de quem clica entra no grupo, **cada membro custa de R$ 6 a R$ 11**.
+Em termo de produto ("tv em promoção") o clique é mais barato, mas a pessoa quer comprar agora e não
+entrar em grupo: a conversão tende a ser menor.
+
+Recomendação: **teste de R$ 30 por dia de 10/11 a 30/11** (≈ R$ 630), só rede de pesquisa, só termos
+"grupo de promoção de …" e "black friday + produto", para as páginas de TV, tênis, celular e iPhone.
+Pré-requisitos: (1) a Flávia dizer quanto vale um membro (comissão por mês ÷ membros) para saber o teto
+por membro; (2) medir o anúncio: gravar o `gclid` no `/entrar` e importar as entradas como conversão
+offline (sem cookie de terceiros). Sem isso, não dá para saber se o anúncio paga.
+Cuidado de política: a landing é a página com conteúdo próprio (guia, FAQ), nunca o convite direto.

@@ -312,11 +312,12 @@ export interface PrerenderPostSummary {
 
 const GROUP_PAGE_COLUMNS =
   'slug,store_slug,title,h1,meta_description,intro,content,faq,join_url,sort_order,updated_at';
-// Colunas novas entram por camadas (migrations 20261022150000 e 20261023120000): antes
+// Colunas novas entram por camadas (migrations 20261022150000, 20261023120000 e 20261031120000): antes
 // de elas rodarem, pedir a coluna devolve 400 e a página viraria 404. Por isso as
 // tentativas seguintes sem elas.
 // Da mais nova para a mais antiga: a primeira que o banco aceitar vale.
 const GROUP_PAGE_COLUMN_TIERS = [
+  `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms,offer_volume,telegram_url`,
   `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms,offer_volume`,
   `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms`,
   `${GROUP_PAGE_COLUMNS},group_name,topics`,

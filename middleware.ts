@@ -45,12 +45,15 @@ import {
   isOffersPage,
   nicheGroupSlug,
   pagePath,
+  resolveJoinDestination,
   resolveJoinUrl,
+  safeTelegramUrl,
 } from './src/lib/whatsappGroup';
 import {
   buildJoinTrackingHref,
   isLikelyBot,
   JOIN_TRACKING_PATH,
+  parseJoinChannel,
   parseJoinTrackingQuery,
   sanitizeToken,
 } from './src/lib/groupJoinTracking';
@@ -278,6 +281,9 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       {
         info: groupInfoForPage(groupSettings.info, page),
         joinUrl: buildJoinTrackingHref({ origin: 'html_group_page', groupSlug: page.slug, pagePath: groupPagePath(page.slug) }),
+        telegramJoinUrl: safeTelegramUrl(page.telegram_url)
+          ? buildJoinTrackingHref({ origin: 'html_group_page', groupSlug: page.slug, pagePath: groupPagePath(page.slug), channel: 'telegram' })
+          : null,
         siblings,
         author,
         offers,
@@ -312,6 +318,9 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       {
         info: groupInfoForPage(groupSettings.info, page),
         joinUrl: buildJoinTrackingHref({ origin: 'html_offers_page', groupSlug: page.slug, pagePath: pagePath(page) }),
+        telegramJoinUrl: safeTelegramUrl(page.telegram_url)
+          ? buildJoinTrackingHref({ origin: 'html_offers_page', groupSlug: page.slug, pagePath: pagePath(page), channel: 'telegram' })
+          : null,
         siblings,
         author,
         offers,
@@ -391,7 +400,7 @@ interface MiddlewareContext {
 /**
  * /entrar: grava de onde veio o clique no botão do grupo e redireciona para o
  * link do grupo. O destino sai da página do grupo (`g`) ou do link global,
- * nunca da URL. Supabase fora do ar → link padrão: o botão nunca quebra.
+ * nunca da URL; `d=telegram` só escolhe o canal do Telegram cadastrado na página. Supabase fora do ar → link padrão: o botão nunca quebra.
  */
 async function handleJoinClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
   const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'));
@@ -400,7 +409,7 @@ async function handleJoinClick(url: URL, request: Request, context?: MiddlewareC
     row.group_slug ? fetchJoinPage(row.group_slug) : Promise.resolve(null),
     fetchGroupSettings(),
   ]);
-  const destination = resolveJoinUrl(page ?? null, settings.globalJoinUrl);
+  const destination = resolveJoinDestination(page ?? null, settings.globalJoinUrl, parseJoinChannel(url.searchParams));
 
   if (!isLikelyBot(request.headers.get('user-agent'))) {
     const recording = recordGroupJoinClick(row);
