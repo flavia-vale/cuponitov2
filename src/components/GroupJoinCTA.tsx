@@ -4,6 +4,7 @@ import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsapp
 import { groupInfoForPage, groupVolumeFact, safeTelegramUrl } from '@/lib/whatsappGroup';
 import { trackEvent } from '@/lib/analytics';
 import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
+import { currentGclid } from '@/lib/adClickId';
 
 const WhatsAppIcon = ({ className = 'h-6 w-6' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={`${className} fill-current`} aria-hidden="true">
@@ -67,10 +68,11 @@ export default function GroupJoinCTA({
   const groupPage = pages?.find(page => page.slug === groupSlug);
   const info = groupInfoForPage(globalInfo, groupPage);
   const pathname = useRouterState({ select: state => state.location.pathname });
-  const joinUrl = buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname });
+  const gclid = currentGclid();
+  const joinUrl = buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, gclid });
   // Canal do Telegram da página: também passa pelo /entrar, que resolve o destino.
   const telegramUrl = safeTelegramUrl(groupPage?.telegram_url)
-    ? buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, channel: 'telegram' })
+    ? buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, channel: 'telegram', gclid })
     : null;
   const facts = [
     'Grátis',
