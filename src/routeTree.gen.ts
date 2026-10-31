@@ -13,6 +13,7 @@ import { Route as TermosDeUsoRouteImport } from './routes/termos-de-uso'
 import { Route as QuemSomosRouteImport } from './routes/quem-somos'
 import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
 import { Route as LojasRouteImport } from './routes/lojas'
+import { Route as GruposDePromocaoRouteImport } from './routes/grupos-de-promocao'
 import { Route as GrupoWhatsappRouteImport } from './routes/grupo-whatsapp'
 import { Route as FaleConoscoRouteImport } from './routes/fale-conosco'
 import { Route as CuponsRouteImport } from './routes/cupons'
@@ -55,6 +56,13 @@ const LojasRoute = LojasRouteImport.update({
   path: '/lojas',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/lojas.lazy').then((d) => d.Route))
+const GruposDePromocaoRoute = GruposDePromocaoRouteImport.update({
+  id: '/grupos-de-promocao',
+  path: '/grupos-de-promocao',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/grupos-de-promocao.lazy').then((d) => d.Route),
+)
 const GrupoWhatsappRoute = GrupoWhatsappRouteImport.update({
   id: '/grupo-whatsapp',
   path: '/grupo-whatsapp',
@@ -183,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/cupons': typeof CuponsRoute
   '/fale-conosco': typeof FaleConoscoRoute
   '/grupo-whatsapp': typeof GrupoWhatsappRouteWithChildren
+  '/grupos-de-promocao': typeof GruposDePromocaoRoute
   '/lojas': typeof LojasRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/quem-somos': typeof QuemSomosRoute
@@ -207,6 +216,7 @@ export interface FileRoutesByTo {
   '/como-funciona': typeof ComoFuncionaRoute
   '/cupons': typeof CuponsRoute
   '/fale-conosco': typeof FaleConoscoRoute
+  '/grupos-de-promocao': typeof GruposDePromocaoRoute
   '/lojas': typeof LojasRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/quem-somos': typeof QuemSomosRoute
@@ -235,6 +245,7 @@ export interface FileRoutesById {
   '/cupons': typeof CuponsRoute
   '/fale-conosco': typeof FaleConoscoRoute
   '/grupo-whatsapp': typeof GrupoWhatsappRouteWithChildren
+  '/grupos-de-promocao': typeof GruposDePromocaoRoute
   '/lojas': typeof LojasRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/quem-somos': typeof QuemSomosRoute
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/cupons'
     | '/fale-conosco'
     | '/grupo-whatsapp'
+    | '/grupos-de-promocao'
     | '/lojas'
     | '/perguntas-frequentes'
     | '/quem-somos'
@@ -288,6 +300,7 @@ export interface FileRouteTypes {
     | '/como-funciona'
     | '/cupons'
     | '/fale-conosco'
+    | '/grupos-de-promocao'
     | '/lojas'
     | '/perguntas-frequentes'
     | '/quem-somos'
@@ -315,6 +328,7 @@ export interface FileRouteTypes {
     | '/cupons'
     | '/fale-conosco'
     | '/grupo-whatsapp'
+    | '/grupos-de-promocao'
     | '/lojas'
     | '/perguntas-frequentes'
     | '/quem-somos'
@@ -343,6 +357,7 @@ export interface RootRouteChildren {
   CuponsRoute: typeof CuponsRoute
   FaleConoscoRoute: typeof FaleConoscoRoute
   GrupoWhatsappRoute: typeof GrupoWhatsappRouteWithChildren
+  GruposDePromocaoRoute: typeof GruposDePromocaoRoute
   LojasRoute: typeof LojasRoute
   PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
   QuemSomosRoute: typeof QuemSomosRoute
@@ -380,6 +395,13 @@ declare module '@tanstack/react-router' {
       path: '/lojas'
       fullPath: '/lojas'
       preLoaderRoute: typeof LojasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grupos-de-promocao': {
+      id: '/grupos-de-promocao'
+      path: '/grupos-de-promocao'
+      fullPath: '/grupos-de-promocao'
+      preLoaderRoute: typeof GruposDePromocaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/grupo-whatsapp': {
@@ -586,6 +608,7 @@ const rootRouteChildren: RootRouteChildren = {
   CuponsRoute: CuponsRoute,
   FaleConoscoRoute: FaleConoscoRoute,
   GrupoWhatsappRoute: GrupoWhatsappRouteWithChildren,
+  GruposDePromocaoRoute: GruposDePromocaoRoute,
   LojasRoute: LojasRoute,
   PerguntasFrequentesRoute: PerguntasFrequentesRoute,
   QuemSomosRoute: QuemSomosRoute,

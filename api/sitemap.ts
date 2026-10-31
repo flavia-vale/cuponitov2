@@ -15,8 +15,9 @@ function groupPagePath(slug: string): string {
   return slug === 'principal' ? '/grupo-whatsapp' : `/grupo-whatsapp/${slug}`
 }
 
-// Mesma regra de `pagePath`: página de ofertas mora em /ofertas/<slug>.
+// Mesma regra de `pagePath`: ofertas em /ofertas/<slug>, o diretório em /grupos-de-promocao.
 function pagePath(page: { slug: string; page_type?: string | null }): string {
+  if (page.page_type === 'directory') return '/grupos-de-promocao'
   return page.page_type === 'offers' ? `/ofertas/${page.slug}` : groupPagePath(page.slug)
 }
 

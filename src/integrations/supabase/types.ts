@@ -1037,6 +1037,7 @@ export type Database = {
           offer_terms: string | null
           offer_volume: string | null
           telegram_url: string | null
+          directory_section: string | null
           page_type: string
           slug: string
           sort_order: number
@@ -1059,6 +1060,7 @@ export type Database = {
           offer_terms?: string | null
           offer_volume?: string | null
           telegram_url?: string | null
+          directory_section?: string | null
           page_type?: string
           slug: string
           sort_order?: number
@@ -1081,6 +1083,7 @@ export type Database = {
           offer_terms?: string | null
           offer_volume?: string | null
           telegram_url?: string | null
+          directory_section?: string | null
           page_type?: string
           slug?: string
           sort_order?: number

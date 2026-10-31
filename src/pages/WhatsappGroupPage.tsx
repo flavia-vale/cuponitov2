@@ -23,6 +23,7 @@ import {
   groupPagePath,
   groupTopicsLabel,
   isNichePage,
+  isDirectoryPage,
   isOffersPage,
   pagePath,
   parseGroupFaq,
@@ -49,7 +50,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
   const author = useMemo(() => authors?.find(item => isFlavia(item.name)) ?? null, [authors]);
 
   // Página de ofertas só existe em /ofertas/<slug>.
-  const page = useMemo(() => pages?.find(item => item.slug === slug && !isOffersPage(item)), [pages, slug]);
+  const page = useMemo(() => pages?.find(item => item.slug === slug && !isOffersPage(item) && !isDirectoryPage(item)), [pages, slug]);
   const info = groupInfoForPage(globalInfo, page);
   const niche = isNichePage(page);
   // Página com link próprio (nicho) mostra as ofertas do grupo dela; as outras, as do grupo geral.

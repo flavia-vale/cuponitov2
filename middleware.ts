@@ -19,6 +19,8 @@ import {
   fetchCategories,
   fetchCategory,
   fetchCategoryCoupons,
+  fetchDirectoryGroups,
+  fetchDirectoryPage,
   fetchFeaturedPosts,
   fetchFeaturedStores,
   fetchGroupOffers,
@@ -37,11 +39,14 @@ import {
 } from './prerender/data';
 import { injectIntoShell, SITE_URL } from './prerender/html';
 import {
+  buildDirectorySections,
+  DIRECTORY_PATH,
   GROUP_HUB_SLUG,
   groupInfoForPage,
   groupPageForNiche,
   groupPageForStore,
   groupPagePath,
+  isDirectoryPage,
   isOffersPage,
   nicheGroupSlug,
   pagePath,
@@ -72,6 +77,7 @@ import {
   renderBlogPost,
   renderCategoryPage,
   renderCouponsPage,
+  renderDirectoryPage,
   renderGroupPage,
   renderHomePage,
   renderInstitutionalPage,
@@ -94,6 +100,7 @@ export const config = {
     '/grupo-whatsapp',
     '/grupo-whatsapp/:slug',
     '/ofertas/:slug',
+    '/grupos-de-promocao',
     '/quem-somos',
     '/como-funciona',
     '/perguntas-frequentes',
@@ -257,6 +264,34 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     });
   }
 
+  if (pathname === DIRECTORY_PATH || pathname === `${DIRECTORY_PATH}/`) {
+    const page = await fetchDirectoryPage();
+    if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
+    if (!page) return null;
+    const [groupSettings, groupRows, stores, posts, author] = await Promise.all([
+      fetchGroupSettings(),
+      fetchDirectoryGroups(),
+      fetchFeaturedStores(6),
+      fetchFeaturedPosts(3),
+      fetchAuthorByName(FLAVIA_VALE_NAME),
+    ]);
+    const sections = buildDirectorySections(groupRows, groupSettings.info);
+    const joinLinks = Object.fromEntries(
+      sections.flatMap(section =>
+        section.groups.map(group => [
+          group.slug,
+          {
+            join: buildJoinTrackingHref({ origin: 'html_directory', groupSlug: group.slug, pagePath: DIRECTORY_PATH }),
+            telegram: group.hasTelegram
+              ? buildJoinTrackingHref({ origin: 'html_directory', groupSlug: group.slug, pagePath: DIRECTORY_PATH, channel: 'telegram' })
+              : null,
+          },
+        ])
+      )
+    );
+    return renderDirectoryPage(page, { sections, joinLinks, author }, { stores, posts });
+  }
+
   const groupMatch = pathname.match(/^\/grupo-whatsapp(?:\/([^/]+))?\/?$/);
   if (groupMatch) {
     const slug = groupMatch[1] ? safeDecode(groupMatch[1]) : GROUP_HUB_SLUG;
@@ -265,8 +300,8 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const page = await fetchGroupPage(slug);
     // Supabase fora: lança para o middleware devolver a SPA em vez de um 404 falso.
     if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
-    // Página de ofertas só existe em /ofertas/<slug>: aqui seria conteúdo duplicado.
-    if (!page || isOffersPage(page)) return null;
+    // Página de ofertas só existe em /ofertas/<slug> e o diretório em /grupos-de-promocao: aqui seria duplicado.
+    if (!page || isOffersPage(page) || isDirectoryPage(page)) return null;
     const [groupSettings, siblings, stores, posts, author] = await Promise.all([
       fetchGroupSettings(),
       fetchGroupPages(),

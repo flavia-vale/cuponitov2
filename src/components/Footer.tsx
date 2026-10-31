@@ -29,6 +29,7 @@ const Footer = () => {
               <Link to="/quem-somos" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Quem somos nós</Link>
               <Link to="/blog" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Blog</Link>
               <Link to="/grupo-whatsapp" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Grupo de ofertas no WhatsApp</Link>
+              <Link to="/grupos-de-promocao" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Grupos de promoção</Link>
               <Link to="/achadinhos-hoje" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Achadinhos de hoje</Link>
               <Link to="/fale-conosco" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Fale conosco</Link>
               <Link to="/lojas" className="text-xs text-[#8a8a8a] transition-colors hover:text-[#FF4D00]">Para lojas</Link>
