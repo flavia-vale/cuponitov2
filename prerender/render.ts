@@ -412,10 +412,10 @@ export interface GroupPageContext {
   offers?: GroupOffer[];
 }
 
-/** Alternativa ao WhatsApp: o canal do Telegram com as mesmas ofertas. */
+/** Alternativa ao WhatsApp: botão azul do canal do Telegram, com as mesmas ofertas. */
 function telegramLink(href: string | null | undefined): string {
   return href
-    ? `<p class="cta-alt"><a href="${escapeHtml(href)}" rel="nofollow noopener">Prefere Telegram? Entrar no canal do Telegram</a></p>`
+    ? `<a class="cta cta-telegram" href="${escapeHtml(href)}" rel="nofollow noopener">Prefere Telegram?</a>`
     : '';
 }
 
