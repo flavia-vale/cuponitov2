@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { AdminRole } from '@/hooks/useAdminRole';
 
@@ -14,23 +14,29 @@ export function RoleProtectedRoute({
 }: RoleProtectedRouteProps) {
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(true);
+  const rolesKey = (Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]).join('|');
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
   useEffect(() => {
+    let cancelled = false;
+    const required = rolesKey.split('|') as AdminRole[];
     const checkAccess = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
+      if (cancelled) return;
+
       if (!session) {
-        navigate({ to: '/admin/login' });
+        navigateRef.current({ to: '/admin/login' });
         return;
       }
 
       const userRole = (session.user.user_metadata?.role as AdminRole) || null;
 
-      const required = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
       const hasAccess = userRole === 'super_admin' || required.includes(userRole);
 
       if (!hasAccess) {
-        navigate({ to: '/admin/access-denied' });
+        navigateRef.current({ to: '/admin/access-denied' });
         return;
       }
 
@@ -38,7 +44,8 @@ export function RoleProtectedRoute({
     };
 
     checkAccess();
-  }, [navigate, requiredRoles]);
+    return () => { cancelled = true; };
+  }, [rolesKey]);
 
   if (isChecking) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Verificando acesso...</div>;
