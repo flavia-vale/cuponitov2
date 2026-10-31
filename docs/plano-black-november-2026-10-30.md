@@ -330,3 +330,22 @@ Pré-requisitos: (1) a Flávia dizer quanto vale um membro (comissão por mês �
 por membro; (2) medir o anúncio: gravar o `gclid` no `/entrar` e importar as entradas como conversão
 offline (sem cookie de terceiros). Sem isso, não dá para saber se o anúncio paga.
 Cuidado de política: a landing é a página com conteúdo próprio (guia, FAQ), nunca o convite direto.
+
+## 11. Medição do Google Ads (31/10)
+
+Como funciona:
+1. O anúncio leva `?gclid=...` (auto-tagging do Google Ads, ligado por padrão) à página do grupo.
+2. `src/lib/adClickId.ts` lê o `gclid` da URL e guarda na sessão do navegador; o `GroupJoinCTA`
+   passa `gc=<gclid>` no `/entrar`.
+3. O `/entrar` grava o `gclid` em `group_join_clicks.gclid` (migration `20261031180000`). Sem a coluna,
+   grava o clique sem ele: a contagem nunca se perde.
+4. Aba **Captação do grupo** → "Exportar conversões (CSV)": arquivo no modelo de conversões offline
+   do Google Ads (Google Click ID, fuso de São Paulo), um clique no botão = uma conversão.
+
+No Google Ads (uma vez): Metas → Conversões → Nova ação de conversão → **Importar** → "Outras fontes
+de dados ou CRMs" → "Acompanhar conversões de cliques" → nome **`Clique Entrar no grupo`** (igual ao
+do CSV), categoria "Lead"/"Inscrição", contagem "Uma". Depois, toda semana: exportar o CSV na aba
+Captação e carregar em Metas → Conversões → Carregamentos. O Google aceita cliques de até 90 dias.
+
+A conversão é o **clique em "Entrar no grupo"** (não a entrada confirmada, que só o WhatsApp sabe).
+Para o custo por membro, ajustar pela taxa clique → entrada do painel do Link Inteligente.

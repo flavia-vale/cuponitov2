@@ -375,7 +375,7 @@ export async function fetchPublishedPosts(limit = 30): Promise<PrerenderPostSumm
 /** Grava um clique no botão do grupo (tabela `group_join_clicks`). Falha não impede o redirecionamento. */
 export async function recordGroupJoinClick(row: JoinClickRow): Promise<boolean> {
   const { url, key } = credentials();
-  try {
+  const insert = async (body: JoinClickRow) => {
     const response = await fetch(`${url}/rest/v1/group_join_clicks`, {
       method: 'POST',
       headers: {
@@ -384,10 +384,18 @@ export async function recordGroupJoinClick(row: JoinClickRow): Promise<boolean> 
         'Content-Type': 'application/json',
         Prefer: 'return=minimal',
       },
-      body: JSON.stringify(row),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
     });
     return response.ok;
+  };
+  try {
+    if (await insert(row)) return true;
+    // Coluna `gclid` ainda não migrada (400): grava o clique sem ela, para não perder a contagem.
+    if (!row.gclid) return false;
+    const withoutGclid: JoinClickRow = { ...row };
+    delete withoutGclid.gclid;
+    return await insert(withoutGclid);
   } catch {
     return false;
   }

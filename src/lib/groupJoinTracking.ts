@@ -26,6 +26,14 @@ export function sanitizeToken(value: string | null | undefined, max = TOKEN_MAX)
   return token || null;
 }
 
+const GCLID_MAX = 200;
+
+/** Identificador do clique no anúncio do Google (`gclid`): só letras, números, `-` e `_`. Outra coisa vira null. */
+export function sanitizeGclid(value: string | null | undefined): string | null {
+  const raw = String(value ?? '').trim();
+  return /^[A-Za-z0-9_-]{10,200}$/.test(raw) ? raw.slice(0, GCLID_MAX) : null;
+}
+
 /** Caminho interno do site, sem query nem domínio. Qualquer outra coisa vira null. */
 export function sanitizePagePath(value: string | null | undefined): string | null {
   const raw = String(value ?? '').split(/[?#]/)[0];
@@ -43,9 +51,11 @@ export interface JoinTrackingParams {
   pagePath?: string | null;
   /** `telegram` = o canal do Telegram da página do grupo. Padrão: WhatsApp. */
   channel?: JoinChannel;
+  /** Clique de anúncio do Google que trouxe a pessoa ao site (vira conversão importada no Google Ads). */
+  gclid?: string | null;
 }
 
-export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = 'whatsapp' }: JoinTrackingParams): string {
+export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = 'whatsapp', gclid }: JoinTrackingParams): string {
   const params = new URLSearchParams();
   const o = sanitizeToken(origin);
   const g = sanitizeToken(groupSlug);
@@ -54,6 +64,8 @@ export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = '
   if (g) params.set('g', g);
   if (p) params.set('p', p);
   if (channel === 'telegram') params.set('d', 'telegram');
+  const gc = sanitizeGclid(gclid);
+  if (gc) params.set('gc', gc);
   const query = params.toString();
   return query ? `${JOIN_TRACKING_PATH}?${query}` : JOIN_TRACKING_PATH;
 }
@@ -63,6 +75,8 @@ export interface JoinClickRow {
   group_slug: string | null;
   page_path: string | null;
   device: 'mobile' | 'desktop';
+  /** Só presente quando o clique veio de um anúncio do Google. */
+  gclid?: string;
 }
 
 /** Canal pedido no /entrar (`d`). Qualquer outro valor é WhatsApp. */
@@ -77,7 +91,40 @@ export function parseJoinTrackingQuery(search: URLSearchParams, userAgent: strin
     group_slug: sanitizeToken(search.get('g')),
     page_path: sanitizePagePath(search.get('p')),
     device: /mobi|android|iphone|ipad/i.test(userAgent ?? '') ? 'mobile' : 'desktop',
+    ...(sanitizeGclid(search.get('gc')) ? { gclid: sanitizeGclid(search.get('gc'))! } : {}),
   };
+}
+
+export interface AdsConversionClick {
+  created_at: string;
+  gclid: string | null;
+}
+
+const CSV_TIME = new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+});
+
+/**
+ * CSV de conversões offline do Google Ads (modelo "Google Click ID"): um clique no
+ * botão do grupo vindo de anúncio = uma conversão. Fuso de São Paulo, como declarado
+ * na primeira linha. Cliques sem gclid ficam fora.
+ */
+export function buildAdsConversionsCsv(clicks: AdsConversionClick[], conversionName: string): string {
+  const lines = clicks
+    .filter(click => sanitizeGclid(click.gclid))
+    .map(click => `${click.gclid},${conversionName},${CSV_TIME.format(new Date(click.created_at))},,`);
+  return [
+    'Parameters:TimeZone=America/Sao_Paulo',
+    'Google Click ID,Conversion Name,Conversion Time,Conversion Value,Conversion Currency',
+    ...lines,
+  ].join('\n');
 }
 
 /** Robô de busca, prévia de link e ferramenta não contam como pessoa entrando. */

@@ -702,6 +702,7 @@ export type Database = {
         Row: {
           created_at: string
           device: string
+          gclid: string | null
           group_slug: string | null
           id: number
           origin: string | null
@@ -710,6 +711,7 @@ export type Database = {
         Insert: {
           created_at?: string
           device?: string
+          gclid?: string | null
           group_slug?: string | null
           id?: never
           origin?: string | null
@@ -718,6 +720,7 @@ export type Database = {
         Update: {
           created_at?: string
           device?: string
+          gclid?: string | null
           group_slug?: string | null
           id?: never
           origin?: string | null
