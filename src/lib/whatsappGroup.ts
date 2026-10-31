@@ -11,6 +11,9 @@ export const GROUP_BASE_PATH = '/grupo-whatsapp';
 /** Páginas de ofertas do dia por nicho (mesma tabela das páginas do grupo, `page_type = 'offers'`). */
 export const OFFERS_BASE_PATH = '/ofertas';
 
+/** Diretório com todos os grupos de promoção do Cuponito (`page_type = 'directory'`, uma linha só). */
+export const DIRECTORY_PATH = '/grupos-de-promocao';
+
 export interface GroupFaqItem {
   question: string;
   answer: string;
@@ -50,6 +53,8 @@ export interface WhatsappGroupPageData {
   offer_volume?: string | null;
   /** Canal do Telegram com as mesmas ofertas (https://t.me/<nome>). Vazio = sem botão do Telegram. */
   telegram_url?: string | null;
+  /** Seção do diretório /grupos-de-promocao em que o grupo aparece ("Tecnologia"). Vazio = fora do diretório. */
+  directory_section?: string | null;
 }
 
 /**
@@ -78,9 +83,61 @@ export function isOffersPage(page: Pick<WhatsappGroupPageData, 'page_type'> | nu
   return page?.page_type === 'offers';
 }
 
-/** Endereço da página pelo tipo: /ofertas/<slug> ou /grupo-whatsapp/<slug>. */
+export function isDirectoryPage(page: Pick<WhatsappGroupPageData, 'page_type'> | null | undefined): boolean {
+  return page?.page_type === 'directory';
+}
+
+/** Endereço da página pelo tipo: /grupos-de-promocao, /ofertas/<slug> ou /grupo-whatsapp/<slug>. */
 export function pagePath(page: Pick<WhatsappGroupPageData, 'slug' | 'page_type'>): string {
+  if (isDirectoryPage(page)) return DIRECTORY_PATH;
   return isOffersPage(page) ? `${OFFERS_BASE_PATH}/${page.slug}` : groupPagePath(page.slug);
+}
+
+export interface DirectoryGroup {
+  slug: string;
+  name: string;
+  topics: string;
+  /** "cerca de 50 ofertas por dia"; vazio = não informado (nunca inventar número). */
+  volume: string;
+  /** Página do grupo no site; null = página despublicada (o grupo só tem o botão). */
+  pagePath: string | null;
+  /** O grupo tem canal do Telegram com as mesmas ofertas. */
+  hasTelegram: boolean;
+}
+
+export interface DirectorySection {
+  name: string;
+  groups: DirectoryGroup[];
+}
+
+/**
+ * Seções do diretório: os grupos com `directory_section`, publicados ou não (página
+ * despublicada pode guardar só o link de um grupo, ex.: festas), na ordem do
+ * `sort_order`. A seção vem na ordem do primeiro grupo dela. Mesma regra no React
+ * e no prerender.
+ */
+export function buildDirectorySections(
+  pages: Array<WhatsappGroupPageData & { is_published?: boolean | null }>,
+  globalInfo: WhatsappGroupInfo
+): DirectorySection[] {
+  const sections = new Map<string, DirectoryGroup[]>();
+  [...pages]
+    .filter(page => page.directory_section?.trim() && !isDirectoryPage(page))
+    .sort((a, b) => a.sort_order - b.sort_order || a.slug.localeCompare(b.slug))
+    .forEach(page => {
+      const info = groupInfoForPage(globalInfo, page);
+      const section = page.directory_section!.trim();
+      const group: DirectoryGroup = {
+        slug: page.slug,
+        name: info.group_name,
+        topics: info.stores,
+        volume: groupVolumeFact(info) ?? '',
+        pagePath: page.is_published === false ? null : pagePath(page),
+        hasTelegram: Boolean(safeTelegramUrl(page.telegram_url)),
+      };
+      sections.set(section, [...(sections.get(section) ?? []), group]);
+    });
+  return [...sections.entries()].map(([name, groups]) => ({ name, groups }));
 }
 
 /** Valor do `site_settings` mesclado com o padrão: chave faltando não pode sumir da página. */

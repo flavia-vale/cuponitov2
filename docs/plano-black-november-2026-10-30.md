@@ -375,3 +375,27 @@ abrir um diretório genérico agora**.
 Se for fazer, depois de dezembro e com dados do Planejador: uma seção **só de grupos de promoção**
 dentro do `cuponito.com.br` (herda a autoridade do domínio), com os nossos grupos em destaque e grupos
 de clientes do Espelha Grupos que pedirem para entrar (F7 do plano de 18/10).
+
+## 14. Diretório /grupos-de-promocao (fase 1, 01/11)
+
+Dados (31/10): "grupos de promoção whatsapp", "grupos de promoção", "grupo de promoções whatsapp" e
+"grupos de ofertas whatsapp" têm 1–10 mil buscas cada; "melhores grupos de promoções whatsapp" e
+"grupo de promoção no whatsapp" 100–1 mil (+900% no ano); Telegram 100–1 mil. "grupo de whatsapp"
+genérico (100 mil–1 milhão) é dominado por adulto e "vazados": fora. Search Console: zero impressões
+para "grupos". O ChatGPT diz recomendar grupo com origem identificável, link oficial no site do
+responsável, sem Pix, ofertas conferíveis, transparência e atividade, e cita páginas de marca com os
+grupos por categoria.
+
+Entregue:
+- `page_type = 'directory'` em `whatsapp_group_pages` (uma linha, `grupos-de-promocao`), servida em
+  `/grupos-de-promocao`; texto, FAQ e critérios editáveis no painel.
+- Coluna `directory_section`: o assunto de cada grupo (campo no painel). Os cartões saem de todos os
+  grupos com seção, publicados ou não (Promo Festas entra só com o botão).
+- Cartão: nome, o que chega, quantas ofertas (só número confirmado), plataforma, página do grupo,
+  botão verde pelo `/entrar` (origem `directory`) e azul do Telegram quando houver.
+- HTML do servidor com `CollectionPage` + `ItemList` dos grupos + `FAQPage` + breadcrumb + autora.
+- Links: rodapé (React e HTML), `/grupo-whatsapp`, "Veja também" de todas as páginas de grupo, `llms.txt`,
+  sitemap.
+
+Fase 2 (dezembro): grupos de outros administradores com os mesmos critérios, tabela própria, aba de
+aprovação no painel, formulário e conferência semanal dos links.

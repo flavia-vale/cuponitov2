@@ -312,11 +312,12 @@ export interface PrerenderPostSummary {
 
 const GROUP_PAGE_COLUMNS =
   'slug,store_slug,title,h1,meta_description,intro,content,faq,join_url,sort_order,updated_at';
-// Colunas novas entram por camadas (migrations 20261022150000, 20261023120000 e 20261031120000): antes
+// Colunas novas entram por camadas (migrations 20261022150000, 20261023120000, 20261031120000 e 20261101120000): antes
 // de elas rodarem, pedir a coluna devolve 400 e a página viraria 404. Por isso as
 // tentativas seguintes sem elas.
 // Da mais nova para a mais antiga: a primeira que o banco aceitar vale.
 const GROUP_PAGE_COLUMN_TIERS = [
+  `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms,offer_volume,telegram_url,directory_section`,
   `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms,offer_volume,telegram_url`,
   `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms,offer_volume`,
   `${GROUP_PAGE_COLUMNS},group_name,topics,page_type,offer_terms`,
@@ -347,6 +348,25 @@ export async function fetchGroupPage(slug: string): Promise<WhatsappGroupPageDat
 export async function fetchJoinPage(slug: string): Promise<WhatsappGroupPageData | null> {
   const rows = await tryGroupPages(`slug=eq.${encodeURIComponent(slug)}&limit=1`);
   return rows?.[0] ?? null;
+}
+
+/** A página do diretório (/grupos-de-promocao). `undefined` = o Supabase falhou. */
+export async function fetchDirectoryPage(): Promise<WhatsappGroupPageData | null | undefined> {
+  const rows = await tryQuery<WhatsappGroupPageData>(
+    `whatsapp_group_pages?page_type=eq.directory&is_published=is.true&order=sort_order&limit=1&select=${GROUP_PAGE_COLUMN_TIERS[0]}`
+  );
+  // Coluna directory_section ainda não migrada: o diretório não existe (404), o resto do site segue.
+  if (rows === null) return null;
+  return rows[0] ?? null;
+}
+
+/** Grupos do diretório, publicados ou não (página despublicada pode guardar só o link do grupo). */
+export async function fetchDirectoryGroups(): Promise<Array<WhatsappGroupPageData & { is_published: boolean }>> {
+  return (
+    (await tryQuery<WhatsappGroupPageData & { is_published: boolean }>(
+      `whatsapp_group_pages?directory_section=not.is.null&order=sort_order&select=${GROUP_PAGE_COLUMN_TIERS[0]},is_published`
+    )) ?? []
+  );
 }
 
 export async function fetchGroupPages(): Promise<WhatsappGroupPageData[]> {

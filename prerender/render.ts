@@ -29,9 +29,11 @@ import {
   termsSections,
 } from '../src/pages/institutional/content';
 import {
+  DIRECTORY_PATH,
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
   firstContentImage,
+  type DirectorySection,
   groupCtaTitle,
   groupFactsSentence,
   groupTopicsLabel,
@@ -95,6 +97,7 @@ function chrome(
           <a href="${SITE_URL}/lojas">Lojas</a>
           <a href="${SITE_URL}/blog">Blog</a>
           <a href="${SITE_URL}${GROUP_BASE_PATH}">Grupo no WhatsApp</a>
+          <a href="${SITE_URL}${DIRECTORY_PATH}">Grupos de promoção</a>
           <a href="${SITE_URL}${ACHADINHOS_PATH}">Achadinhos de hoje</a>
           <a href="${SITE_URL}/quem-somos">Quem somos</a>
         </nav>
@@ -664,6 +667,131 @@ export function renderOffersPage(
           ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
           ${join}
           ${siblingLinks ? `<h2>Veja também</h2><ul>${siblingLinks}</ul>` : ''}
+          ${authorBox(context.author)}
+        </article>
+      </main>`,
+    trail.map((item, index) => (index === 0 ? { ...item, name: 'Cuponito' } : item)),
+    links
+  );
+
+  return { head: renderHead(meta, [schema]), body };
+}
+
+// ── Diretório de grupos de promoção (/grupos-de-promocao) ───────────────────
+//
+// Todos os grupos do Cuponito por assunto, num cartão cada: o que chega, quantas
+// ofertas, a página do grupo e o botão (pelo /entrar). O texto fixo (critérios,
+// como avaliamos) e o FAQ vêm do painel.
+
+export interface DirectoryContext {
+  sections: DirectorySection[];
+  /** slug → botões já montados (passam pelo /entrar). */
+  joinLinks: Record<string, { join: string; telegram: string | null }>;
+  author: PrerenderAuthor | null;
+}
+
+export function renderDirectoryPage(page: WhatsappGroupPageData, context: DirectoryContext, links: ChromeLinks): RenderedPage {
+  const canonical = `${SITE_URL}${DIRECTORY_PATH}`;
+  const faq = parseGroupFaq(page.faq);
+  const groups = context.sections.flatMap(section => section.groups);
+
+  const meta: HeadMeta = {
+    title: page.title,
+    description: page.meta_description,
+    canonical,
+    modifiedTime: page.updated_at,
+    ogImage: firstContentImage(page.content) ?? undefined,
+  };
+
+  const trail = [
+    { name: 'Página Inicial', url: `${SITE_URL}/` },
+    { name: page.h1, url: canonical },
+  ];
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        '@id': `${canonical}#page`,
+        name: page.h1,
+        description: page.meta_description,
+        url: canonical,
+        inLanguage: 'pt-BR',
+        isPartOf: { '@id': `${SITE_URL}/#organization` },
+        ...(page.updated_at ? { dateModified: page.updated_at } : {}),
+        ...(context.author ? { author: authorPersonSchema(context.author) } : {}),
+        mainEntity: { '@id': `${canonical}#grupos` },
+      },
+      {
+        '@type': 'ItemList',
+        '@id': `${canonical}#grupos`,
+        name: page.h1,
+        numberOfItems: groups.length,
+        itemListElement: groups.map((group, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: group.name,
+          description: [group.topics, group.volume].filter(Boolean).join(' · '),
+          url: group.pagePath ? `${SITE_URL}${group.pagePath}` : `${canonical}#${group.slug}`,
+        })),
+      },
+      CUPONITO_ORGANIZATION,
+      breadcrumb(trail),
+      ...(faq.length > 0
+        ? [
+            {
+              '@type': 'FAQPage',
+              '@id': `${canonical}#faq`,
+              mainEntity: faq.map(item => ({
+                '@type': 'Question',
+                name: item.question,
+                acceptedAnswer: { '@type': 'Answer', text: item.answer },
+              })),
+            },
+          ]
+        : []),
+    ],
+  };
+
+  const sectionsHtml = context.sections
+    .map(section => {
+      const cards = section.groups
+        .map(group => {
+          const buttons = context.joinLinks[group.slug];
+          const facts = [
+            `<li><strong>O que chega:</strong> ${escapeHtml(group.topics)}</li>`,
+            `<li><strong>Quantas ofertas:</strong> ${group.volume ? escapeHtml(group.volume) : 'não informado'}</li>`,
+            `<li><strong>Plataforma:</strong> WhatsApp${group.hasTelegram ? ' e Telegram' : ''} · grátis · só os administradores postam</li>`,
+          ].join('');
+          return `<div id="${escapeHtml(group.slug)}">
+            <h3>${escapeHtml(group.name)}</h3>
+            <ul>${facts}</ul>
+            ${group.pagePath ? `<p><a href="${SITE_URL}${group.pagePath}">Ver a página do ${escapeHtml(group.name)} e as ofertas de hoje</a></p>` : ''}
+            ${buttons ? `<a class="cta" href="${escapeHtml(buttons.join)}" rel="nofollow noopener">Entrar no ${escapeHtml(group.name)}</a>` : ''}
+            ${buttons?.telegram ? telegramLink(buttons.telegram) : ''}
+          </div>`;
+        })
+        .join('');
+      return `<h2>${escapeHtml(section.name)}</h2>${cards}`;
+    })
+    .join('');
+
+  const faqHtml = faq.map(item => `<h3>${escapeHtml(item.question)}</h3><p>${escapeHtml(item.answer)}</p>`).join('');
+
+  const body = chrome(
+    `
+      <main>
+        <article>
+          <h1>${escapeHtml(page.h1)}</h1>
+          <p>
+            ${context.author ? authorByline(context.author) : ''}
+            ${page.updated_at ? `· Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time>` : ''}
+          </p>
+          <p>${escapeHtml(page.intro)}</p>
+          ${sectionsHtml}
+          ${markdownToHtml(page.content || '')}
+          ${faqHtml ? `<h2>Perguntas frequentes</h2>${faqHtml}` : ''}
           ${authorBox(context.author)}
         </article>
       </main>`,

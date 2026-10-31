@@ -17,6 +17,7 @@ import {
 } from '@/hooks/useWhatsappGroupPages';
 import {
   GROUP_HUB_SLUG,
+  isDirectoryPage,
   isOffersPage,
   pagePath,
   parseGroupFaq,
@@ -40,10 +41,11 @@ interface PageForm {
   join_url: string;
   group_name: string;
   topics: string;
-  page_type: 'group' | 'offers';
+  page_type: 'group' | 'offers' | 'directory';
   offer_terms: string;
   offer_volume: string;
   telegram_url: string;
+  directory_section: string;
   is_published: boolean;
   sort_order: number;
 }
@@ -64,6 +66,7 @@ const EMPTY_PAGE: PageForm = {
   offer_terms: '',
   offer_volume: '',
   telegram_url: '',
+  directory_section: '',
   is_published: true,
   sort_order: 0,
 };
@@ -143,10 +146,11 @@ function toForm(page: WhatsappGroupPage): PageForm {
     join_url: page.join_url ?? '',
     group_name: page.group_name ?? '',
     topics: page.topics ?? '',
-    page_type: isOffersPage(page) ? 'offers' : 'group',
+    page_type: isDirectoryPage(page) ? 'directory' : isOffersPage(page) ? 'offers' : 'group',
     offer_terms: page.offer_terms ?? '',
     offer_volume: page.offer_volume ?? '',
     telegram_url: page.telegram_url ?? '',
+    directory_section: page.directory_section ?? '',
     is_published: page.is_published,
     sort_order: page.sort_order,
   };
@@ -213,6 +217,7 @@ export function AdminWhatsappGroupsTab() {
           ...(hasColumn('page_type') ? { page_type: form.page_type, offer_terms: form.offer_terms.trim() || null } : {}),
           ...(hasColumn('offer_volume') ? { offer_volume: form.offer_volume.trim() || null } : {}),
           ...(hasColumn('telegram_url') ? { telegram_url: form.telegram_url.trim() || null } : {}),
+          ...(hasColumn('directory_section') ? { directory_section: form.directory_section.trim() || null } : {}),
           is_published: form.is_published,
           sort_order: Number(form.sort_order) || 0,
         },
@@ -249,11 +254,14 @@ export function AdminWhatsappGroupsTab() {
             <Field label="Tipo de página" hint="Página do grupo: /grupo-whatsapp/<slug>. Página de ofertas: /ofertas/<slug>, com as ofertas do grupo no topo.">
               <select
                 value={form.page_type}
-                onChange={e => setForm(f => ({ ...f, page_type: e.target.value === 'offers' ? 'offers' : 'group' }))}
+                onChange={e =>
+                  setForm(f => ({ ...f, page_type: e.target.value === 'offers' ? 'offers' : e.target.value === 'directory' ? 'directory' : 'group' }))
+                }
                 className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="group">Página do grupo</option>
                 <option value="offers">Página de ofertas do dia</option>
+                {hasColumn('directory_section') && <option value="directory">Diretório de grupos (/grupos-de-promocao)</option>}
               </select>
             </Field>
             {form.page_type === 'offers' && (
@@ -316,6 +324,11 @@ export function AdminWhatsappGroupsTab() {
             <Field label="Quantas ofertas (grupo de nicho)" hint='Frase pronta e verdadeira. Ex.: "cerca de 5 ofertas por dia", "cerca de 2 ofertas por semana".'>
               <Input value={form.offer_volume} onChange={e => setForm(f => ({ ...f, offer_volume: e.target.value }))} className="h-9" />
             </Field>
+            {hasColumn('directory_section') && (
+              <Field label="Seção no diretório de grupos" hint='Assunto em que o grupo aparece em /grupos-de-promocao. Ex.: "Tecnologia". Vazio = fora do diretório.'>
+                <Input value={form.directory_section} onChange={e => setForm(f => ({ ...f, directory_section: e.target.value }))} className="h-9" />
+              </Field>
+            )}
             {hasColumn('telegram_url') && (
               <Field label="Canal do Telegram (opcional)" hint='Link público do canal com as mesmas ofertas. Aparece o botão "Prefere Telegram?".'>
                 <Input value={form.telegram_url} onChange={e => setForm(f => ({ ...f, telegram_url: e.target.value }))} placeholder="https://t.me/..." className="h-9 font-mono text-xs" />
