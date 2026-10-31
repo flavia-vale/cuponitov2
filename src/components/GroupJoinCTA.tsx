@@ -11,6 +11,22 @@ const WhatsAppIcon = ({ className = 'h-6 w-6' }: { className?: string }) => (
   </svg>
 );
 
+/** Botão azul do canal do Telegram: separado do verde, com a cor do Telegram. */
+function TelegramButton({ href, onClick, className = '' }: { href: string; onClick: () => void; className?: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="nofollow noopener"
+      onClick={onClick}
+      className={`mx-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#229ED9] font-black uppercase tracking-wide text-white shadow transition-transform hover:scale-[1.03] hover:bg-[#1c8cc2] active:scale-95 ${className}`}
+    >
+      <Send className="h-5 w-5" />
+      Prefere Telegram?
+    </a>
+  );
+}
+
 export interface GroupJoinCTAProps {
   title?: string;
   text?: string;
@@ -74,6 +90,7 @@ export default function GroupJoinCTA({
             <p className="mt-0.5 text-xs font-semibold text-white/90">{text ?? facts.join(' · ')}</p>
           </div>
         </div>
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
         <a
           href={joinUrl}
           target="_blank"
@@ -85,16 +102,13 @@ export default function GroupJoinCTA({
           Entrar no grupo grátis
         </a>
         {telegramUrl && (
-          <a
+          <TelegramButton
             href={telegramUrl}
-            target="_blank"
-            rel="nofollow noopener"
             onClick={() => trackEvent('whatsapp_click', { source: `${source}_telegram`, context })}
-            className="text-xs font-bold text-white underline-offset-4 hover:underline sm:text-sm"
-          >
-            Prefere Telegram?
-          </a>
+            className="px-6 py-3 text-sm sm:w-auto"
+          />
         )}
+        </div>
       </section>
     );
   }
@@ -123,6 +137,16 @@ export default function GroupJoinCTA({
         <span className="relative">Entrar no grupo grátis</span>
       </a>
 
+      {telegramUrl && (
+        <div className="mt-3">
+          <TelegramButton
+            href={telegramUrl}
+            onClick={() => trackEvent('whatsapp_click', { source: `${source}_telegram`, context })}
+            className="max-w-sm px-8 py-3 text-base sm:w-auto"
+          />
+        </div>
+      )}
+
       <p className="mt-4 text-xs font-semibold text-white/85 sm:text-sm">{facts.join(' · ')}</p>
 
       <div className="mt-3 flex flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row sm:gap-5">
@@ -135,17 +159,6 @@ export default function GroupJoinCTA({
             className="inline-flex items-center gap-1.5 text-white underline-offset-4 hover:underline"
           >
             <Radio className="h-4 w-4" /> Prefere o canal? Seguir o canal
-          </a>
-        )}
-        {telegramUrl && (
-          <a
-            href={telegramUrl}
-            target="_blank"
-            rel="nofollow noopener"
-            onClick={() => trackEvent('whatsapp_click', { source: `${source}_telegram`, context })}
-            className="inline-flex items-center gap-1.5 text-white underline-offset-4 hover:underline"
-          >
-            <Send className="h-4 w-4" /> Prefere Telegram? Entrar no canal
           </a>
         )}
         {learnMoreHref && (

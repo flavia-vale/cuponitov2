@@ -41,6 +41,7 @@ const PRERENDER_STYLE = `<style>
     .pr footer{margin-top:2rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.12);font-size:.875rem}
     .pr .cta{display:block;max-width:22rem;margin:1.25rem auto;padding:1rem 1.5rem;border-radius:999px;background:#25d366;color:#fff;font-weight:800;font-size:1.05rem;text-align:center;text-transform:uppercase}
     .pr .cta-alt{display:block;text-align:center;font-weight:700}
+    .pr .cta-telegram{background:#229ed9;margin-top:.5rem}
   </style>`;
 
 /** Tags de <head> que precisam existir no HTML do servidor (sem JavaScript). */
