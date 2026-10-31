@@ -349,3 +349,29 @@ Captação e carregar em Metas → Conversões → Carregamentos. O Google aceit
 
 A conversão é o **clique em "Entrar no grupo"** (não a entrada confirmada, que só o WhatsApp sabe).
 Para o custo por membro, ajustar pela taxa clique → entrada do painel do Link Inteligente.
+
+## 12. Promo Perfumes (31/10)
+
+Migration `20261031220000_perfume.sql`: página `/ofertas/perfume` (link `promo-perfumes`), no formato de
+página de ofertas, porque "perfume em promoção" e as variações masculino, feminino e importados têm
+1–10 mil buscas cada, contra 100–1 mil de "grupo de promoção de perfumes whatsapp". O texto ensina o
+**preço por ml** e a diferença de concentração (parfum, EDP, EDT). "promoção boticário" (10–100 mil)
+entra como seção de nacionais, sem página de loja (Boticário e Natura não estão cadastradas).
+"perfume black friday" tem só 10–100 buscas: a página não fala de Black Friday.
+
+Feed `promo-perfumes/ofertas.json` ainda 404 em 31/10 (pendente no wabot): até ligar, a página sai sem
+"Ofertas de hoje".
+
+## 13. Diretório próprio de grupos? (31/10)
+
+O concorrente (Pro Afiliados) abriu `gruposdowpp.com.br`: diretório genérico (amizade, namoro,
+figurinhas, empregos), páginas por categoria e estado, robô que confere links. Recomendação: **não
+abrir um diretório genérico agora**.
+- Domínio novo não ranqueia antes da Black Friday (27 dias).
+- Público de "amizade, namoro, figurinhas" não compra: lead de baixo valor para grupos de oferta.
+- Moderação e risco: grupos adultos, golpes e links mortos exigem robô e revisão diários.
+- Páginas por categoria × estado são o padrão que o Google trata como página-porta.
+
+Se for fazer, depois de dezembro e com dados do Planejador: uma seção **só de grupos de promoção**
+dentro do `cuponito.com.br` (herda a autoridade do domínio), com os nossos grupos em destaque e grupos
+de clientes do Espelha Grupos que pedirem para entrar (F7 do plano de 18/10).
