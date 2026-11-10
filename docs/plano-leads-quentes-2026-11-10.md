@@ -340,3 +340,66 @@ trocar no painel para "Natal" / 2026-12-25.
 O texto novo não cria termo de busca novo (são fatos do grupo), por isso entrou sem pedir dados de palavra-chave.
 
 **Fica para 12/11:** resumo do 11.11 nas páginas de celular, PC gamer, tênis e TV, com as ofertas reais do feed.
+
+## 9. Grupo novo? Eletrodomésticos (dados da Flávia, 09/11 à noite)
+
+### 9.1 Planejador (Brasil, out/25 a set/26, **com a série mensal**)
+
+| Termo | Média/mês | Nov/25 | Dez/25 | Menor mês | 3 meses | Ano |
+|---|---|---|---|---|---|---|
+| **geladeira em promoção** (e 8 variações com o mesmo volume) | **60.500** | 90.500 | 74.000 | 49.500 | 0% | 0% |
+| geladeira barato | 27.100 | 33.100 | — | — | 0% | −18% |
+| **ar condicionado em promoção** | **14.800** | 18.100 | **33.100** | 8.100 | **+83%** | **+50%** |
+| air fryer promoção | 8.100 | 14.800 | 8.100 | 6.600 | 0% | +23% |
+| geladeira frost free promoção | 8.100 | 12.100 | — | — | 0% | −19% |
+| **black friday geladeira** | 6.600 | **60.500** | 5.400 | 110 | +247% | +23% |
+| ar condicionado 12000 btus promoção | 5.400 | 8.100 | 12.100 | 2.400 | +83% | +50% |
+| black friday ar condicionado | 2.900 | **27.100** | 2.400 | 40 | +320% | +50% |
+| eletrodomésticos em promoção | 1.300 | 1.900 | — | — | +90% | +90% |
+| black friday air fryer | 390 | 4.400 | — | — | 0% | −50% |
+| grupo de promoção de eletrodomésticos whatsapp | **30** | 0 | 0 | 0 | +125% | novo (20 em fev → 90 em set) |
+
+Marcas e modelos: Brastemp 1.900, Electrolux 1.600, Consul 1.300; side by side +156% no ano; inverter 720.
+
+### 9.2 Google Trends (2021–2026, mensal, índice dentro da comparação)
+
+- Black Friday: **TV 84–100 todo novembro; geladeira 34–62; ar-condicionado 17–87; air fryer 15–29.**
+  A geladeira é a 2ª busca de Black Friday, metade da TV. O ar-condicionado varia com o calor (87 em nov/23).
+- Em alta (5 anos): geladeira **inverter** (+150%), **Midea** (+1.350%), 3 portas (+110%), frost free,
+  side by side. Lojas: Casas Bahia e Magalu.
+
+### 9.3 ChatGPT ("tem grupo de promoção de eletrodomésticos no WhatsApp?")
+
+Cita 4: Central de Ofertas Eletrodomésticos (gruposwhatsapp.com), Ofertas Magalu (gruposwhats.app),
+RexPromo e Achamania (sites com grupos próprios por categoria). **Nenhum é do Cuponito.** De novo, diretório
++ site com página por categoria. Os links do ChatGPT levam `utm_source=chatgpt.com`, que a Frente A já grava.
+
+### 9.4 Leitura
+
+1. **"geladeira em promoção" é a maior busca de produto que já medimos**: 60 mil por mês, o ano inteiro
+   (nunca abaixo de 49 mil). A TV tem pico maior na Black Friday, mas some em dezembro; a geladeira não.
+2. **O ar-condicionado tem pico em dezembro** (33 mil, o dobro de novembro) e sobe 50% no ano: é o assunto do
+   verão, depois da Black Friday.
+3. "grupo de … eletrodomésticos" quase não é buscado (30), como a TV. O formato é o do tênis e da TV:
+   **página de ofertas por produto, com grupo próprio por trás**.
+4. Concorrência alta no anúncio, mas o ChatGPT ainda não cita ninguém forte: espaço para GEO.
+
+### 9.5 Recomendação
+
+Abrir **um** grupo: **Promo Eletrodomésticos** (geladeira, ar-condicionado, air fryer, micro-ondas, fogão,
+lava e seca), com duas páginas:
+
+| Página | Busca principal | Seções |
+|---|---|---|
+| `/ofertas/geladeira` | geladeira em promoção (60.500); black friday geladeira (60.500 em nov) | Black Friday; frost free, inverter, side by side, 3 portas; Brastemp, Electrolux, Consul, Midea; preço por litro; FAQ |
+| `/ofertas/ar-condicionado` | ar condicionado em promoção (14.800, 33.100 em dez); black friday ar condicionado (27.100 em nov) | 9.000 × 12.000 × 18.000 BTUs por tamanho do cômodo; inverter; Black Friday; FAQ |
+
+Air fryer (8.100) entra como seção ou FAQ, não página própria, até o grupo mostrar volume.
+
+**Gatilho (os três):** (1) o Espelha Grupos tira **≥ 10 ofertas por dia** desses produtos dos grupos
+espelhados; (2) a Flávia cria o grupo e o Link Inteligente `promo-eletrodomesticos` com o feed `ofertas.json`
+ligado; (3) no ar até ~14/11 para pegar a Black Friday (tênis e TV receberam clique em menos de 10 dias).
+
+Sem código novo: duas linhas em `whatsapp_group_pages` (`page_type = 'offers'`), `offer_terms`, categoria
+de eletrodomésticos com `group_slug`, lojas Casas Bahia, Magalu, Brastemp, Electrolux ligadas. Depois:
+cadastrar o grupo nos diretórios que o ChatGPT citou.
