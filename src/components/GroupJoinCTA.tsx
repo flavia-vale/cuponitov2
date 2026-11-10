@@ -1,10 +1,11 @@
-import { Radio, Send } from 'lucide-react';
+import { CalendarClock, Radio, Send } from 'lucide-react';
 import { useRouterState } from '@tanstack/react-router';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
-import { groupInfoForPage, groupVolumeFact, safeTelegramUrl } from '@/lib/whatsappGroup';
+import { groupInfoForPage, groupVolumeFact, safeTelegramUrl, seasonCountdown, seasonCountdownText } from '@/lib/whatsappGroup';
 import { trackEvent } from '@/lib/analytics';
 import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
 import { currentGclid } from '@/lib/adClickId';
+import GroupJoinQr from '@/components/GroupJoinQr';
 
 const WhatsAppIcon = ({ className = 'h-6 w-6' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={`${className} fill-current`} aria-hidden="true">
@@ -74,6 +75,9 @@ export default function GroupJoinCTA({
   const telegramUrl = safeTelegramUrl(groupPage?.telegram_url)
     ? buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, channel: 'telegram', gclid })
     : null;
+  // Data do painel (ex.: Black Friday); some sozinha depois do dia.
+  const countdown = seasonCountdown(info);
+  const countdownText = countdown ? seasonCountdownText(countdown) : null;
   const facts = [
     'Grátis',
     ...(groupVolumeFact(info) ? [groupVolumeFact(info)!] : []),
@@ -90,6 +94,11 @@ export default function GroupJoinCTA({
           <div>
             <h2 className="text-base font-black leading-tight sm:text-lg">{title}</h2>
             <p className="mt-0.5 text-xs font-semibold text-white/90">{text ?? facts.join(' · ')}</p>
+            {countdownText && (
+              <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-black/15 px-2.5 py-0.5 text-[11px] font-bold">
+                <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" /> {countdownText}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
@@ -111,6 +120,7 @@ export default function GroupJoinCTA({
           />
         )}
         </div>
+        <GroupJoinQr source={source} groupSlug={groupSlug} pagePath={pathname} size={84} label="No computador? Escaneie" className="shrink-0" />
       </section>
     );
   }
@@ -122,6 +132,11 @@ export default function GroupJoinCTA({
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
         <WhatsAppIcon className="h-8 w-8 text-white" />
       </div>
+      {countdownText && (
+        <p className="mx-auto mb-3 inline-flex items-center gap-1.5 rounded-full bg-black/15 px-3 py-1 text-xs font-bold sm:text-sm">
+          <CalendarClock className="h-4 w-4" aria-hidden="true" /> {countdownText}
+        </p>
+      )}
       <h2 className="text-2xl font-black leading-tight sm:text-3xl">{title}</h2>
       <p className="mx-auto mt-2 max-w-xl text-sm font-medium text-white/90 sm:text-base">
         {text ?? `${info.group_name}: ofertas de ${info.stores}.`}
@@ -150,6 +165,8 @@ export default function GroupJoinCTA({
       )}
 
       <p className="mt-4 text-xs font-semibold text-white/85 sm:text-sm">{facts.join(' · ')}</p>
+
+      <GroupJoinQr source={source} groupSlug={groupSlug} pagePath={pathname} className="mx-auto mt-5" />
 
       <div className="mt-3 flex flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row sm:gap-5">
         {info.channel_url && (

@@ -18,6 +18,8 @@ import { SITE_URL } from '@/lib/seo';
 import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
+  GROUP_TRUST_FACTS,
+  TRUST_POST_PATH,
   firstContentImage,
   groupInfoForPage,
   groupPagePath,
@@ -99,6 +101,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
         : []),
     { label: groupTopicsLabel(page), value: info.stores },
     ...(info.admins_only ? [{ label: 'Quem posta', value: 'só os administradores' }] : []),
+    ...GROUP_TRUST_FACTS,
   ];
 
   return (
@@ -153,6 +156,11 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
               </li>
             ))}
           </ul>
+          <p className="-mt-3 mb-6 text-sm">
+            <a href={TRUST_POST_PATH} className="font-bold text-[#ff5200] hover:underline">
+              Grupo de ofertas é confiável? Veja como conferir
+            </a>
+          </p>
 
           <GroupJoinCTA
             title="Entrar no grupo de ofertas"

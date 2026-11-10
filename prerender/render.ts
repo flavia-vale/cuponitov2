@@ -33,6 +33,9 @@ import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
   firstContentImage,
+  GROUP_TRUST_FACTS,
+  TRUST_POST_PATH,
+  seasonCountdown,
   type DirectorySection,
   groupCtaTitle,
   groupFactsSentence,
@@ -345,6 +348,9 @@ export function renderStorePage(
     canonical,
     ogImage: store.logo_url || DEFAULT_OG_IMAGE,
     modifiedTime: latestUpdate,
+    // Loja sem cupom ativo é página fina: continua no ar, mas fora do índice (e do sitemap).
+    // O Google deixou 75 páginas assim em "Detectada, mas não indexada" (09/11).
+    ...(coupons.length === 0 ? { robots: 'noindex, follow' } : {}),
   };
 
   const schema = {
@@ -413,6 +419,17 @@ export interface GroupPageContext {
   author: PrerenderAuthor | null;
   /** Últimas ofertas reais do grupo (vazio = bloco não aparece). */
   offers?: GroupOffer[];
+}
+
+/**
+ * Data do painel (ex.: Black Friday) como fato com data absoluta: o HTML fica em cache,
+ * então "faltam N dias" ficaria velho; a contagem em dias é só no React.
+ */
+function seasonDateFact(info: WhatsappGroupInfo): string {
+  const countdown = seasonCountdown(info);
+  return countdown
+    ? `<li><strong>${escapeHtml(countdown.label)}:</strong> <time datetime="${escapeHtml(info.countdown_date ?? '')}">${escapeHtml(countdown.dateText)}</time></li>`
+    : '';
 }
 
 /** Alternativa ao WhatsApp: botão azul do canal do Telegram, com as mesmas ofertas. */
@@ -501,6 +518,8 @@ export function renderGroupPage(
         : '',
     `<li><strong>${groupTopicsLabel(page)}:</strong> ${escapeHtml(info.stores)}</li>`,
     info.admins_only ? `<li><strong>Quem posta:</strong> só os administradores</li>` : '',
+    ...GROUP_TRUST_FACTS.map(fact => `<li><strong>${escapeHtml(fact.label)}:</strong> ${escapeHtml(fact.value)}</li>`),
+    seasonDateFact(info),
   ].join('');
 
   const actions = [
@@ -531,6 +550,7 @@ export function renderGroupPage(
           </p>
           <p>${escapeHtml(page.intro)}</p>
           <ul>${facts}</ul>
+          <p><a href="${SITE_URL}${TRUST_POST_PATH}">Grupo de ofertas é confiável? Veja como conferir</a></p>
           ${actions}
           ${
             context.offers && context.offers.length > 0
@@ -658,6 +678,8 @@ export function renderOffersPage(
           <h2>${ctaTitle}</h2>
           <p>${escapeHtml(groupFactsSentence(info))}</p>
           ${join}
+          <p>${GROUP_TRUST_FACTS.map(fact => `${escapeHtml(fact.label)}: ${escapeHtml(fact.value)}.`).join(' ')} <a href="${SITE_URL}${TRUST_POST_PATH}">É confiável? Veja como conferir</a></p>
+          ${seasonDateFact(info) ? `<ul>${seasonDateFact(info)}</ul>` : ''}
           ${
             offers.length > 0
               ? `<h2>Ofertas de hoje</h2><ul>${offerListItems(offers)}</ul>`
@@ -917,6 +939,8 @@ export function renderCategoryPage(
     description,
     canonical,
     modifiedTime: category.updated_at,
+    // Categoria sem cupom ativo: fora do índice e do sitemap, como a loja vazia.
+    ...(coupons.length === 0 ? { robots: 'noindex, follow' } : {}),
   };
 
   const schema = {

@@ -438,7 +438,7 @@ interface MiddlewareContext {
  * nunca da URL; `d=telegram` só escolhe o canal do Telegram cadastrado na página. Supabase fora do ar → link padrão: o botão nunca quebra.
  */
 async function handleJoinClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
-  const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'));
+  const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'), request.headers.get('cookie'));
   const [page, settings] = await Promise.all([
     // Publicada ou não: página despublicada pode guardar só o link do grupo (ex.: festas).
     row.group_slug ? fetchJoinPage(row.group_slug) : Promise.resolve(null),
