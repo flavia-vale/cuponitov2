@@ -403,3 +403,26 @@ ligado; (3) no ar até ~14/11 para pegar a Black Friday (tênis e TV receberam c
 Sem código novo: duas linhas em `whatsapp_group_pages` (`page_type = 'offers'`), `offer_terms`, categoria
 de eletrodomésticos com `group_slug`, lojas Casas Bahia, Magalu, Brastemp, Electrolux ligadas. Depois:
 cadastrar o grupo nos diretórios que o ChatGPT citou.
+
+### 9.6 Entregue em 10/11: migration `20261110190000_eletrodomesticos.sql`
+
+Flávia (10/11): ~30 ofertas por dia, grupo e Link Inteligente criados, nome "Promo Eletrodomésticos".
+
+| Página | Grupo | Busca principal | Termos do feed |
+|---|---|---|---|
+| `/ofertas/geladeira` | Promo Eletrodomésticos | geladeira em promoção (60.500); black friday geladeira (60.500 em nov) | geladeira, refrigerador, frost free, freezer, frigobar, side by side, inverse |
+| `/ofertas/ar-condicionado` | Promo Eletrodomésticos | ar condicionado em promoção (14.800; 33.100 em dez) | ar condicionado, split, btus, climatizador, ventilador |
+
+- Texto: Black Friday com dado do Planejador, preço por litro (geladeira), tabela de BTUs por cômodo (ar),
+  inverter, tipos, marcas, "é confiável?", FAQ (FAQPage no HTML do servidor). Título ≤ 55 caracteres.
+- A loja Electrolux passa a levar ao Promo Eletrodomésticos (`store_slug`).
+- Links internos: `/grupo-whatsapp` (lista por assunto), `/ofertas/tv`, as duas páginas entre si, o
+  diretório `/grupos-de-promocao` (seção "Casa e eletrodomésticos"), o "Veja também" de todas as páginas de
+  grupo e de ofertas, e o `llms.txt`.
+- Opcional no painel: ligar a categoria de eletrodomésticos (se houver) ao grupo `geladeira`, e as lojas
+  Brastemp/Consul/Midea, se existirem.
+
+**Ordem:** (1) ligar o feed `ofertas.json` do link `promo-eletrodomesticos` no Espelha Grupos (em `~/wabot/.env`,
+`SMART_LINK_PUBLIC_FEED=…,promo-eletrodomesticos` e `pm2 restart api`); (2) rodar a migration; (3) avisar o
+Claude para mandar IndexNow e rodar `npm run seo:entrega`; (4) Search Console → Inspecionar URL → pedir
+indexação das duas; (5) cadastrar o grupo nos diretórios que o ChatGPT citou (gruposwhatsapp.com, gruposwhats.app).
