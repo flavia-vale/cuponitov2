@@ -216,3 +216,112 @@ Natal. Tênis segue (busca estável o ano todo). TV e celular voltam ao nível d
 **Para o texto das páginas (regra do CLAUDE.md)**
 9. Para o resumo do 11.11 e o bloco de confiança não preciso de termo novo. Para qualquer página nova
    (ex.: `/ofertas/notebook`, `/ofertas/celular`), preciso antes do Planejador e das respostas das IAs.
+
+---
+
+## 7. Revisão de 10/11: Link Inteligente, Search Console e respostas da Flávia
+
+### 7.1 Clique no site × clique no Link Inteligente × membros (7 dias até 09/11)
+
+| Grupo | Cliques no `/entrar` (site) | Cliques no Link Inteligente | Membros hoje |
+|---|---|---|---|
+| Promo Celular | 80 | 81 | 55 |
+| Promo Tech (PC gamer) | 60 | 60 | 49 |
+| Promo Tênis | 43 | 46 | 26 |
+| Promo TV | 24 | 23 | 17 |
+| Promo Perfumes | 12 | 15 | 9 |
+| Promo iPhone | 9 | 9 | 11 |
+| Promo Salão | 8 | 9 | 10 |
+| Promo Fit (whey) | 7 | 7 | 8 |
+| Promo Bebês | — | 4 | 9 |
+| Promo Festas | — | 2 | 23 |
+| Ofertas Fafaciane (geral) | ~50 (amazon, achadinhos, shein, lojas…) | 98 | 199 (66 no grupo novo + 133) |
+
+Leitura:
+1. **Os números batem quase 1 para 1.** O site é a porta de entrada de praticamente todos os cliques dos
+   grupos de nicho. A suspeita de robô da seção 2.2 fica menor: se fosse robô, o Link Inteligente também
+   contaria (ele recebe o redirecionamento), então não dá para separar só por aqui. A Frente A resolve.
+2. **Clique vira membro.** Celular tem 55 membros, e a página está no ar desde 23/10. Tênis, com 10 dias,
+   tem 26. Não dá para calcular a taxa exata (o painel mostra o total de membros, não as entradas da
+   semana), mas a ordem de grandeza é de **metade a dois terços dos cliques virando membro**.
+3. **O geral recebe metade dos cliques por fora do site** (98 no link, ~50 pelo site): Instagram, bio,
+   divulgação direta.
+4. **Os grupos ainda são pequenos** (1% a 6% da capacidade). Não falta vaga; falta gente chegando.
+
+### 7.2 Search Console, pesquisa na web, 3 meses
+
+**40 cliques e 3.356 impressões no trimestre**, cerca de 2 cliques por dia agora. No mesmo período o botão
+do grupo recebeu 52 cliques **por dia**. **Mais de 90% dos leads não vêm do Google.** O mais provável é
+ChatGPT/Bing e diretórios; a Frente A vai dizer.
+
+O que o Google já dá:
+
+| Página | Cliques | Impressões | Posição |
+|---|---|---|---|
+| `/grupo-whatsapp/pc-gamer` | 20 | 97 | 6,1 |
+| home | 6 | 84 | 29,9 |
+| `/grupo-whatsapp/manicure` | 5 | 46 | 6,0 |
+| `/grupo-whatsapp/celular` | 2 | 20 | 7,5 |
+| `/desconto/cupom-desconto-aliexpress-br-latam` | 2 | 901 | 60,0 |
+
+- **As páginas de grupo ranqueiam na primeira página** (posição 6 a 7,5) e têm 10% a 20% de cliques por
+  impressão. "grupo de pc gamer whatsapp" está em 9,6; "grupo de manicure whatsapp" em 8,8.
+- **As páginas de cupom têm impressão e nenhum clique**: AliExpress, Casas Bahia, KaBuM e Amazon aparecem na
+  posição 60 a 90. Isso não vai virar lead. Exceções que estão perto: "desconto china in box" (posição 7,5)
+  e Casa das Alianças (21).
+- `/ofertas/tv` (12,5) e `/ofertas/whey` (4,6) já aparecem, com poucas impressões. `/ofertas/tenis` ainda
+  não aparece: o clique dela vem de outro lugar.
+
+### 7.3 Decisões da Flávia (10/11)
+
+| Pergunta | Resposta | O que muda |
+|---|---|---|
+| Código das frentes A e B | **Sim** | Feito neste PR (7.4) |
+| Google Ads | **Não** | Frente D sai. Lead quente só pelo orgânico e pela IA |
+| Diretórios | Cadastrou alguns, não lembra quais | A Frente A mostra quais mandam gente (aparecem como "Diretório: …") |
+| Mensagem de encaminhar no grupo | **Não** | Frente F sai |
+| iPhone no feed do Celular | **Não** | `/ofertas/iphone` continua com as ofertas dos últimos 30 dias |
+
+### 7.4 Entregue neste PR
+
+**Frente A: de onde vem o lead**
+- `index.html`: script de 10 linhas grava no cookie `cpn_src` (1 dia, só deste site) o `utm_source` do link
+  ou o **domínio** de onde a pessoa chegou; sem origem externa, `direto`. Navegar dentro do site não troca.
+- `/entrar` (`middleware.ts`) lê o cookie e grava em `group_join_clicks.source`. Sem URL completa, sem IP.
+- Clique **sem** o cookie = o JavaScript não rodou: aparece como "Sem JavaScript (provável robô)".
+- Aba Captação: quadro **"Por fonte"** (Google, Bing, ChatGPT, Perplexity, Gemini, Instagram, Diretório: …,
+  Direto…). Cliques de antes da medição aparecem como "Antes da medição de fonte".
+- Migration `20261110120000_group_join_clicks_source.sql`. Pode rodar antes ou depois do deploy: sem a
+  coluna, o `/entrar` grava o clique sem a fonte (nada se perde).
+
+**Frente B: tirar do Google o que está vazio**
+- Loja e categoria **sem cupom ativo** saem com `noindex, follow` no HTML do servidor e no React (mesma regra
+  nos dois). A página continua no ar para quem chega por link.
+- `api/sitemap.ts` só lista loja e categoria com pelo menos um cupom ativo e não vencido. Se a consulta
+  de cupons falhar, o sitemap sai como antes (sem filtro), para nunca sumir com as lojas boas.
+- Risco aceito: uma loja com impressão e sem cupom (ex.: China in Box, se estiver sem cupom) sai do índice.
+  Volta sozinha quando ganhar cupom.
+
+### 7.5 Ordem para pôr no ar (Flávia)
+
+1. Rodar `supabase/migrations/20261110120000_group_join_clicks_source.sql` no SQL Editor.
+2. Mesclar o PR (deploy na Vercel).
+3. No painel: **desativar** as lojas de teste (`lomadee-teste`, `loja-lomadee` e as duas `loja-lomadee-…` com
+   código no endereço) e **juntar** categorias repetidas (ex.: `animals` e `animais`): renomear uma para o nome
+   da outra move os cupons.
+4. Search Console → Sitemaps → reenviar `sitemap.xml`.
+5. Em 17/11: me mandar o quadro "Por fonte" da Captação. Com ele decidimos onde pôr o esforço da última
+   semana antes da Black Friday.
+
+### 7.6 O plano sem anúncio e sem encaminhamento
+
+Sobram as frentes que não dependem de dinheiro nem de mexer no grupo:
+
+1. **A e B** (este PR).
+2. **C: as 4 páginas que convertem** (celular, PC gamer, tênis, TV): resumo do 11.11 com ofertas reais em
+   12/11, contagem para 27/11, bloco de confiança no topo, QR code no computador.
+3. **E: diretórios e IA.** Com a fonte medida, cadastrar Tênis, TV e Celular nos diretórios que o ChatGPT
+   cita e ver se trazem gente. Rodada de perguntas nas IAs em 20/11.
+4. **Google:** as páginas de grupo já estão na posição 6 a 10. Subir para o top 3 multiplica o clique. Para
+   isso: mais texto útil e atualizado (o resumo semanal das ofertas do grupo), links internos das páginas
+   de loja com impressão (KaBuM → PC gamer, Netshoes → tênis) e pedir reindexação depois de cada atualização.

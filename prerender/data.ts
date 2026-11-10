@@ -411,11 +411,14 @@ export async function recordGroupJoinClick(row: JoinClickRow): Promise<boolean> 
   };
   try {
     if (await insert(row)) return true;
-    // Coluna `gclid` ainda não migrada (400): grava o clique sem ela, para não perder a contagem.
+    // Coluna opcional ainda não migrada (`gclid`, `source`) devolve 400: grava o clique sem
+    // as opcionais, para não perder a contagem.
+    // Primeiro tira só a mais nova (`source`), depois as duas.
+    const { source, ...withoutSource } = row;
+    if (source && (await insert(withoutSource))) return true;
     if (!row.gclid) return false;
-    const withoutGclid: JoinClickRow = { ...row };
-    delete withoutGclid.gclid;
-    return await insert(withoutGclid);
+    const { gclid: _gclid, ...base } = withoutSource;
+    return await insert(base);
   } catch {
     return false;
   }

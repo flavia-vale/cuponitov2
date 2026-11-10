@@ -33,6 +33,34 @@ async function fetchGroupPages(): Promise<GroupPageRow[]> {
   return (base.data ?? []) as unknown as GroupPageRow[]
 }
 
+type LiveCouponRow = { store: string | null; store_id: string | null; category: string | null }
+
+const COUPON_PAGE_SIZE = 1000
+const COUPON_PAGE_LIMIT = 20
+
+/**
+ * Cupons ativos e não vencidos (mesma regra do prerender e do React, `notExpiredFilter`,
+ * copiada pelo mesmo motivo do `groupPagePath`). Loja ou categoria sem nenhum fica fora do
+ * sitemap: é página fina, e o prerender já a marca `noindex`. Erro → null (sitemap sai sem filtro).
+ */
+async function fetchLiveCoupons(): Promise<LiveCouponRow[] | null> {
+  const now = new Date().toISOString()
+  const rows: LiveCouponRow[] = []
+  for (let page = 0; page < COUPON_PAGE_LIMIT; page += 1) {
+    const { data, error } = await supabase
+      .from('coupons')
+      .select('store, store_id, category')
+      .eq('status', true)
+      .or(`expiry.is.null,expiry.gte.${now}`)
+      .order('id')
+      .range(page * COUPON_PAGE_SIZE, (page + 1) * COUPON_PAGE_SIZE - 1)
+    if (error) return null
+    rows.push(...((data ?? []) as LiveCouponRow[]))
+    if (!data || data.length < COUPON_PAGE_SIZE) break
+  }
+  return rows
+}
+
 function formatDate(dateStr?: string | null): string | null {
   if (!dateStr) return null
   return dateStr.split('T')[0]
@@ -63,10 +91,10 @@ function latestDate(rows: Array<{ updated_at?: string | null }>): string | null 
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const [storesResult, postsResult, categoriesResult, couponsResult, groupPages] = await Promise.all([
+  const [storesResult, postsResult, categoriesResult, couponsResult, groupPages, liveCoupons] = await Promise.all([
     supabase
       .from('stores')
-      .select('slug, updated_at')
+      .select('id, name, slug, updated_at')
       .eq('active', true)
       .order('name'),
     supabase
@@ -76,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .order('created_at', { ascending: false }),
     supabase
       .from('coupon_categories')
-      .select('slug, updated_at')
+      .select('name, slug, updated_at')
       .order('sort_order')
       .order('name'),
     supabase
@@ -86,11 +114,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .order('updated_at', { ascending: false })
       .limit(1),
     fetchGroupPages(),
+    fetchLiveCoupons(),
   ])
 
-  const stores = storesResult.data ?? []
+  // Loja: o cupom aponta por `store_id` (= stores.id) ou pelo nome, como no prerender.
+  const liveStoreIds = new Set((liveCoupons ?? []).map(c => c.store_id).filter(Boolean))
+  const liveStoreNames = new Set((liveCoupons ?? []).map(c => c.store).filter(Boolean))
+  const liveCategories = new Set((liveCoupons ?? []).map(c => c.category).filter(Boolean))
+  const stores = (storesResult.data ?? []).filter(
+    store => !liveCoupons || liveStoreIds.has(store.id) || liveStoreNames.has(store.name)
+  )
   const posts = postsResult.data ?? []
-  const categories = categoriesResult.data ?? []
+  const categories = (categoriesResult.data ?? []).filter(
+    category => !liveCoupons || liveCategories.has(category.name)
+  )
   const coupons = couponsResult.data ?? []
   // Tabela ausente (migration ainda não aplicada) devolve erro: sitemap segue sem as páginas do grupo.
 

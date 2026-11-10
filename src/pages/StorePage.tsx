@@ -106,6 +106,7 @@ export default function StorePage() {
         canonical={`https://www.cuponito.com.br/desconto/${slug}`}
         ogImage={storeBrand?.logo_url || undefined}
         jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filteredCoupons }}
+        robots={!isLoading && activeCoupons.length === 0 ? 'noindex, follow' : undefined}
       />
       
       <Header />

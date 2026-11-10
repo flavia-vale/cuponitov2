@@ -345,6 +345,9 @@ export function renderStorePage(
     canonical,
     ogImage: store.logo_url || DEFAULT_OG_IMAGE,
     modifiedTime: latestUpdate,
+    // Loja sem cupom ativo é página fina: continua no ar, mas fora do índice (e do sitemap).
+    // O Google deixou 75 páginas assim em "Detectada, mas não indexada" (09/11).
+    ...(coupons.length === 0 ? { robots: 'noindex, follow' } : {}),
   };
 
   const schema = {
@@ -917,6 +920,8 @@ export function renderCategoryPage(
     description,
     canonical,
     modifiedTime: category.updated_at,
+    // Categoria sem cupom ativo: fora do índice e do sitemap, como a loja vazia.
+    ...(coupons.length === 0 ? { robots: 'noindex, follow' } : {}),
   };
 
   const schema = {

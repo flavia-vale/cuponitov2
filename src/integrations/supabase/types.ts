@@ -703,6 +703,7 @@ export type Database = {
           created_at: string
           device: string
           gclid: string | null
+          source: string | null
           group_slug: string | null
           id: number
           origin: string | null
@@ -712,6 +713,7 @@ export type Database = {
           created_at?: string
           device?: string
           gclid?: string | null
+          source?: string | null
           group_slug?: string | null
           id?: never
           origin?: string | null
@@ -721,6 +723,7 @@ export type Database = {
           created_at?: string
           device?: string
           gclid?: string | null
+          source?: string | null
           group_slug?: string | null
           id?: never
           origin?: string | null

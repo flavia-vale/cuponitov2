@@ -11,6 +11,23 @@
       content="Encontre cupons de desconto atualizados diariamente para Amazon, Shopee, Mercado Livre e centenas de outras lojas. Economia real e verificada."
     />
     <link rel="canonical" href="https://www.cuponito.com.br/" />
+    <script>
+      // Fonte da visita para a aba Captação (src/lib/visitSource.ts): só o domínio de onde a
+      // pessoa chegou, ou o utm_source do link (o ChatGPT põe utm_source=chatgpt.com).
+      // Sem identificador de pessoa. O /entrar lê o cookie; clique sem ele = JavaScript não rodou.
+      (function () {
+        try {
+          var clean = function (v) { return String(v || '').toLowerCase().replace(/^www\./, '').replace(/[^a-z0-9._-]/g, '').slice(0, 60); };
+          var utm = clean(new URLSearchParams(location.search).get('utm_source'));
+          var ref = '';
+          try { ref = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+          var external = ref && !/(^|\.)cuponito\.com\.br$/.test(ref);
+          var has = /(?:^|;\s*)cpn_src=/.test(document.cookie);
+          var source = utm || (external ? clean(ref) : '') || (has ? '' : 'direto');
+          if (source) document.cookie = 'cpn_src=' + source + '; path=/; max-age=86400; SameSite=Lax; Secure';
+        } catch (e) {}
+      })();
+    </script>
     <meta property="og:site_name" content="Cuponito" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:type" content="website" />
