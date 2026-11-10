@@ -325,3 +325,18 @@ Sobram as frentes que não dependem de dinheiro nem de mexer no grupo:
 4. **Google:** as páginas de grupo já estão na posição 6 a 10. Subir para o top 3 multiplica o clique. Para
    isso: mais texto útil e atualizado (o resumo semanal das ofertas do grupo), links internos das páginas
    de loja com impressão (KaBuM → PC gamer, Netshoes → tênis) e pedir reindexação depois de cada atualização.
+
+## 8. Entregue em 10/11 (noite): frente C nas páginas que convertem
+
+| O quê | Onde | Medição |
+|---|---|---|
+| **Contagem regressiva** "Black Friday: sexta, 27/11 · faltam N dias" no botão do grupo (todo o site). Some no dia seguinte à data | `GroupJoinCTA`; data no painel (Grupos do WhatsApp → Dados do grupo → Contagem regressiva); HTML do servidor mostra a data absoluta (o cache deixaria "faltam N dias" velho) | — |
+| **Bloco de confiança**: "Para sair: é só sair do grupo, quando quiser; não tem cadastro" e "Como o grupo se mantém: links de afiliado…", com link para o post "grupo de ofertas é confiável?" | páginas de grupo (lista de fatos) e de ofertas (abaixo do botão do topo), no React e no HTML do servidor | — |
+| **QR code no computador** ao lado do botão (só tela grande com mouse). Leva a fonte da visita na URL (`s=`), porque o celular não tem o cookie do computador | `GroupJoinQr` (biblioteca `qrcode-generator`, carregada só no computador) | origem `<botão>_qr` na Captação (ex.: `offers_page_top_qr`) |
+
+Migration `20261110150000_contagem_black_friday.sql` preenche "Black Friday" / 2026-11-27. Depois de 27/11,
+trocar no painel para "Natal" / 2026-12-25.
+
+O texto novo não cria termo de busca novo (são fatos do grupo), por isso entrou sem pedir dados de palavra-chave.
+
+**Fica para 12/11:** resumo do 11.11 nas páginas de celular, PC gamer, tênis e TV, com as ofertas reais do feed.

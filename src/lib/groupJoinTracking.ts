@@ -53,9 +53,21 @@ export interface JoinTrackingParams {
   channel?: JoinChannel;
   /** Clique de anúncio do Google que trouxe a pessoa ao site (vira conversão importada no Google Ads). */
   gclid?: string | null;
+  /**
+   * Fonte da visita levada na URL: só para o QR code, que é escaneado em outro aparelho
+   * (o celular não tem o cookie `cpn_src` do computador).
+   */
+  visitSource?: string | null;
 }
 
-export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = 'whatsapp', gclid }: JoinTrackingParams): string {
+export function buildJoinTrackingHref({
+  origin,
+  groupSlug,
+  pagePath,
+  channel = 'whatsapp',
+  gclid,
+  visitSource,
+}: JoinTrackingParams): string {
   const params = new URLSearchParams();
   const o = sanitizeToken(origin);
   const g = sanitizeToken(groupSlug);
@@ -66,6 +78,8 @@ export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = '
   if (channel === 'telegram') params.set('d', 'telegram');
   const gc = sanitizeGclid(gclid);
   if (gc) params.set('gc', gc);
+  const vs = sanitizeVisitSource(visitSource);
+  if (vs) params.set('s', vs);
   const query = params.toString();
   return query ? `${JOIN_TRACKING_PATH}?${query}` : JOIN_TRACKING_PATH;
 }
@@ -92,7 +106,7 @@ export function parseJoinTrackingQuery(
   cookieHeader: string | null = null
 ): JoinClickRow {
   const origin = sanitizeToken(search.get('o'), TOKEN_MAX - TELEGRAM_ORIGIN_SUFFIX.length);
-  const source = readVisitSourceCookie(cookieHeader);
+  const source = readVisitSourceCookie(cookieHeader) ?? sanitizeVisitSource(search.get('s'));
   return {
     origin: origin && parseJoinChannel(search) === 'telegram' ? `${origin}${TELEGRAM_ORIGIN_SUFFIX}` : origin,
     group_slug: sanitizeToken(search.get('g')),

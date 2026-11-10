@@ -120,6 +120,12 @@ function GroupInfoCard() {
           <Field label="Link do canal do WhatsApp" hint="Vazio = o botão do canal não aparece.">
             <Input value={form.channel_url} onChange={e => setForm(f => ({ ...f, channel_url: e.target.value }))} placeholder="https://whatsapp.com/channel/..." className="h-9 font-mono text-xs" />
           </Field>
+          <Field label="Contagem regressiva: nome da data" hint='Ex.: "Black Friday", "Natal". Vazio = sem contagem.'>
+            <Input value={form.countdown_label ?? ''} onChange={e => setForm(f => ({ ...f, countdown_label: e.target.value }))} placeholder="Black Friday" className="h-9" />
+          </Field>
+          <Field label="Contagem regressiva: data" hint="Aparece no botão do grupo até 45 dias antes e some no dia seguinte.">
+            <Input type="date" value={form.countdown_date ?? ''} onChange={e => setForm(f => ({ ...f, countdown_date: e.target.value }))} className="h-9" />
+          </Field>
         </div>
         <div className="flex items-center gap-3">
           <Switch checked={form.admins_only} onCheckedChange={checked => setForm(f => ({ ...f, admins_only: checked }))} />

@@ -16,6 +16,8 @@ import { authorProfileUrl, isFlavia } from '@/lib/authors';
 import { filterOffersByTerms, parseOfferTerms, recentOffers } from '@/lib/groupOfferFeed';
 import { SITE_URL } from '@/lib/seo';
 import {
+  GROUP_TRUST_FACTS,
+  TRUST_POST_PATH,
   firstContentImage,
   groupCtaTitle,
   groupFactsSentence,
@@ -134,8 +136,14 @@ export default function OffersPage({ slug }: { slug: string }) {
             groupSlug={page.slug}
             source="offers_page_top"
             context={page.slug}
-            className="mb-10"
+            className="mb-3"
           />
+          <p className="mb-10 text-xs text-muted-foreground sm:text-sm">
+            {GROUP_TRUST_FACTS.map(fact => `${fact.label}: ${fact.value}.`).join(' ')}{' '}
+            <a href={TRUST_POST_PATH} className="font-bold text-[#ff5200] hover:underline">
+              É confiável? Veja como conferir
+            </a>
+          </p>
 
           <section className="mb-10">
             <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">Ofertas de hoje</h2>

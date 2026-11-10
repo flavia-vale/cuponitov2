@@ -27,6 +27,10 @@ export interface WhatsappGroupInfo {
   channel_url: string;
   /** Grupo de nicho: volume em frase pronta ("cerca de 5 ofertas por dia"). Vazio = não informado. */
   volume?: string;
+  /** Contagem regressiva no botão do grupo (painel): nome da data, ex.: "Black Friday". Vazio = sem contagem. */
+  countdown_label?: string;
+  /** Data da contagem, AAAA-MM-DD. Depois dela a contagem some sozinha. */
+  countdown_date?: string;
 }
 
 export interface WhatsappGroupPageData {
@@ -141,6 +145,8 @@ export function buildDirectorySections(
 }
 
 /** Valor do `site_settings` mesclado com o padrão: chave faltando não pode sumir da página. */
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
 export function mergeGroupInfo(raw: unknown): WhatsappGroupInfo {
   if (!raw || typeof raw !== 'object') return DEFAULT_GROUP_INFO;
   const value = raw as Partial<Record<keyof WhatsappGroupInfo, unknown>>;
@@ -152,7 +158,59 @@ export function mergeGroupInfo(raw: unknown): WhatsappGroupInfo {
     stores: text('stores') || DEFAULT_GROUP_INFO.stores,
     admins_only: typeof value.admins_only === 'boolean' ? value.admins_only : DEFAULT_GROUP_INFO.admins_only,
     channel_url: safeExternalUrl(text('channel_url')) ?? '',
+    countdown_label: typeof value.countdown_label === 'string' ? value.countdown_label.trim().slice(0, 40) : '',
+    countdown_date:
+      typeof value.countdown_date === 'string' && ISO_DAY.test(value.countdown_date.trim())
+        ? value.countdown_date.trim()
+        : '',
   };
+}
+
+/** Página que responde "grupo de ofertas é confiável?" (2ª mais citada pela IA do Google em 09/11). */
+export const TRUST_POST_PATH = '/blog/grupo-de-ofertas-whatsapp-e-confiavel';
+
+/**
+ * Fatos de confiança das páginas do grupo (docs/plano-leads-quentes-2026-11-10.md, frente C).
+ * A dúvida "é confiável?" é a que a IA do Google mais responde sobre grupo de ofertas.
+ */
+export const GROUP_TRUST_FACTS: ReadonlyArray<{ label: string; value: string }> = [
+  { label: 'Para sair', value: 'é só sair do grupo, quando quiser; não tem cadastro' },
+  {
+    label: 'Como o grupo se mantém',
+    value: 'links de afiliado: a loja paga uma comissão ao Cuponito e você paga o mesmo preço',
+  },
+];
+
+export interface SeasonCountdown {
+  label: string;
+  /** "sexta, 27/11" */
+  dateText: string;
+  daysLeft: number;
+}
+
+const COUNTDOWN_MAX_DAYS = 45;
+const SAO_PAULO_ISO_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' });
+const WEEKDAY_PT = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', timeZone: 'UTC' });
+
+/** Contagem para a data do painel (fuso de São Paulo). Some no dia seguinte à data e a mais de 45 dias dela. */
+export function seasonCountdown(info: WhatsappGroupInfo, now: Date = new Date()): SeasonCountdown | null {
+  const label = info.countdown_label?.trim();
+  const date = info.countdown_date?.trim();
+  if (!label || !date || !ISO_DAY.test(date)) return null;
+  const target = Date.parse(`${date}T00:00:00Z`);
+  const today = Date.parse(`${SAO_PAULO_ISO_DAY.format(now)}T00:00:00Z`);
+  if (Number.isNaN(target) || Number.isNaN(today)) return null;
+  const daysLeft = Math.round((target - today) / 86_400_000);
+  if (daysLeft < 0 || daysLeft > COUNTDOWN_MAX_DAYS) return null;
+  const [, month, day] = date.split('-');
+  return { label, dateText: `${WEEKDAY_PT.format(new Date(target)).replace('-feira', '')}, ${day}/${month}`, daysLeft };
+}
+
+/** Texto da contagem: "Black Friday: sexta, 27/11 · faltam 17 dias". */
+export function seasonCountdownText(countdown: SeasonCountdown): string {
+  if (countdown.daysLeft === 0) return `É hoje: ${countdown.label}`;
+  if (countdown.daysLeft === 1) return `${countdown.label} é amanhã (${countdown.dateText})`;
+  return `${countdown.label}: ${countdown.dateText} · faltam ${countdown.daysLeft} dias`;
 }
 
 /** FAQ vem de JSONB editável no painel: item sem pergunta ou resposta fica fora (FAQPage inválido derruba o rich result). */
