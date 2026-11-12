@@ -14,6 +14,7 @@ import { AdminCouponCategoriesTab } from '@/components/admin/AdminCouponCategori
 import { AdminMarketingObservabilityTab } from '@/components/admin/AdminMarketingObservabilityTab';
 import { AdminWhatsappGroupsTab } from '@/components/admin/AdminWhatsappGroupsTab';
 import { AdminGroupFunnelTab } from '@/components/admin/AdminGroupFunnelTab';
+import { AdminCouponClicksTab } from '@/components/admin/AdminCouponClicksTab';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { RoleProtectedRoute } from '@/components/auth/RoleProtectedRoute';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,7 @@ export default function AdminCouponsDashboard() {
             {activeTab === 'integracoes' && <AdminIntegrationsTab />}
             {activeTab === 'grupo-whatsapp' && <AdminWhatsappGroupsTab />}
             {activeTab === 'captacao' && <AdminGroupFunnelTab />}
+            {activeTab === 'cliques-cupom' && <AdminCouponClicksTab />}
           </div>
 
         </main>

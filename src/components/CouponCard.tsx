@@ -13,6 +13,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { couponOutboundHref } from '@/lib/couponClickTracking';
 
 interface Props {
   coupon: Tables<'coupons'>;
@@ -40,7 +41,7 @@ const CouponCard = ({ coupon, storeBrand }: Props) => {
       toast({ title: 'Cupom copiado!', description: 'Agora é só colar no carrinho.' });
     }
     trackEvent('coupon_click', { source: 'coupon_card', store: coupon.store });
-    window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
+    window.open(couponOutboundHref(coupon, 'coupon_card', window.location.pathname), '_blank', 'noopener');
   };
 
   const handleReveal = (e: React.MouseEvent) => {

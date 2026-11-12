@@ -40,7 +40,9 @@ import {
   groupCtaTitle,
   groupFactsSentence,
   groupTopicsLabel,
+  isDirectoryPage,
   isNichePage,
+  isOffersPage,
   groupPagePath,
   pagePath,
   parseGroupFaq,
@@ -343,7 +345,7 @@ export function renderStorePage(
   }, null);
 
   const meta: HeadMeta = {
-    title: `Cupom de Desconto ${store.name} | Cuponito`,
+    title: `Cupom de Desconto ${store.name} Hoje | Cuponito`,
     description,
     canonical,
     ogImage: store.logo_url || DEFAULT_OG_IMAGE,
@@ -1200,16 +1202,34 @@ export interface HomeData {
   stores: PrerenderStore[];
   categories: PrerenderCategory[];
   posts: PrerenderPostSummary[];
+  /** Título e descrição do painel (`seo_defaults`), iguais aos do React. Ausente = texto padrão. */
+  seo?: { title: string; description: string } | null;
+  /** Páginas de ofertas e de grupo publicadas: a home linka todas (é a página mais forte do site). */
+  groupPages?: WhatsappGroupPageData[];
+}
+
+/** "Novembro 2026", como o `getMonthYear` do React (placeholder `{month_year}` do painel). */
+function monthYearLabel(now: Date = new Date()): string {
+  const month = now.toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' });
+  const year = now.toLocaleDateString('pt-BR', { year: 'numeric', timeZone: 'America/Sao_Paulo' });
+  return `${month.charAt(0).toUpperCase()}${month.slice(1)} ${year}`;
 }
 
 export function renderHomePage(data: HomeData): RenderedPage {
   const canonical = `${SITE_URL}/`;
+  const monthYear = monthYearLabel();
   const description =
+    data.seo?.description.replace('{month_year}', monthYear) ??
     'Encontre cupons de desconto atualizados diariamente para Amazon, Shopee, Mercado Livre e centenas de outras lojas. Economia real e verificada.';
   const updated = latestUpdate(data.coupons);
+  const linkItem = (page: WhatsappGroupPageData) =>
+    `<li><a href="${SITE_URL}${pagePath(page)}">${escapeHtml(page.h1)}</a></li>`;
+  const published = (data.groupPages ?? []).filter(page => !isDirectoryPage(page));
+  const offerLinks = published.filter(page => isOffersPage(page)).map(linkItem).join('');
+  const groupLinks = published.filter(page => !isOffersPage(page)).map(linkItem).join('');
 
   const meta: HeadMeta = {
-    title: 'Cuponito - Cupons de Desconto Verificados',
+    title: data.seo?.title.replace('{month_year}', monthYear) ?? 'Cuponito - Cupons de Desconto Verificados',
     description,
     canonical,
     modifiedTime: updated,
@@ -1246,10 +1266,12 @@ export function renderHomePage(data: HomeData): RenderedPage {
   const body = chrome(
     `
       <main>
-        <h1>Cupons de desconto verificados todos os dias</h1>
+        <h1>Promoções do dia, achadinhos e cupons de desconto</h1>
         <p>${escapeHtml(description)}</p>
         ${updated ? `<p>Última atualização dos cupons: <time datetime="${escapeHtml(updated)}">${formatDatePtBr(updated)}</time></p>` : ''}
 
+        ${offerLinks.length ? `<section><h2>Promoções do dia por produto</h2><ul>${offerLinks}</ul></section>` : ''}
+        ${groupLinks.length ? `<section><h2>Grupos de promoção no WhatsApp</h2><ul>${groupLinks}</ul></section>` : ''}
         ${
           data.coupons.length > 0
             ? `<h2>Cupons em destaque</h2><ul>${couponListItems(data.coupons.slice(0, 12), true)}</ul>

@@ -29,6 +29,9 @@ import {
   fetchGroupPages,
   fetchGroupSettings,
   recordGroupJoinClick,
+  fetchCouponDestination,
+  fetchHomeSeo,
+  recordCouponClick,
   fetchPost,
   fetchStore,
   fetchPublishedPosts,
@@ -62,6 +65,7 @@ import {
   parseJoinTrackingQuery,
   sanitizeToken,
 } from './src/lib/groupJoinTracking';
+import { COUPON_CLICK_PATH, parseCouponClickQuery, safeAffiliateUrl } from './src/lib/couponClickTracking';
 import {
   ACHADINHOS_FEED_PATH,
   ACHADINHOS_PATH,
@@ -107,6 +111,7 @@ export const config = {
     '/fale-conosco',
     '/termos-de-uso',
     '/entrar',
+    '/ir',
     '/achadinhos-hoje',
     '/achadinhos-hoje.json',
     '/store/:path*',
@@ -385,13 +390,15 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   }
 
   if (/^\/$/.test(pathname)) {
-    const [coupons, stores, categories, posts] = await Promise.all([
+    const [coupons, stores, categories, posts, seo, groupPages] = await Promise.all([
       fetchTopCoupons(20),
       fetchAllStores(12),
       fetchCategories(12),
       fetchPublishedPosts(5),
+      fetchHomeSeo(),
+      fetchGroupPages(),
     ]);
-    return renderHomePage({ coupons, stores, categories, posts });
+    return renderHomePage({ coupons, stores, categories, posts, seo, groupPages });
   }
 
   if (/^\/cupons\/?$/.test(pathname)) {
@@ -462,12 +469,43 @@ async function handleJoinClick(url: URL, request: Request, context?: MiddlewareC
   });
 }
 
+/**
+ * /ir: grava o clique no cupom (loja, página, botão, fonte) e redireciona para o link de
+ * afiliado salvo no cupom. O destino sai do banco pelo id, nunca da URL. Cupom inexistente
+ * ou link inválido → /cupons. Supabase fora do ar → /cupons (o clique não se perde para
+ * um destino errado).
+ */
+async function handleCouponClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
+  const parsed = parseCouponClickQuery(url.searchParams, request.headers.get('user-agent'), request.headers.get('cookie'));
+  const coupon = parsed.coupon_id ? await fetchCouponDestination(parsed.coupon_id) : null;
+  const destination = safeAffiliateUrl(coupon?.link) ?? `${SITE_URL}/cupons`;
+
+  if (coupon && parsed.coupon_id && !isLikelyBot(request.headers.get('user-agent'))) {
+    const recording = recordCouponClick({ ...parsed, coupon_id: parsed.coupon_id, store: coupon.store });
+    if (context?.waitUntil) context.waitUntil(recording);
+    else await recording;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: destination,
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
+  });
+}
+
 export default async function middleware(request: Request, context?: MiddlewareContext): Promise<Response | undefined> {
   const url = new URL(request.url);
   const { pathname } = url;
 
   if (pathname === JOIN_TRACKING_PATH) {
     return handleJoinClick(url, request, context);
+  }
+
+  if (pathname === COUPON_CLICK_PATH) {
+    return handleCouponClick(url, request, context);
   }
 
   // Ofertas do grupo para o React (mesma origem: o feed do Link Inteligente não libera CORS).
