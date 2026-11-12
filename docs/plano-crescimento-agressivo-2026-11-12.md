@@ -258,3 +258,189 @@ dominam. O caminho é a **cauda**:
   ([Cupom Online](https://www.cupomonline.com.br/afiliado-amazon-vale-a-pena/)); Mercado Livre até 16% em
   beleza, esportes, roupas e calçados ([Divulga Ninja](https://www.divulganinja.com.br/blog/quanto-mercado-livre-paga-afiliados-comissoes));
   Nina Makeup até 20% ([Mercado & Consumo](https://mercadoeconsumo.com.br/12/08/2026/destaque-do-dia/nina-makeup-lanca-programa-de-afiliados-com-comissao-de-ate-20/))
+
+---
+
+## 7. Revisão de 12/11 (noite): Planejador com números exatos, Captação e Link Inteligente
+
+Dados da Flávia: 4 planilhas do Planejador (21.924 termos, Brasil, nov/2025 a out/2026, série mensal),
+Captação de 7 dias e painel do Link Inteligente. Decisões: **sim** para o medidor de clique em cupom,
+para mais de um grupo por mês e para a home deixar de mirar só "cupons de desconto".
+
+### 7.1 Urgente: o Promo Eletrodomésticos não leva ninguém
+
+O link `promo-eletrodomesticos` está **sem grupo** ("Falta adicionar um grupo"). Quem clica em
+`/ofertas/geladeira` e `/ofertas/ar-condicionado` não entra em lugar nenhum. Correção (1 minuto):
+Link Inteligente → PROMO ELETRODOMÉSTICOS → "Grupo para adicionar" → PROMO ELETRODOMÉSTICOS → Adicionar.
+
+### 7.2 De onde vem o lead: o ChatGPT
+
+**466 cliques em 7 dias** (66,6 por dia; eram 362 na semana anterior, +29%).
+
+| Fonte (cliques com fonte medida) | Cliques | Parte |
+|---|---|---|
+| **ChatGPT** | **151** | **65%** |
+| Sem JavaScript (provável robô) | 50 | 21% |
+| Direto (WhatsApp, app, favorito) | 22 | 9% |
+| Gemini | 4 | 2% |
+| Google | 4 | 2% |
+| Outro buscador | 3 | 1% |
+
+Outros 232 cliques são de antes da medição. Google Ads: 0 cliques no botão.
+
+1. **O ChatGPT traz dois terços dos leads; o Google, 2%.** O canal que mais cresce é a resposta da IA.
+   As páginas que o ChatGPT cita são as de **grupo** ("grupo de promoção de celular", "pc gamer") e o
+   diretório `/grupos-de-promocao`, que em uma semana virou a **4ª página em cliques (42)**.
+2. Por isso as páginas de grupo **não mudam de título** (celular, pc-gamer, manicure): é o que a IA cita.
+3. O Google é a aposta de médio prazo. É lá que estão os volumes grandes ("celular em promoção" 90.500),
+   e quem os pega são as páginas **de ofertas** por produto.
+
+### 7.3 Clique vira membro? Menos do que parecia
+
+| Grupo | Membros 10/11 | Membros 12/11 | Cliques no link (7 dias) |
+|---|---|---|---|
+| Promo Tech (PC gamer) | 49 | 63 | 83 |
+| Promo Celular | 55 | 64 | 89 |
+| Promo Tênis | 26 | 37 | 64 |
+| Promo TV | 17 | 25 | 38 |
+| Promo Fit (whey) | 8 | 13 | 20 |
+| Promo Perfumes | 9 | 12 | 28 |
+| Promo iPhone | 11 | 12 | 14 |
+| Promo Salão / Bebês / Festas | 10 / 9 / 23 | 10 / 9 / 23 | 8 / 4 / 2 |
+| Ofertas Fafaciane (geral) | 199 | 202 | 102 |
+
+São +54 membros em 2 a 3 dias, ou cerca de 20 por dia, contra cerca de 64 cliques por dia no Link
+Inteligente. Isso dá **entre 25% e 35% de clique virando membro**, já descontando quem saiu. Não é a
+metade a dois terços estimada em 10/11.
+
+**Leitura:** de cada 3 pessoas que clicam, 2 não ficam no grupo. Melhorar a tela do convite (nome, foto e
+descrição do grupo, a primeira mensagem fixada) é mais barato que trazer mais visitas. Para medir: anotar
+os membros de cada grupo **todo dia no mesmo horário** por uma semana.
+
+### 7.4 O que o Planejador mostrou
+
+**"Grupo de…" quase ninguém busca no Google.** Todas as variações de "grupo de promoção/ofertas
+whatsapp" somam ~6 mil por mês. "Celular em promoção" sozinho tem 90 mil. A pessoa busca **o produto**.
+
+| Tema (variações somadas sem repetir) | Busca/mês | Nov/25 | Dez/25 | Lance máx. (R$) | Grupo |
+|---|---|---|---|---|---|
+| **Celular** (em promoção 90.500, barato 90.500, bom e barato 49.500, Samsung barato 22.200) | ~590 mil | 650 mil | 613 mil | 1,40 | Promo Celular |
+| **Tênis** (masculino 60.500, feminino 40.500, promoção 40.500, Nike 14.800, Adidas 12.100) | ~438 mil | 598 mil | 427 mil | 1,09 | Promo Tênis |
+| **Pneu** (em promoção 5.400; por medida, ex. 175/70 R14 3.600; cupom Pneustore 9.900) | ~144 mil | 198 mil | 167 mil | **3,64** | — (novo) |
+| **Máquina de lavar** (roupa 12.100, em promoção 9.900, lava e seca 6.600) | ~68 mil | 80 mil | 53 mil | 2,74 | Eletrodomésticos |
+| **Notebook** (em promoção 22.200) | ~54 mil | 63 mil | 36 mil | 2,11 | Tech Nerd |
+| **Micro-ondas** (promoção 18.100) | ~42 mil | 61 mil | 40 mil | 1,98 | Eletrodomésticos |
+| **TV** (50 polegadas 6.600; "tv em promoção" já medido em 23/10) | ~39 mil | 51 mil | 33 mil | 1,78 | Promo TV |
+| **Ventilador** (na promoção 8.100 → **27.100 em dez**) | ~36 mil | 49 mil | **110 mil** | 0,91 | Eletrodomésticos |
+| **Sofá** (em promoção 12.100 → 22.200 em nov) | ~36 mil | 62 mil | 35 mil | 1,56 | — (novo) |
+| Café, cafeteira e cápsulas (Dolce Gusto 3.600 + 3.600) | ~31 mil | 44 mil | 26 mil | 3,82 | — (novo) |
+| Air fryer (promoção 8.100 → 14.800 em nov) | ~30 mil | 55 mil | 28 mil | 1,18 | Eletrodomésticos |
+| Colchão (casal 4.400, solteiro 3.600 + 2.900) | ~24 mil | 32 mil | 26 mil | 2,59 | — (novo) |
+| Havaianas/chinelo (havaianas promoção 4.400 → 12.100 em dez) | ~21 mil | 44 mil | 47 mil | 0,88 | Promo Tênis |
+| **PS5** (promoção 9.900, **+124% no ano**) | ~21 mil | 33 mil | 23 mil | 1,46 | Tech Nerd |
+| iPhone (mais barato 6.600) | ~16 mil | 17 mil | 16 mil | 1,38 | Promo iPhone |
+| Ferramentas (1.900, +85% no ano) | ~12 mil | 15 mil | 12 mil | 1,06 | — |
+| Maquiagem (4.400, +50% no ano) | ~6 mil | 9 mil | 6 mil | 1,87 | Promo Salão |
+| Brinquedos (3.600, +128% em 3 meses) | ~6 mil | 7 mil | 8 mil | 0,76 | Promo Bebês |
+| Ração (720) | ~5 mil | 5 mil | 4 mil | 7,12 | — |
+| Esmalte (1.900, +46% no ano) | ~3 mil | 4 mil | 3 mil | 1,14 | Promo Salão |
+
+Notas:
+- "promoções de panelas de pressão" aparece com 301 mil. É erro do Planejador: "panela de pressão
+  promoção" tem 3.600. Ficou fora da conta.
+- **A forma de escrever muda tudo:** "colchão em promoção" tem só 210, mas "colchao de casal promoção"
+  tem 4.400. "Iphone em promoção" quase some diante de "iphone mais barato". O título usa a forma que a
+  pessoa digita.
+- O **lance máximo** é o quanto os anunciantes pagam pelo clique: mostra quanto vale a venda. Pneu
+  (R$ 3,64), cafeteira (R$ 3,82) e máquina de lavar (R$ 2,74) valem mais por clique que tênis (R$ 1,09).
+
+### 7.5 Prioridade 1: o que já mudou (este PR) e o que vem
+
+**Feito neste PR** (`20261112150000_palavras_chave_ads.sql` + código):
+
+| Página | Antes | Depois | Por quê |
+|---|---|---|---|
+| Home (título do painel, `index.html` e HTML do servidor iguais) | Cuponito - Cupons de Desconto Verificados | **Promoções do Dia e Cupons de Desconto** | "promoções do dia", "ofertas do dia" e "ofertas hoje" com 2.400 cada; a home passa a linkar todas as páginas de ofertas e de grupo |
+| Lojas (React e servidor iguais) | Cupom de Desconto X \| Até 80% OFF – mês | **Cupom de Desconto X Hoje** | "cupom X hoje" cresce: Amazon +646%, AliExpress +967%, Americanas +175%; "Até 80% OFF" não era verdade para toda loja |
+| `/grupo-whatsapp/principal` | Grupo de Ofertas e Promoções | **Grupo de Promoção e Ofertas** | "grupo de promoção whatsapp" 2.900 > "de ofertas" 1.300 |
+| `/ofertas/tenis` | Nike, Adidas, corrida e feminino | **masculino e feminino** + seções masculino/feminino e marcas | masculino (60.500) é o maior termo e não estava no título |
+| `/ofertas/tv` | — | seção **TV 50 polegadas** | 6.600 + variações |
+| `/ofertas/iphone` | ofertas de iPhone novo | **iPhone Mais Barato** | 6.600 contra 880 |
+| `/grupo-whatsapp/shopee` | Grupo de Achadinhos da Shopee | **Achadinhos da Shopee: grupo** | "achadinhos da shopee" 12.100 contra 480 |
+
+**Próximas portas para grupos que já existem** (até 20/11, para pegar a Black Friday). Todas têm o volume;
+falta confirmar oferta no feed e a resposta da IA (seção 7.8):
+
+| Página nova | Grupo | Busca principal | Novembro |
+|---|---|---|---|
+| `/ofertas/celular` | Promo Celular | celular em promoção 90.500; celular bom e barato 49.500; Samsung barato 22.200 | 110 mil |
+| `/ofertas/notebook` | Promo Tech | notebook em promoção 22.200 | 27 mil |
+| `/ofertas/microondas` | Eletrodomésticos | micro ondas promoção 18.100 | 27 mil |
+| `/ofertas/maquina-de-lavar` | Eletrodomésticos | máquina de lavar roupa promoção 12.100 + em promoção 9.900 + lava e seca 6.600 | 27 mil |
+| `/ofertas/ps5` | Promo Tech | ps5 promoção 9.900 (+124% no ano) | 15 mil |
+| `/ofertas/ventilador` (até 01/12) | Eletrodomésticos | ventilador na promoção 8.100 → 27.100 em dezembro | pico em dez |
+
+`/ofertas/celular` é a maior oportunidade do site: o Promo Celular já é o 2º grupo em cliques, e a página
+de ofertas pega a busca de produto sem mexer na página do grupo, que é a que o ChatGPT cita.
+
+### 7.6 Prioridade 2: grupos novos
+
+| Grupo novo | Páginas | Busca | Por que sim | Risco |
+|---|---|---|---|---|
+| **1. Promo Casa** | `/ofertas/sofa`, `/ofertas/colchao`, depois panelas e cafeteira | sofá 12.100 (22.200 em nov); colchão casal + solteiro ~11 mil; Dolce Gusto 7.200; jogo de panelas 2.400 | ~100 mil por mês somando, lances de R$ 1,56 a 3,82, Casas Bahia, Magalu e Mercado Livre | frete de móvel; precisa de ≥ 10 ofertas por dia |
+| **2. Promo Auto (pneus)** | `/ofertas/pneu`, com tabela por aro e medida | pneu em promoção 5.400; ~144 mil somando as medidas; cupom Pneustore 9.900 | **clique mais valioso do estudo (R$ 3,64)**, compra planejada, busca o ano todo | público novo para os grupos; oferta precisa ter a medida no título |
+
+Não vale abrir agora:
+- Cerveja (9.900, 18.100 em dez): a maior parte é de mercado local (Atacadão, Assaí), sem afiliado.
+- Ração (720), ferramentas (1.900), smartwatch (880), monitor (480): pouco volume.
+- Brinquedos (3.600) e maquiagem (4.400) não precisam de grupo próprio: viram páginas de grupos que já
+  existem (Promo Bebês no Natal; Promo Salão, que está parado com 10 membros e pode virar **Promo Beleza**).
+
+### 7.7 Prioridade 3: cupons
+
+**Feito:** medidor de clique em cupom (`/ir`, aba **Cliques em cupom**, migration
+`20261112120000_coupon_clicks.sql`). Mostra o clique por loja, página, botão e fonte, igual à Captação.
+
+Buscas de cupom com mais volume no estudo: **Pneustore 9.900**, **Magalu hoje 8.100**, **Amazon hoje 3.600
+(+646%)**, **Havaianas 3.600** (12.100 em nov/25), **Boticário hoje 2.900**, Achei Pneus 1.600, Motorola
+1.600, KaBuM hoje 1.000, Americanas hoje 880.
+
+Ordem, depois de 7 dias de medidor:
+1. Ver na aba quais lojas recebem clique e cruzar com a comissão da rede.
+2. Garantir cupom ativo e página caprichada para **Pneustore** (liga com o Promo Auto), **Havaianas**
+   (verão) e **Boticário** (Natal), se tiverem programa de afiliado.
+3. Loja grande (Amazon, Magalu) continua com pouca chance no Google: o tráfego vem pelos grupos.
+
+### 7.8 O que preciso da Flávia agora
+
+**Hoje (5 minutos)**
+1. **Adicionar o grupo ao link do Promo Eletrodomésticos** (7.1).
+2. Rodar no SQL Editor: `20261112120000_coupon_clicks.sql` e `20261112150000_palavras_chave_ads.sql`.
+3. Mesclar o PR.
+
+**Para as páginas novas (até 14/11; o ChatGPT é 65% dos leads)**
+4. **ChatGPT**, com print das fontes citadas, para cada pergunta:
+   - "onde achar celular em promoção hoje?" e "qual celular bom e barato comprar na Black Friday?"
+   - "tem grupo de promoção de notebook no WhatsApp?" e "onde achar notebook em promoção?"
+   - "tem grupo de promoção de PS5 no WhatsApp?"
+   - "onde achar micro-ondas e máquina de lavar em promoção?"
+   - "tem grupo de promoção de móveis / sofá / colchão no WhatsApp?"
+   - "tem grupo de promoção de pneus no WhatsApp?"
+5. **Espelha Grupos:** quantas ofertas por dia chegam de celular, notebook, PS5, micro-ondas, máquina de
+   lavar, sofá/colchão e pneu. Uma página só entra com ≥ 3 por dia do produto, e um grupo novo com ≥ 10.
+
+**Decisões**
+6. Promo Casa e Promo Auto: abrir se o feed tiver oferta?
+7. Promo Salão → Promo Beleza (maquiagem + esmalte + salão)?
+8. Google Ads: a campanha gastou? Se vai continuar, o anúncio tem que apontar para as páginas do site
+   (a Captação contou 0 cliques vindos de anúncio).
+
+### 7.9 Metas revistas
+
+| Data | Meta | Medida |
+|---|---|---|
+| 19/11 | 6 portas novas no ar (7.5) | — |
+| 30/11 | ≥ 1.000 cliques por semana no botão | Captação |
+| 30/11 | ≥ 35% de clique virando membro | membros/dia × cliques |
+| 31/12 | ≥ 1.500 membros somando os grupos de nicho (hoje: 279) | Link Inteligente |
+| 31/12 | Promo Casa no ar com ≥ 100 membros | Link Inteligente |
