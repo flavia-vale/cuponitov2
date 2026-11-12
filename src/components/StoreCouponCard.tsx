@@ -11,6 +11,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { couponOutboundHref } from '@/lib/couponClickTracking';
 
 interface Props {
   coupon: Tables<'coupons'>;
@@ -43,7 +44,7 @@ export default function StoreCouponCard({ coupon, isExpired: isExpiredProp = fal
       toast({ title: 'Cupom copiado!', description: 'Agora é só colar no carrinho.' });
       setTimeout(() => setCopied(false), 2000);
     }
-    window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
+    window.open(couponOutboundHref(coupon, 'store_coupon_card', window.location.pathname), '_blank', 'noopener');
   };
 
   return (

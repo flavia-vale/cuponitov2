@@ -18,7 +18,7 @@ function downloadCsv(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
-function RankedTable({ title, rows, emptyText }: { title: string; rows: JoinClickSummaryRow[]; emptyText: string }) {
+export function RankedTable({ title, rows, emptyText }: { title: string; rows: JoinClickSummaryRow[]; emptyText: string }) {
   return (
     <Card>
       <CardHeader>

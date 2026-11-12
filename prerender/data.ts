@@ -9,6 +9,7 @@ import {
 } from '../src/lib/whatsappGroup';
 import { notExpiredFilter } from '../src/lib/couponValidity';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
+import type { CouponClickRow } from '../src/lib/couponClickTracking';
 import { offerFeedUrl, parseGroupOffers, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 const FALLBACK_SUPABASE_URL ='https://jyvmrkykukialdbcebei.supabase.co';
@@ -430,6 +431,41 @@ const OFFER_FEED_TIMEOUT_MS = 3000;
  * Ofertas reais do grupo (feed público do Link Inteligente). Qualquer falha ou
  * feed desligado = lista vazia: a página sai sem o bloco, nunca quebra.
  */
+/**
+ * Link de afiliado e loja do cupom, para o /ir. `undefined` = o Supabase falhou;
+ * `null` = cupom não existe. Só colunas que existem desde o início (`link`, `store`).
+ */
+export async function fetchCouponDestination(
+  couponId: string
+): Promise<{ link: string | null; store: string | null } | null | undefined> {
+  const rows = await tryQuery<{ link: string | null; store: string | null }>(
+    `coupons?id=eq.${encodeURIComponent(couponId)}&select=link,store&limit=1`
+  );
+  if (rows === null) return undefined;
+  return rows[0] ?? null;
+}
+
+/** Grava um clique em cupom. Tabela ainda não migrada → false (o redirecionamento segue). */
+export async function recordCouponClick(row: CouponClickRow): Promise<boolean> {
+  const { url, key } = credentials();
+  try {
+    const response = await fetch(`${url}/rest/v1/coupon_clicks`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(row),
+      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchGroupOffers(joinUrl: string | null): Promise<GroupOffer[]> {
   const feedUrl = offerFeedUrl(joinUrl);
   if (!feedUrl) return [];
