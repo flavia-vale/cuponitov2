@@ -444,3 +444,57 @@ Ordem, depois de 7 dias de medidor:
 | 30/11 | ≥ 35% de clique virando membro | membros/dia × cliques |
 | 31/12 | ≥ 1.500 membros somando os grupos de nicho (hoje: 268) | Link Inteligente |
 | 31/12 | Promo Casa no ar com ≥ 100 membros | Link Inteligente |
+
+---
+
+## 8. Executado em 12/11 (noite): as próximas apostas
+
+A Flávia mandou executar tudo antes das respostas das IAs e da contagem de ofertas por produto.
+Proteção: página de ofertas sem oferta sai com `noindex`, e as páginas sem grupo próprio levam ao
+grupo geral. Migration `20261112180000_portas_e_grupos_novos.sql`, testada num Postgres local (roda
+duas vezes sem duplicar nada).
+
+| Página | Grupo | Busca principal (mês) | Termos do feed |
+|---|---|---|---|
+| `/ofertas/celulares` | Promo Celular | celular em promoção 90.500; bom e barato 49.500 | celular, smartphone, galaxy, motorola, xiaomi… |
+| `/ofertas/notebook` | Promo Tech Nerd | notebook em promoção 22.200 | notebook, laptop, chromebook, macbook |
+| `/ofertas/ps5` | Promo Tech Nerd | ps5 promoção 9.900 (+124%) | ps5, playstation 5, dualsense |
+| `/ofertas/microondas` | Promo Eletrodomésticos | micro ondas promoção 18.100 | micro-ondas, microondas |
+| `/ofertas/maquina-de-lavar` | Promo Eletrodomésticos | ~28 mil somando; lava e seca 6.600 | maquina de lavar, lavadora, lava e seca, tanquinho |
+| `/ofertas/ventilador` | Promo Eletrodomésticos | 8.100 → 27.100 em dez | ventilador, circulador de ar |
+| `/ofertas/maquiagem` | Promo Salão | maquiagem em promoção 4.400 (+50%) | maquiagem, batom, skincare, sérum… |
+| `/ofertas/brinquedos` | Promo Bebês | brinquedos em promoção 3.600 (pico nov/dez) | brinquedo, lego, boneca, hot wheels… |
+| `/ofertas/sofa` | **grupo geral até o Promo Casa existir** | sofá em promoção 12.100 (22.200 em nov) | sofa, poltrona, chaise |
+| `/ofertas/colchao` | **grupo geral até o Promo Casa existir** | colchão de casal 4.400; de solteiro 3.600 | colchao, cama box |
+| `/ofertas/pneu` | **grupo geral até o Promo Auto existir** | pneu em promoção 5.400; aro 13 5.400 | pneu, pneus |
+
+- O slug é `celulares`, porque `celular` já é a página do grupo (a que o ChatGPT cita). A página do grupo
+  ganhou um link para a de ofertas.
+- Links internos: a home e o "Veja também" de todas as páginas de grupo e de ofertas listam as novas
+  sozinhos. Também há links no texto de PC gamer, celular, geladeira, ar-condicionado, manicure e fraldas.
+  As páginas entraram no `llms.txt` e entram no sitemap pelo banco.
+
+### Ordem para pôr no ar (Flávia)
+
+1. Link Inteligente: **adicionar o grupo ao link do Promo Eletrodomésticos** (7.1). Sem isso, 5 páginas
+   levam a um link vazio.
+2. SQL Editor, nesta ordem: `20261112120000_coupon_clicks.sql`, `20261112150000_palavras_chave_ads.sql`,
+   `20261112180000_portas_e_grupos_novos.sql`.
+3. Mesclar o PR.
+4. Avisar o Claude para mandar o IndexNow das 11 páginas e rodar `npm run seo:entrega`.
+5. Search Console → Inspecionar URL → pedir indexação de `/ofertas/celulares`, `/ofertas/notebook` e
+   `/ofertas/microondas` (as de maior busca).
+6. **Promo Casa e Promo Auto:** quando criar os grupos e os links no Link Inteligente (com o feed
+   `ofertas.json` ligado no Espelha Grupos), preencher no painel (Grupos do WhatsApp → sofá, colchão e
+   pneu) o **link do grupo**, o **nome do grupo** e o **"O que chega"**. A página passa a levar ao grupo novo
+   e a mostrar as ofertas dele.
+7. Em 7 dias: as páginas que saírem sem oferta nenhuma (o Google não vê, mas a pessoa vê) indicam
+   termos do feed a ajustar ou produto sem oferta no grupo. A aba Captação mostra os cliques de cada uma.
+
+### Ainda falta (para confirmar ou corrigir as páginas)
+
+- As respostas do ChatGPT para as perguntas da seção 7.8: ele traz 65% dos leads, e é ele que vai dizer
+  se cita as páginas novas.
+- A contagem de ofertas por dia de cada produto no Espelha Grupos.
+- A decisão de renomear o Promo Salão para **Promo Beleza**: se sim, troca no WhatsApp e no painel
+  (nome do grupo e "O que chega" da página `maquiagem` e da `manicure`).
