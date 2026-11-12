@@ -387,6 +387,17 @@ export async function fetchGroupSettings(): Promise<{ info: WhatsappGroupInfo; g
   };
 }
 
+/** Título e descrição da home do painel (SEO & Config → `seo_defaults`), os mesmos que o React usa. */
+export async function fetchHomeSeo(): Promise<{ title: string; description: string } | null> {
+  const rows = await query<{ value: { home_title?: unknown; home_description?: unknown } | null }>(
+    'site_settings?key=eq.seo_defaults&select=value&limit=1'
+  );
+  const value = rows[0]?.value;
+  const title = typeof value?.home_title === 'string' ? value.home_title.trim() : '';
+  const description = typeof value?.home_description === 'string' ? value.home_description.trim() : '';
+  return title && description ? { title, description } : null;
+}
+
 export async function fetchPublishedPosts(limit = 30): Promise<PrerenderPostSummary[]> {
   return query<PrerenderPostSummary>(
     `blog_posts?status=eq.published&select=title,slug,excerpt,published_at,updated_at&order=published_at.desc&limit=${limit}`

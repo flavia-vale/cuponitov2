@@ -30,6 +30,7 @@ import {
   fetchGroupSettings,
   recordGroupJoinClick,
   fetchCouponDestination,
+  fetchHomeSeo,
   recordCouponClick,
   fetchPost,
   fetchStore,
@@ -389,13 +390,15 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   }
 
   if (/^\/$/.test(pathname)) {
-    const [coupons, stores, categories, posts] = await Promise.all([
+    const [coupons, stores, categories, posts, seo, groupPages] = await Promise.all([
       fetchTopCoupons(20),
       fetchAllStores(12),
       fetchCategories(12),
       fetchPublishedPosts(5),
+      fetchHomeSeo(),
+      fetchGroupPages(),
     ]);
-    return renderHomePage({ coupons, stores, categories, posts });
+    return renderHomePage({ coupons, stores, categories, posts, seo, groupPages });
   }
 
   if (/^\/cupons\/?$/.test(pathname)) {
