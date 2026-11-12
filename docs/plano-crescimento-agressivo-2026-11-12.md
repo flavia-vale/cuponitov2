@@ -442,5 +442,5 @@ Ordem, depois de 7 dias de medidor:
 | 19/11 | 6 portas novas no ar (7.5) | — |
 | 30/11 | ≥ 1.000 cliques por semana no botão | Captação |
 | 30/11 | ≥ 35% de clique virando membro | membros/dia × cliques |
-| 31/12 | ≥ 1.500 membros somando os grupos de nicho (hoje: 279) | Link Inteligente |
+| 31/12 | ≥ 1.500 membros somando os grupos de nicho (hoje: 268) | Link Inteligente |
 | 31/12 | Promo Casa no ar com ≥ 100 membros | Link Inteligente |
