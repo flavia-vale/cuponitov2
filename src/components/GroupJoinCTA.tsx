@@ -5,6 +5,7 @@ import { groupInfoForPage, groupVolumeFact, safeTelegramUrl } from '@/lib/whatsa
 import { trackEvent } from '@/lib/analytics';
 import { buildJoinTrackingHref } from '@/lib/groupJoinTracking';
 import { currentGclid } from '@/lib/adClickId';
+import JoinQrCode from '@/components/JoinQrCode';
 
 const WhatsAppIcon = ({ className = 'h-6 w-6' }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={`${className} fill-current`} aria-hidden="true">
@@ -70,6 +71,8 @@ export default function GroupJoinCTA({
   const pathname = useRouterState({ select: state => state.location.pathname });
   const gclid = currentGclid();
   const joinUrl = buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, gclid });
+  // QR do computador: mesma página e grupo, origem própria para a Captação separar.
+  const qrUrl = buildJoinTrackingHref({ origin: `${source}_qr`, groupSlug, pagePath: pathname, gclid });
   // Canal do Telegram da página: também passa pelo /entrar, que resolve o destino.
   const telegramUrl = safeTelegramUrl(groupPage?.telegram_url)
     ? buildJoinTrackingHref({ origin: source, groupSlug, pagePath: pathname, channel: 'telegram', gclid })
@@ -111,6 +114,7 @@ export default function GroupJoinCTA({
           />
         )}
         </div>
+        <JoinQrCode href={qrUrl} size={88} />
       </section>
     );
   }
@@ -150,6 +154,8 @@ export default function GroupJoinCTA({
       )}
 
       <p className="mt-4 text-xs font-semibold text-white/85 sm:text-sm">{facts.join(' · ')}</p>
+
+      <JoinQrCode href={qrUrl} className="mx-auto mt-4 w-fit" />
 
       <div className="mt-3 flex flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row sm:gap-5">
         {info.channel_url && (

@@ -446,7 +446,7 @@ async function handleJoinClick(url: URL, request: Request, context?: MiddlewareC
   ]);
   const destination = resolveJoinDestination(page ?? null, settings.globalJoinUrl, parseJoinChannel(url.searchParams));
 
-  if (!isLikelyBot(request.headers.get('user-agent'))) {
+  if (!isLikelyBot(request.headers.get('user-agent'), request.headers.get('accept-language'))) {
     const recording = recordGroupJoinClick(row);
     if (context?.waitUntil) context.waitUntil(recording);
     else await recording;

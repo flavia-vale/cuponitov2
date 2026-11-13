@@ -127,9 +127,15 @@ export function buildAdsConversionsCsv(clicks: AdsConversionClick[], conversionN
   ].join('\n');
 }
 
-/** Robô de busca, prévia de link e ferramenta não contam como pessoa entrando. */
-export function isLikelyBot(userAgent: string | null): boolean {
+/**
+ * Robô de busca, prévia de link e ferramenta não contam como pessoa entrando.
+ * Navegador de verdade sempre manda `Accept-Language` ao seguir um link; robô que
+ * segue os links do HTML (inclusive `nofollow`) costuma não mandar. `undefined` =
+ * cabeçalho não informado por quem chamou (só a regra do user-agent vale).
+ */
+export function isLikelyBot(userAgent: string | null, acceptLanguage?: string | null): boolean {
   if (!userAgent) return true;
+  if (acceptLanguage !== undefined && !acceptLanguage?.trim()) return true;
   return /bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|telegram|curl|wget|python|headless|lighthouse/i.test(
     userAgent
   );
