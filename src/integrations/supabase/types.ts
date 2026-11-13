@@ -279,6 +279,39 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_clicks: {
+        Row: {
+          coupon_id: string
+          created_at: string
+          device: string
+          id: number
+          origin: string | null
+          page_path: string | null
+          source: string | null
+          store: string | null
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string
+          device?: string
+          id?: never
+          origin?: string | null
+          page_path?: string | null
+          source?: string | null
+          store?: string | null
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string
+          device?: string
+          id?: never
+          origin?: string | null
+          page_path?: string | null
+          source?: string | null
+          store?: string | null
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           awin_promotion_id: string | null
@@ -703,6 +736,7 @@ export type Database = {
           created_at: string
           device: string
           gclid: string | null
+          source: string | null
           group_slug: string | null
           id: number
           origin: string | null
@@ -712,6 +746,7 @@ export type Database = {
           created_at?: string
           device?: string
           gclid?: string | null
+          source?: string | null
           group_slug?: string | null
           id?: never
           origin?: string | null
@@ -721,6 +756,7 @@ export type Database = {
           created_at?: string
           device?: string
           gclid?: string | null
+          source?: string | null
           group_slug?: string | null
           id?: never
           origin?: string | null

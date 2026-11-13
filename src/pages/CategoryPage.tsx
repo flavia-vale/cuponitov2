@@ -61,6 +61,12 @@ export default function CategoryPage() {
     };
   }, [coupons, categoryName]);
 
+  // Mesma regra do HTML do servidor (cupom ativo e não vencido), para os dois não divergirem.
+  const hasLiveCoupon = useMemo(
+    () => !!categoryName && (coupons ?? []).some(c => c.category === categoryName && !isExpired(c.expiry)),
+    [coupons, categoryName]
+  );
+
   // Canonical aponta para /cupons quando há poucos cupons (evita thin content)
   const canonical = active.length >= MIN_COUPONS_FOR_OWN_CANONICAL
     ? `${SITE_URL}/categoria/${slug}`
@@ -102,6 +108,7 @@ export default function CategoryPage() {
         description={description}
         canonical={canonical}
         jsonLdRoute={{ type: 'categoria', categoryName, slug: slug!, coupons: active }}
+        robots={!isLoading && !hasLiveCoupon ? 'noindex, follow' : undefined}
       />
       <Header />
 

@@ -53,9 +53,21 @@ export interface JoinTrackingParams {
   channel?: JoinChannel;
   /** Clique de anúncio do Google que trouxe a pessoa ao site (vira conversão importada no Google Ads). */
   gclid?: string | null;
+  /**
+   * Fonte da visita levada na URL: só para o QR code, que é escaneado em outro aparelho
+   * (o celular não tem o cookie `cpn_src` do computador).
+   */
+  visitSource?: string | null;
 }
 
-export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = 'whatsapp', gclid }: JoinTrackingParams): string {
+export function buildJoinTrackingHref({
+  origin,
+  groupSlug,
+  pagePath,
+  channel = 'whatsapp',
+  gclid,
+  visitSource,
+}: JoinTrackingParams): string {
   const params = new URLSearchParams();
   const o = sanitizeToken(origin);
   const g = sanitizeToken(groupSlug);
@@ -66,6 +78,8 @@ export function buildJoinTrackingHref({ origin, groupSlug, pagePath, channel = '
   if (channel === 'telegram') params.set('d', 'telegram');
   const gc = sanitizeGclid(gclid);
   if (gc) params.set('gc', gc);
+  const vs = sanitizeVisitSource(visitSource);
+  if (vs) params.set('s', vs);
   const query = params.toString();
   return query ? `${JOIN_TRACKING_PATH}?${query}` : JOIN_TRACKING_PATH;
 }
@@ -77,6 +91,8 @@ export interface JoinClickRow {
   device: 'mobile' | 'desktop';
   /** Só presente quando o clique veio de um anúncio do Google. */
   gclid?: string;
+  /** De onde a pessoa chegou ao site (cookie `cpn_src`, ver visitSource.ts). Ausente = JavaScript não rodou. */
+  source?: string;
 }
 
 /** Canal pedido no /entrar (`d`). Qualquer outro valor é WhatsApp. */
@@ -84,15 +100,67 @@ export function parseJoinChannel(search: URLSearchParams): JoinChannel {
   return search.get('d') === 'telegram' ? 'telegram' : 'whatsapp';
 }
 
-export function parseJoinTrackingQuery(search: URLSearchParams, userAgent: string | null): JoinClickRow {
+export function parseJoinTrackingQuery(
+  search: URLSearchParams,
+  userAgent: string | null,
+  cookieHeader: string | null = null
+): JoinClickRow {
   const origin = sanitizeToken(search.get('o'), TOKEN_MAX - TELEGRAM_ORIGIN_SUFFIX.length);
+  const source = readVisitSourceCookie(cookieHeader) ?? sanitizeVisitSource(search.get('s'));
   return {
     origin: origin && parseJoinChannel(search) === 'telegram' ? `${origin}${TELEGRAM_ORIGIN_SUFFIX}` : origin,
     group_slug: sanitizeToken(search.get('g')),
     page_path: sanitizePagePath(search.get('p')),
     device: /mobi|android|iphone|ipad/i.test(userAgent ?? '') ? 'mobile' : 'desktop',
     ...(sanitizeGclid(search.get('gc')) ? { gclid: sanitizeGclid(search.get('gc'))! } : {}),
+    ...(source ? { source } : {}),
   };
+}
+
+/** Cookie gravado pelo script do `index.html` na chegada da visita. */
+export const VISIT_SOURCE_COOKIE = 'cpn_src';
+
+/** Domínio ou `utm_source`: minúsculas, letras, números, `.`, `-` e `_`. Outra coisa vira null. */
+export function sanitizeVisitSource(value: string | null | undefined): string | null {
+  const raw = String(value ?? '').toLowerCase().replace(/^www\./, '');
+  return /^[a-z0-9._-]{1,60}$/.test(raw) ? raw : null;
+}
+
+export function readVisitSourceCookie(cookieHeader: string | null | undefined): string | null {
+  const match = String(cookieHeader ?? '').match(new RegExp(`(?:^|;\\s*)${VISIT_SOURCE_COOKIE}=([^;]*)`));
+  return match ? sanitizeVisitSource(match[1]) : null;
+}
+
+/** Diretórios de grupos que o ChatGPT cita (docs/plano-black-november-2026-10-30.md, 7.3). */
+const DIRECTORY_HOSTS = /grupos|telegrupos|gruposwhats|whatsgrupos|linkdegrupo|grupowhats/;
+
+/**
+ * Nome da fonte para a aba Captação. `null` = o clique chegou sem o cookie: o JavaScript da
+ * página não rodou (robô que se passa por navegador, ou clique antes de a página carregar).
+ */
+export function visitSourceLabel(source: string | null | undefined, gclid?: string | null): string {
+  if (sanitizeGclid(gclid)) return 'Google Ads';
+  const s = sanitizeVisitSource(source);
+  if (!s) return 'Sem JavaScript (provável robô)';
+  if (s === 'direto') return 'Direto (WhatsApp, app, favorito)';
+  if (/chatgpt|openai/.test(s)) return 'ChatGPT';
+  if (/perplexity/.test(s)) return 'Perplexity';
+  if (/gemini/.test(s)) return 'Gemini';
+  if (/copilot/.test(s)) return 'Copilot';
+  if (/(^|\.)bing\.|^bing$/.test(s)) return 'Bing';
+  if (/gmail|com\.google\.android\.gm$/.test(s)) return 'Gmail';
+  if (/(^|\.)google\.|googlequicksearchbox|^google$|com\.google\.android/.test(s)) return 'Google';
+  if (/duckduckgo|yahoo|ecosia|brave/.test(s)) return 'Outro buscador';
+  if (/instagram/.test(s)) return 'Instagram';
+  if (/facebook|^fb$|fb\.com|messenger/.test(s)) return 'Facebook';
+  if (/tiktok/.test(s)) return 'TikTok';
+  if (/youtube|youtu\.be/.test(s)) return 'YouTube';
+  if (/^t\.co$|twitter|^x\.com$/.test(s)) return 'X (Twitter)';
+  if (/whatsapp/.test(s)) return 'WhatsApp';
+  if (/telegram|^t\.me$/.test(s)) return 'Telegram';
+  if (/linkdivulgador/.test(s)) return 'Link Inteligente';
+  if (DIRECTORY_HOSTS.test(s)) return `Diretório: ${s}`;
+  return s;
 }
 
 export interface AdsConversionClick {
@@ -153,6 +221,8 @@ export interface JoinClickSummary {
   byDay: JoinClickSummaryRow[];
   byPage: JoinClickSummaryRow[];
   byOrigin: JoinClickSummaryRow[];
+  /** De onde a pessoa chegou ao site (Google, ChatGPT, diretório…), pelo `visitSourceLabel`. */
+  bySource: JoinClickSummaryRow[];
 }
 
 const SAO_PAULO_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' });
@@ -165,7 +235,14 @@ function ranked(counts: Map<string, number>): JoinClickSummaryRow[] {
 
 /** Resumo para a aba Captação: total, por dia (com os dias sem clique), por página e por origem. */
 export function summarizeJoinClicks(
-  rows: Array<Pick<JoinClickRow, 'origin' | 'page_path'> & { device: string; created_at: string }>,
+  rows: Array<
+    Pick<JoinClickRow, 'origin' | 'page_path'> & {
+      device: string;
+      created_at: string;
+      source?: string | null;
+      gclid?: string | null;
+    }
+  >,
   days: number,
   now: Date = new Date()
 ): JoinClickSummary {
@@ -175,6 +252,12 @@ export function summarizeJoinClicks(
   }
   const byPage = new Map<string, number>();
   const byOrigin = new Map<string, number>();
+  const bySource = new Map<string, number>();
+  // Antes do deploy da medição de fonte nenhum clique tem `source`: esses não são "robô".
+  const sourceSince = rows.reduce<string | null>(
+    (acc, row) => (sanitizeVisitSource(row.source) && (!acc || row.created_at < acc) ? row.created_at : acc),
+    null
+  );
   let total = 0;
   let mobile = 0;
   for (const row of rows) {
@@ -187,6 +270,9 @@ export function summarizeJoinClicks(
     byPage.set(page, (byPage.get(page) ?? 0) + 1);
     const origin = row.origin ?? '(sem origem)';
     byOrigin.set(origin, (byOrigin.get(origin) ?? 0) + 1);
+    const before = !sanitizeVisitSource(row.source) && !sanitizeGclid(row.gclid) && (!sourceSince || row.created_at < sourceSince);
+    const source = before ? 'Antes da medição de fonte' : visitSourceLabel(row.source, row.gclid);
+    bySource.set(source, (bySource.get(source) ?? 0) + 1);
   }
   return {
     total,
@@ -194,5 +280,6 @@ export function summarizeJoinClicks(
     byDay: [...byDay.entries()].map(([key, clicks]) => ({ key, clicks })),
     byPage: ranked(byPage),
     byOrigin: ranked(byOrigin),
+    bySource: ranked(bySource),
   };
 }

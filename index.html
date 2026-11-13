@@ -5,12 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="lomadee" content="2324685" />
-    <title>Cuponito - Cupons de Desconto Verificados</title>
+    <title>Promoções do Dia e Cupons de Desconto | Cuponito</title>
     <meta
       name="description"
-      content="Encontre cupons de desconto atualizados diariamente para Amazon, Shopee, Mercado Livre e centenas de outras lojas. Economia real e verificada."
+      content="Promoções do dia e achadinhos que saem hoje nos grupos de WhatsApp do Cuponito, e cupons de desconto de Amazon, Shopee, Mercado Livre e outras lojas."
     />
     <link rel="canonical" href="https://www.cuponito.com.br/" />
+    <script>
+      // Fonte da visita para a aba Captação (src/lib/visitSource.ts): só o domínio de onde a
+      // pessoa chegou, ou o utm_source do link (o ChatGPT põe utm_source=chatgpt.com).
+      // Sem identificador de pessoa. O /entrar lê o cookie; clique sem ele = JavaScript não rodou.
+      (function () {
+        try {
+          var clean = function (v) { return String(v || '').toLowerCase().replace(/^www\./, '').replace(/[^a-z0-9._-]/g, '').slice(0, 60); };
+          var utm = clean(new URLSearchParams(location.search).get('utm_source'));
+          var ref = '';
+          try { ref = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+          var external = ref && !/(^|\.)cuponito\.com\.br$/.test(ref);
+          var has = /(?:^|;\s*)cpn_src=/.test(document.cookie);
+          var source = utm || (external ? clean(ref) : '') || (has ? '' : 'direto');
+          if (source) document.cookie = 'cpn_src=' + source + '; path=/; max-age=86400; SameSite=Lax; Secure';
+        } catch (e) {}
+      })();
+    </script>
     <meta property="og:site_name" content="Cuponito" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:type" content="website" />

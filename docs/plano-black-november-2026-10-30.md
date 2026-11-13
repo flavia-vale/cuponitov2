@@ -417,5 +417,5 @@ Ajustes:
    desktop abre o WhatsApp Web e pouco vira entrada. O QR leva ao `/entrar` com origem `<origem>_qr`.
 2. **Filtro de robôs**: `/entrar` não grava clique sem `Accept-Language` (navegador de verdade sempre
    manda); a aba Captação separa cliques de pessoas dos cliques no HTML (`html_*`) e mostra os do QR.
-3. **PC gamer** (migration `20261107120000_pc_gamer_reforco.sql`): "grupo de PC gamer no WhatsApp" no
+3. **PC gamer** (migration `20261113180000_pc_gamer_reforco.sql`): "grupo de PC gamer no WhatsApp" no
    resumo e no FAQ, e no texto dos links que chegam de `/ofertas/tv` e `/ofertas/iphone`.

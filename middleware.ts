@@ -23,12 +23,16 @@ import {
   fetchDirectoryPage,
   fetchFeaturedPosts,
   fetchFeaturedStores,
+  fetchArchivedOffers,
   fetchGroupOffers,
   fetchGroupPage,
   fetchJoinPage,
   fetchGroupPages,
   fetchGroupSettings,
   recordGroupJoinClick,
+  fetchCouponDestination,
+  fetchHomeSeo,
+  recordCouponClick,
   fetchPost,
   fetchStore,
   fetchPublishedPosts,
@@ -53,6 +57,7 @@ import {
   resolveJoinDestination,
   resolveJoinUrl,
   safeTelegramUrl,
+  type WhatsappGroupPageData,
 } from './src/lib/whatsappGroup';
 import {
   buildJoinTrackingHref,
@@ -62,12 +67,16 @@ import {
   parseJoinTrackingQuery,
   sanitizeToken,
 } from './src/lib/groupJoinTracking';
+import { COUPON_CLICK_PATH, parseCouponClickQuery, safeAffiliateUrl } from './src/lib/couponClickTracking';
 import {
   ACHADINHOS_FEED_PATH,
   ACHADINHOS_PATH,
   filterOffersByTerms,
+  mergeOffers,
+  offerFeedSlug,
   parseOfferTerms,
   recentOffers,
+  type GroupOffer,
 } from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
@@ -107,6 +116,7 @@ export const config = {
     '/fale-conosco',
     '/termos-de-uso',
     '/entrar',
+    '/ir',
     '/achadinhos-hoje',
     '/achadinhos-hoje.json',
     '/store/:path*',
@@ -194,6 +204,20 @@ const INSTITUTIONAL_ROUTES: Record<string, InstitutionalPage> = {
   '/fale-conosco': 'contact',
   '/termos-de-uso': 'terms',
 };
+
+/**
+ * Ofertas de uma página de ofertas: feed ao vivo (40 mais recentes do grupo) + arquivo dos
+ * últimos 30 dias (`group_offers`), filtrados pelos termos da página. Grupo grande (~200 por dia)
+ * deixa de esvaziar a página de produto que não saiu nas últimas horas.
+ */
+async function offersForPage(page: WhatsappGroupPageData, joinUrl: string): Promise<GroupOffer[]> {
+  const terms = parseOfferTerms(page.offer_terms);
+  const [live, archived] = await Promise.all([
+    fetchGroupOffers(joinUrl),
+    fetchArchivedOffers(offerFeedSlug(joinUrl), terms),
+  ]);
+  return mergeOffers(recentOffers(filterOffersByTerms(live, terms)), archived);
+}
 
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   if (pathname === ACHADINHOS_PATH) {
@@ -342,12 +366,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
     ]);
-    const offers = recentOffers(
-      filterOffersByTerms(
-        await fetchGroupOffers(resolveJoinUrl(page, groupSettings.globalJoinUrl)),
-        parseOfferTerms(page.offer_terms)
-      )
-    );
+    const offers = await offersForPage(page, resolveJoinUrl(page, groupSettings.globalJoinUrl));
     return renderOffersPage(
       page,
       {
@@ -385,13 +404,15 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   }
 
   if (/^\/$/.test(pathname)) {
-    const [coupons, stores, categories, posts] = await Promise.all([
+    const [coupons, stores, categories, posts, seo, groupPages] = await Promise.all([
       fetchTopCoupons(20),
       fetchAllStores(12),
       fetchCategories(12),
       fetchPublishedPosts(5),
+      fetchHomeSeo(),
+      fetchGroupPages(),
     ]);
-    return renderHomePage({ coupons, stores, categories, posts });
+    return renderHomePage({ coupons, stores, categories, posts, seo, groupPages });
   }
 
   if (/^\/cupons\/?$/.test(pathname)) {
@@ -438,7 +459,7 @@ interface MiddlewareContext {
  * nunca da URL; `d=telegram` só escolhe o canal do Telegram cadastrado na página. Supabase fora do ar → link padrão: o botão nunca quebra.
  */
 async function handleJoinClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
-  const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'));
+  const row = parseJoinTrackingQuery(url.searchParams, request.headers.get('user-agent'), request.headers.get('cookie'));
   const [page, settings] = await Promise.all([
     // Publicada ou não: página despublicada pode guardar só o link do grupo (ex.: festas).
     row.group_slug ? fetchJoinPage(row.group_slug) : Promise.resolve(null),
@@ -462,12 +483,43 @@ async function handleJoinClick(url: URL, request: Request, context?: MiddlewareC
   });
 }
 
+/**
+ * /ir: grava o clique no cupom (loja, página, botão, fonte) e redireciona para o link de
+ * afiliado salvo no cupom. O destino sai do banco pelo id, nunca da URL. Cupom inexistente
+ * ou link inválido → /cupons. Supabase fora do ar → /cupons (o clique não se perde para
+ * um destino errado).
+ */
+async function handleCouponClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
+  const parsed = parseCouponClickQuery(url.searchParams, request.headers.get('user-agent'), request.headers.get('cookie'));
+  const coupon = parsed.coupon_id ? await fetchCouponDestination(parsed.coupon_id) : null;
+  const destination = safeAffiliateUrl(coupon?.link) ?? `${SITE_URL}/cupons`;
+
+  if (coupon && parsed.coupon_id && !isLikelyBot(request.headers.get('user-agent'), request.headers.get('accept-language'))) {
+    const recording = recordCouponClick({ ...parsed, coupon_id: parsed.coupon_id, store: coupon.store });
+    if (context?.waitUntil) context.waitUntil(recording);
+    else await recording;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: destination,
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
+  });
+}
+
 export default async function middleware(request: Request, context?: MiddlewareContext): Promise<Response | undefined> {
   const url = new URL(request.url);
   const { pathname } = url;
 
   if (pathname === JOIN_TRACKING_PATH) {
     return handleJoinClick(url, request, context);
+  }
+
+  if (pathname === COUPON_CLICK_PATH) {
+    return handleCouponClick(url, request, context);
   }
 
   // Ofertas do grupo para o React (mesma origem: o feed do Link Inteligente não libera CORS).
@@ -478,7 +530,9 @@ export default async function middleware(request: Request, context?: MiddlewareC
       fetchGroupSettings(),
       groupSlug ? fetchGroupPage(groupSlug) : Promise.resolve(null),
     ]);
-    const items = await fetchGroupOffers(resolveJoinUrl(page ?? null, globalJoinUrl));
+    const joinUrl = resolveJoinUrl(page ?? null, globalJoinUrl);
+    // Página de ofertas: o mesmo arquivo + feed do HTML do servidor (React e prerender iguais).
+    const items = page && isOffersPage(page) ? await offersForPage(page, joinUrl) : await fetchGroupOffers(joinUrl);
     return new Response(JSON.stringify({ items }), {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',

@@ -3,6 +3,7 @@ import type { Coupon } from '@/hooks/useCoupons';
 import type { StoreBrand } from '@/lib/storeBranding';
 import { trackEvent } from '@/lib/analytics';
 import { getVariant } from '@/lib/experiments';
+import { couponOutboundHref } from '@/lib/couponClickTracking';
 
 interface FeaturedStoreCardProps {
   coupon: Coupon;
@@ -16,7 +17,7 @@ const FeaturedStoreCard = ({ coupon, storeBrand }: FeaturedStoreCardProps) => {
 
   const handleOpen = () => {
     trackEvent('coupon_click', { source: 'featured_store_card', store: coupon.store });
-    window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
+    window.open(couponOutboundHref(coupon, 'featured_store_card', window.location.pathname), '_blank', 'noopener');
   };
 
   return (

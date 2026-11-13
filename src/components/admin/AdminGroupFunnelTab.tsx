@@ -18,7 +18,7 @@ function downloadCsv(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
-function RankedTable({ title, rows, emptyText }: { title: string; rows: JoinClickSummaryRow[]; emptyText: string }) {
+export function RankedTable({ title, rows, emptyText }: { title: string; rows: JoinClickSummaryRow[]; emptyText: string }) {
   return (
     <Card>
       <CardHeader>
@@ -44,7 +44,7 @@ function RankedTable({ title, rows, emptyText }: { title: string; rows: JoinClic
 
 /**
  * Captação do grupo: cliques no botão "Entrar no grupo" gravados pelo /entrar,
- * por dia, por página e por origem do botão. Mostra quais páginas (SEO/GEO)
+ * por dia, por fonte da visita, por página e por origem do botão. Mostra quais páginas (SEO/GEO)
  * trazem gente — o painel do Link Inteligente só conta o total.
  */
 export function AdminGroupFunnelTab() {
@@ -136,6 +136,12 @@ export function AdminGroupFunnelTab() {
           </p>
         </CardContent>
       </Card>
+
+      <RankedTable
+        title="Por fonte (de onde a pessoa chegou ao site)"
+        rows={summary.bySource}
+        emptyText="Nenhum clique no período."
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <RankedTable title="Por página" rows={summary.byPage} emptyText="Nenhum clique no período." />

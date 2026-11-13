@@ -6,6 +6,7 @@ import { trackEvent } from '@/lib/analytics';
 import type { Coupon } from '@/hooks/useCoupons';
 import type { StoreBrand } from '@/lib/storeBranding';
 import StoreIcon from './StoreIcon';
+import { couponOutboundHref } from '@/lib/couponClickTracking';
 
 interface Props {
   coupon: Coupon;
@@ -26,7 +27,7 @@ const PopularCouponItem = ({ coupon, storeBrand }: Props) => {
       setTimeout(() => setCopied(false), 2000);
     }
     trackEvent('coupon_click', { source: 'popular_coupon_item', store: coupon.store });
-    window.open(coupon.link, '_blank', 'nofollow sponsored noopener noreferrer');
+    window.open(couponOutboundHref(coupon, 'popular_coupon_item', window.location.pathname), '_blank', 'noopener');
   };
 
   const hasCode = Boolean(coupon.code);

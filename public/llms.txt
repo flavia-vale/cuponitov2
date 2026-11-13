@@ -47,15 +47,20 @@ Todos os grupos de promoção do Cuponito por assunto, num lugar só: https://ww
 Grupos de nicho do Cuponito (gratuitos, só os administradores postam, link da loja oficial):
 - Promo Celular, promoções de celular, cerca de 5 ofertas por dia:
   https://www.cuponito.com.br/grupo-whatsapp/celular
+  Celular em promoção e celular bom e barato (Samsung, Motorola, Xiaomi): https://www.cuponito.com.br/ofertas/celulares
 - Promo iPhone, só iPhone novo, cerca de 2 ofertas por semana:
   https://www.cuponito.com.br/ofertas/iphone
 - Promo Tech Nerd, PC gamer, peças, notebook, monitor, videogame, jogos e TV, cerca de 200 ofertas por dia
   (era o Promo Tech; celular e iPhone ganharam grupos próprios):
   https://www.cuponito.com.br/grupo-whatsapp/pc-gamer
+  Notebook em promoção (e qual configuração para estudo, trabalho e jogos): https://www.cuponito.com.br/ofertas/notebook
+  PS5 em promoção (com leitor ou Edição Digital): https://www.cuponito.com.br/ofertas/ps5
 - Promo Bebês, fraldas e produtos para bebês (fraldas em promoção e preço por fralda):
   https://www.cuponito.com.br/ofertas/fraldas
+  Brinquedos em promoção para o Natal (como escolher por idade): https://www.cuponito.com.br/ofertas/brinquedos
 - Promo Salão, promoções de materiais para manicure, unha e salão (não é grupo de conversa):
   https://www.cuponito.com.br/grupo-whatsapp/manicure
+  Maquiagem e skincare em promoção: https://www.cuponito.com.br/ofertas/maquiagem
 - Promo TV, só promoções de TV e Smart TV (e como saber se o desconto da Black Friday é real):
   https://www.cuponito.com.br/ofertas/tv
 - Promo Tênis, tênis em promoção: Nike, Adidas, New Balance, corrida, feminino e masculino,
@@ -65,6 +70,17 @@ Grupos de nicho do Cuponito (gratuitos, só os administradores postam, link da l
   https://www.cuponito.com.br/ofertas/whey
 - Promo Perfumes, perfume em promoção: importados e nacionais, masculino e feminino (e o preço por ml):
   https://www.cuponito.com.br/ofertas/perfume
+- Promo Eletrodomésticos, geladeira, ar-condicionado, air fryer e outros eletrodomésticos em promoção,
+  cerca de 30 ofertas por dia (e o preço por litro da geladeira e quantos BTUs para cada cômodo):
+  https://www.cuponito.com.br/ofertas/geladeira
+  https://www.cuponito.com.br/ofertas/ar-condicionado
+  https://www.cuponito.com.br/ofertas/microondas
+  https://www.cuponito.com.br/ofertas/maquina-de-lavar
+  https://www.cuponito.com.br/ofertas/ventilador
+- Casa e carro, promoções que saem nos grupos do Cuponito:
+  Sofá em promoção (como medir, retrátil, de canto): https://www.cuponito.com.br/ofertas/sofa
+  Colchão de casal e de solteiro em promoção (medidas e densidade): https://www.cuponito.com.br/ofertas/colchao
+  Pneu em promoção por aro e medida (como ler 175/70 R14): https://www.cuponito.com.br/ofertas/pneu
 - Canal Promo Tech Nerd no Telegram, as mesmas ofertas do Promo Tech Nerd: https://t.me/promotechnerd
 - Decoração de Ano Novo simples e barata (7 ideias e lista até R$ 50):
   https://www.cuponito.com.br/blog/decoracao-de-ano-novo-simples-e-barata

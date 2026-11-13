@@ -9,7 +9,14 @@ import {
 } from '../src/lib/whatsappGroup';
 import { notExpiredFilter } from '../src/lib/couponValidity';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
-import { offerFeedUrl, parseGroupOffers, type GroupOffer } from '../src/lib/groupOfferFeed';
+import type { CouponClickRow } from '../src/lib/couponClickTracking';
+import {
+  archiveTermPattern,
+  OFFER_MAX_AGE_DAYS,
+  offerFeedUrl,
+  parseGroupOffers,
+  type GroupOffer,
+} from '../src/lib/groupOfferFeed';
 
 const FALLBACK_SUPABASE_URL ='https://jyvmrkykukialdbcebei.supabase.co';
 const FALLBACK_SUPABASE_KEY =
@@ -386,6 +393,17 @@ export async function fetchGroupSettings(): Promise<{ info: WhatsappGroupInfo; g
   };
 }
 
+/** Título e descrição da home do painel (SEO & Config → `seo_defaults`), os mesmos que o React usa. */
+export async function fetchHomeSeo(): Promise<{ title: string; description: string } | null> {
+  const rows = await query<{ value: { home_title?: unknown; home_description?: unknown } | null }>(
+    'site_settings?key=eq.seo_defaults&select=value&limit=1'
+  );
+  const value = rows[0]?.value;
+  const title = typeof value?.home_title === 'string' ? value.home_title.trim() : '';
+  const description = typeof value?.home_description === 'string' ? value.home_description.trim() : '';
+  return title && description ? { title, description } : null;
+}
+
 export async function fetchPublishedPosts(limit = 30): Promise<PrerenderPostSummary[]> {
   return query<PrerenderPostSummary>(
     `blog_posts?status=eq.published&select=title,slug,excerpt,published_at,updated_at&order=published_at.desc&limit=${limit}`
@@ -411,11 +429,14 @@ export async function recordGroupJoinClick(row: JoinClickRow): Promise<boolean> 
   };
   try {
     if (await insert(row)) return true;
-    // Coluna `gclid` ainda não migrada (400): grava o clique sem ela, para não perder a contagem.
+    // Coluna opcional ainda não migrada (`gclid`, `source`) devolve 400: grava o clique sem
+    // as opcionais, para não perder a contagem.
+    // Primeiro tira só a mais nova (`source`), depois as duas.
+    const { source, ...withoutSource } = row;
+    if (source && (await insert(withoutSource))) return true;
     if (!row.gclid) return false;
-    const withoutGclid: JoinClickRow = { ...row };
-    delete withoutGclid.gclid;
-    return await insert(withoutGclid);
+    const { gclid: _gclid, ...base } = withoutSource;
+    return await insert(base);
   } catch {
     return false;
   }
@@ -427,6 +448,57 @@ const OFFER_FEED_TIMEOUT_MS = 3000;
  * Ofertas reais do grupo (feed público do Link Inteligente). Qualquer falha ou
  * feed desligado = lista vazia: a página sai sem o bloco, nunca quebra.
  */
+/**
+ * Link de afiliado e loja do cupom, para o /ir. `undefined` = o Supabase falhou;
+ * `null` = cupom não existe. Só colunas que existem desde o início (`link`, `store`).
+ */
+export async function fetchCouponDestination(
+  couponId: string
+): Promise<{ link: string | null; store: string | null } | null | undefined> {
+  const rows = await tryQuery<{ link: string | null; store: string | null }>(
+    `coupons?id=eq.${encodeURIComponent(couponId)}&select=link,store&limit=1`
+  );
+  if (rows === null) return undefined;
+  return rows[0] ?? null;
+}
+
+/** Grava um clique em cupom. Tabela ainda não migrada → false (o redirecionamento segue). */
+export async function recordCouponClick(row: CouponClickRow): Promise<boolean> {
+  const { url, key } = credentials();
+  try {
+    const response = await fetch(`${url}/rest/v1/coupon_clicks`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(row),
+      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ofertas guardadas do grupo (tabela `group_offers`, coletada pelo próprio Supabase), dos últimos
+ * 30 dias, já filtradas pelos termos da página. Tabela ainda não migrada ou falha → [].
+ */
+export async function fetchArchivedOffers(feedSlug: string | null, terms: string[], limit = 40): Promise<GroupOffer[]> {
+  if (!feedSlug) return [];
+  const since = new Date(Date.now() - OFFER_MAX_AGE_DAYS * 86_400_000).toISOString();
+  const patterns = terms.map(archiveTermPattern).filter((p): p is string => Boolean(p));
+  const filter = patterns.length ? `&or=(${patterns.map(p => `text_norm.ilike.${encodeURIComponent(p)}`).join(',')})` : '';
+  const rows = await tryQuery<{ text: string; link: string; store: string | null; sent_at: string | null }>(
+    `group_offers?feed_slug=eq.${encodeURIComponent(feedSlug)}&sent_at=gte.${encodeURIComponent(since)}${filter}` +
+      `&select=text,link,store,sent_at&order=sent_at.desc&limit=${limit}`
+  );
+  return parseGroupOffers({ items: (rows ?? []).map(row => ({ text: row.text, link: row.link, store: row.store, sentAt: row.sent_at })) }, limit);
+}
+
 export async function fetchGroupOffers(joinUrl: string | null): Promise<GroupOffer[]> {
   const feedUrl = offerFeedUrl(joinUrl);
   if (!feedUrl) return [];
