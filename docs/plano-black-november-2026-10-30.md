@@ -413,8 +413,8 @@ Números de 31/10 a 06/11:
   3,2 e `/ofertas/whey` 4,8 com poucos dias; "grupo de pc gamer whatsapp" posição 9,6.
 
 Ajustes:
-1. **QR code no computador** (`JoinQrCode`, lib `qrcode-generator`, sem serviço externo): o clique no
-   desktop abre o WhatsApp Web e pouco vira entrada. O QR leva ao `/entrar` com origem `<origem>_qr`.
+1. **QR code no computador**: já entrou pelo `main` (`GroupJoinQr`, plano de 10/11, frente C). O QR
+   leva ao `/entrar` com origem `<origem>_qr`; a aba Captação passa a contar esses cliques.
 2. **Filtro de robôs**: `/entrar` não grava clique sem `Accept-Language` (navegador de verdade sempre
    manda); a aba Captação separa cliques de pessoas dos cliques no HTML (`html_*`) e mostra os do QR.
 3. **PC gamer** (migration `20261113180000_pc_gamer_reforco.sql`): "grupo de PC gamer no WhatsApp" no
