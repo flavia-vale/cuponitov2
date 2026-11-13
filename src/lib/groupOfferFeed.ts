@@ -54,6 +54,39 @@ export function filterOffersByTerms(offers: GroupOffer[], terms: string[]): Grou
   });
 }
 
+/** Link Inteligente → slug do grupo no feed (`promo-tech`); outro link → null. O arquivo de ofertas usa este slug. */
+export function offerFeedSlug(joinUrl: string | null | undefined): string | null {
+  const feedUrl = offerFeedUrl(joinUrl);
+  return feedUrl ? (feedUrl.match(/\/g\/([a-z0-9-]+)\/ofertas\.json$/)?.[1] ?? null) : null;
+}
+
+/**
+ * Termo da página → padrão do filtro `ilike` no arquivo (`text_norm`): só letras, números e `-`,
+ * espaços viram `*`. Sem caractere reservado do PostgREST. Termo vazio → null.
+ */
+export function archiveTermPattern(term: string): string | null {
+  const words = normalizeText(term)
+    .split(/[^a-z0-9-]+/)
+    .filter(Boolean);
+  return words.length ? `*${words.join('*')}*` : null;
+}
+
+/**
+ * Feed ao vivo + arquivo: sem repetir link, do mais novo ao mais antigo (sem data vai para o fim),
+ * no máximo `max`.
+ */
+export function mergeOffers(live: GroupOffer[], archived: GroupOffer[], max = 40): GroupOffer[] {
+  const seen = new Set<string>();
+  const merged: GroupOffer[] = [];
+  for (const offer of [...live, ...archived]) {
+    if (seen.has(offer.link)) continue;
+    seen.add(offer.link);
+    merged.push(offer);
+  }
+  const time = (offer: GroupOffer) => (offer.sentAt ? Date.parse(offer.sentAt) : 0);
+  return merged.sort((a, b) => time(b) - time(a)).slice(0, max);
+}
+
 /** Resposta do feed (dado de fora) → só itens com texto e link http(s). */
 export function parseGroupOffers(raw: unknown, max = 40): GroupOffer[] {
   const items = (raw as { items?: unknown } | null)?.items;

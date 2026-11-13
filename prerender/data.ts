@@ -10,7 +10,13 @@ import {
 import { notExpiredFilter } from '../src/lib/couponValidity';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
 import type { CouponClickRow } from '../src/lib/couponClickTracking';
-import { offerFeedUrl, parseGroupOffers, type GroupOffer } from '../src/lib/groupOfferFeed';
+import {
+  archiveTermPattern,
+  OFFER_MAX_AGE_DAYS,
+  offerFeedUrl,
+  parseGroupOffers,
+  type GroupOffer,
+} from '../src/lib/groupOfferFeed';
 
 const FALLBACK_SUPABASE_URL ='https://jyvmrkykukialdbcebei.supabase.co';
 const FALLBACK_SUPABASE_KEY =
@@ -475,6 +481,22 @@ export async function recordCouponClick(row: CouponClickRow): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/**
+ * Ofertas guardadas do grupo (tabela `group_offers`, coletada pelo próprio Supabase), dos últimos
+ * 30 dias, já filtradas pelos termos da página. Tabela ainda não migrada ou falha → [].
+ */
+export async function fetchArchivedOffers(feedSlug: string | null, terms: string[], limit = 40): Promise<GroupOffer[]> {
+  if (!feedSlug) return [];
+  const since = new Date(Date.now() - OFFER_MAX_AGE_DAYS * 86_400_000).toISOString();
+  const patterns = terms.map(archiveTermPattern).filter((p): p is string => Boolean(p));
+  const filter = patterns.length ? `&or=(${patterns.map(p => `text_norm.ilike.${encodeURIComponent(p)}`).join(',')})` : '';
+  const rows = await tryQuery<{ text: string; link: string; store: string | null; sent_at: string | null }>(
+    `group_offers?feed_slug=eq.${encodeURIComponent(feedSlug)}&sent_at=gte.${encodeURIComponent(since)}${filter}` +
+      `&select=text,link,store,sent_at&order=sent_at.desc&limit=${limit}`
+  );
+  return parseGroupOffers({ items: (rows ?? []).map(row => ({ text: row.text, link: row.link, store: row.store, sentAt: row.sent_at })) }, limit);
 }
 
 export async function fetchGroupOffers(joinUrl: string | null): Promise<GroupOffer[]> {

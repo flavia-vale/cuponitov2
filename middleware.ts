@@ -23,6 +23,7 @@ import {
   fetchDirectoryPage,
   fetchFeaturedPosts,
   fetchFeaturedStores,
+  fetchArchivedOffers,
   fetchGroupOffers,
   fetchGroupPage,
   fetchJoinPage,
@@ -56,6 +57,7 @@ import {
   resolveJoinDestination,
   resolveJoinUrl,
   safeTelegramUrl,
+  type WhatsappGroupPageData,
 } from './src/lib/whatsappGroup';
 import {
   buildJoinTrackingHref,
@@ -70,8 +72,11 @@ import {
   ACHADINHOS_FEED_PATH,
   ACHADINHOS_PATH,
   filterOffersByTerms,
+  mergeOffers,
+  offerFeedSlug,
   parseOfferTerms,
   recentOffers,
+  type GroupOffer,
 } from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
@@ -199,6 +204,20 @@ const INSTITUTIONAL_ROUTES: Record<string, InstitutionalPage> = {
   '/fale-conosco': 'contact',
   '/termos-de-uso': 'terms',
 };
+
+/**
+ * Ofertas de uma página de ofertas: feed ao vivo (40 mais recentes do grupo) + arquivo dos
+ * últimos 30 dias (`group_offers`), filtrados pelos termos da página. Grupo grande (~200 por dia)
+ * deixa de esvaziar a página de produto que não saiu nas últimas horas.
+ */
+async function offersForPage(page: WhatsappGroupPageData, joinUrl: string): Promise<GroupOffer[]> {
+  const terms = parseOfferTerms(page.offer_terms);
+  const [live, archived] = await Promise.all([
+    fetchGroupOffers(joinUrl),
+    fetchArchivedOffers(offerFeedSlug(joinUrl), terms),
+  ]);
+  return mergeOffers(recentOffers(filterOffersByTerms(live, terms)), archived);
+}
 
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   if (pathname === ACHADINHOS_PATH) {
@@ -347,12 +366,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
     ]);
-    const offers = recentOffers(
-      filterOffersByTerms(
-        await fetchGroupOffers(resolveJoinUrl(page, groupSettings.globalJoinUrl)),
-        parseOfferTerms(page.offer_terms)
-      )
-    );
+    const offers = await offersForPage(page, resolveJoinUrl(page, groupSettings.globalJoinUrl));
     return renderOffersPage(
       page,
       {
@@ -516,7 +530,9 @@ export default async function middleware(request: Request, context?: MiddlewareC
       fetchGroupSettings(),
       groupSlug ? fetchGroupPage(groupSlug) : Promise.resolve(null),
     ]);
-    const items = await fetchGroupOffers(resolveJoinUrl(page ?? null, globalJoinUrl));
+    const joinUrl = resolveJoinUrl(page ?? null, globalJoinUrl);
+    // Página de ofertas: o mesmo arquivo + feed do HTML do servidor (React e prerender iguais).
+    const items = page && isOffersPage(page) ? await offersForPage(page, joinUrl) : await fetchGroupOffers(joinUrl);
     return new Response(JSON.stringify({ items }), {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
