@@ -467,7 +467,7 @@ async function handleJoinClick(url: URL, request: Request, context?: MiddlewareC
   ]);
   const destination = resolveJoinDestination(page ?? null, settings.globalJoinUrl, parseJoinChannel(url.searchParams));
 
-  if (!isLikelyBot(request.headers.get('user-agent'))) {
+  if (!isLikelyBot(request.headers.get('user-agent'), request.headers.get('accept-language'))) {
     const recording = recordGroupJoinClick(row);
     if (context?.waitUntil) context.waitUntil(recording);
     else await recording;
@@ -494,7 +494,7 @@ async function handleCouponClick(url: URL, request: Request, context?: Middlewar
   const coupon = parsed.coupon_id ? await fetchCouponDestination(parsed.coupon_id) : null;
   const destination = safeAffiliateUrl(coupon?.link) ?? `${SITE_URL}/cupons`;
 
-  if (coupon && parsed.coupon_id && !isLikelyBot(request.headers.get('user-agent'))) {
+  if (coupon && parsed.coupon_id && !isLikelyBot(request.headers.get('user-agent'), request.headers.get('accept-language'))) {
     const recording = recordCouponClick({ ...parsed, coupon_id: parsed.coupon_id, store: coupon.store });
     if (context?.waitUntil) context.waitUntil(recording);
     else await recording;

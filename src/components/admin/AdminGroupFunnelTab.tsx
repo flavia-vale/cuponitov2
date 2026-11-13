@@ -53,6 +53,10 @@ export function AdminGroupFunnelTab() {
   const summary = useMemo(() => summarizeJoinClicks(rows ?? [], days), [rows, days]);
   const mobileShare = summary.total ? Math.round((summary.mobile / summary.total) * 100) : 0;
   const adsClicks = useMemo(() => (rows ?? []).filter(row => row.gclid), [rows]);
+  // `html_*` = clique no HTML do servidor, antes de o React montar a página. Pessoa quase
+  // nunca clica nessa janela; robô que segue links do HTML, sim. Separado para não inflar a leitura.
+  const htmlClicks = useMemo(() => (rows ?? []).filter(row => row.origin?.startsWith('html_')).length, [rows]);
+  const qrClicks = useMemo(() => (rows ?? []).filter(row => row.origin?.endsWith('_qr')).length, [rows]);
   const exportAdsConversions = () =>
     downloadCsv(
       `conversoes-google-ads-${new Date().toISOString().slice(0, 10)}.csv`,
@@ -119,6 +123,19 @@ export function AdminGroupFunnelTab() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardContent className="space-y-1 pt-6 text-sm">
+          <p>
+            <strong className="tabular-nums">{isLoading ? '…' : summary.total - htmlClicks}</strong> cliques nos botões do site (pessoas) ·{' '}
+            <strong className="tabular-nums">{isLoading ? '…' : htmlClicks}</strong> no HTML do servidor (origem <code>html_*</code>, inclui robôs)
+          </p>
+          <p className="text-muted-foreground">
+            <strong className="tabular-nums text-foreground">{isLoading ? '…' : qrClicks}</strong> entradas pelo QR code do computador (origem{' '}
+            <code>*_qr</code>). Desde 07/11, clique sem <code>Accept-Language</code> (robô) não é gravado.
+          </p>
+        </CardContent>
+      </Card>
 
       <RankedTable
         title="Por fonte (de onde a pessoa chegou ao site)"

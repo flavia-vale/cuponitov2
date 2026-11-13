@@ -399,3 +399,23 @@ Entregue:
 
 Fase 2 (dezembro): grupos de outros administradores com os mesmos critérios, tabela própria, aba de
 aprovação no painel, formulário e conferência semanal dos links.
+
+## 15. Resultados da 1ª semana e ajustes (07/11)
+
+Números de 31/10 a 06/11:
+- Captação: 397 cliques, mas ~160 de robôs (origens `html_store`/`html_category`/`html_achadinhos`, 7–8
+  cliques iguais por loja, pico de 141 em 01/11). Reais: ~230 (≈33/dia), +50% sobre a semana anterior.
+  51% no computador.
+- Linkdivulgador: Promo Tech 68 cliques/39 membros, Promo Celular 57/34, Tênis 26/15, TV 20/13,
+  Ofertas Fafaciane 99/195 (2 grupos). Nos nichos, cliques no link ≈ cliques no botão do site: a
+  entrada vem do Cuponito.
+- Search Console: `pc-gamer` 18 dos 34 cliques do Google (posição 6, CTR 22%); `/ofertas/tv` posição
+  3,2 e `/ofertas/whey` 4,8 com poucos dias; "grupo de pc gamer whatsapp" posição 9,6.
+
+Ajustes:
+1. **QR code no computador**: já entrou pelo `main` (`GroupJoinQr`, plano de 10/11, frente C). O QR
+   leva ao `/entrar` com origem `<origem>_qr`; a aba Captação passa a contar esses cliques.
+2. **Filtro de robôs**: `/entrar` não grava clique sem `Accept-Language` (navegador de verdade sempre
+   manda); a aba Captação separa cliques de pessoas dos cliques no HTML (`html_*`) e mostra os do QR.
+3. **PC gamer** (migration `20261113180000_pc_gamer_reforco.sql`): "grupo de PC gamer no WhatsApp" no
+   resumo e no FAQ, e no texto dos links que chegam de `/ofertas/tv` e `/ofertas/iphone`.
