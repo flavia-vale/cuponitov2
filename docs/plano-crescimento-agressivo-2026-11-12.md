@@ -498,3 +498,39 @@ duas vezes sem duplicar nada).
 - A contagem de ofertas por dia de cada produto no Espelha Grupos.
 - A decisão de renomear o Promo Salão para **Promo Beleza**: se sim, troca no WhatsApp e no painel
   (nome do grupo e "O que chega" da página `maquiagem` e da `manicure`).
+
+---
+
+## 9. 13/11: páginas no ar e arquivo de ofertas
+
+**No ar** (conferido no site em 13/11): home, as 11 páginas novas, títulos de lojas e grupos, `/ir`.
+
+**Correção:** a seção 8 dizia que página de ofertas sem oferta sai com `noindex`. Errado: essa regra é
+da página "Achadinhos de hoje", não das páginas de ofertas. Elas ficam indexáveis, o que é aceitável
+porque têm guia próprio (tabelas, FAQ), mas página vazia não convence quem chega.
+
+**Por que algumas estavam vazias:** o feed do Link Inteligente traz só as **40 ofertas mais recentes**
+de cada grupo. No Promo Tech Nerd (~200 por dia), 40 ofertas são poucas horas: `/ofertas/notebook` saía
+vazia mesmo com notebook passando no grupo todo dia. O Promo Eletrodomésticos tinha só 4 ofertas (o
+grupo acabou de ser ligado ao link).
+
+| Página (13/11, manhã) | Ofertas na página |
+|---|---|
+| celulares | 18 |
+| tv | 13 |
+| ps5 | 12 |
+| microondas, brinquedos | 2 |
+| colchão, pneu | 1 |
+| notebook, máquina de lavar, ventilador, maquiagem, sofá, geladeira | 0 |
+
+**Correção feita: arquivo de ofertas** (migration `20261113120000_arquivo_de_ofertas.sql`)
+- O próprio Supabase lê o feed de cada grupo a cada 10 minutos (`pg_cron` + `pg_net`) e guarda as
+  ofertas na tabela `group_offers` por 35 dias. Só o banco grava; o site e os visitantes só leem.
+- As páginas de ofertas (HTML do servidor e React) juntam o feed ao vivo com o arquivo dos últimos 30
+  dias, filtrado pelo produto no banco (`text_norm`, sem acento). Até 40 ofertas por página.
+- Páginas de grupo e "Achadinhos de hoje" não mudam (continuam só com o feed ao vivo).
+- Testado num Postgres local com `pg_net` e `pg_cron` simulados: ignora link que não é http(s), texto vazio e
+  resposta que não é JSON; não duplica; apaga o que passou de 35 dias; anônimo não grava nem roda a coleta.
+
+As páginas vão enchendo à medida que o grupo posta: em 1 a 2 dias o notebook deve ter ofertas. Se uma
+página continuar vazia depois de 3 dias, o produto não está passando no grupo (rever termos ou o grupo).
