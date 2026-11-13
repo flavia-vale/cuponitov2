@@ -534,3 +534,31 @@ grupo acabou de ser ligado ao link).
 
 As páginas vão enchendo à medida que o grupo posta: em 1 a 2 dias o notebook deve ter ofertas. Se uma
 página continuar vazia depois de 3 dias, o produto não está passando no grupo (rever termos ou o grupo).
+
+---
+
+## 10. Pedidos de indexação (Search Console)
+
+A cota é de ~10 pedidos por dia; acabou em 13/11 depois de 5.
+
+| Data | URL | Situação |
+|---|---|---|
+| 13/11 | https://www.cuponito.com.br/ofertas/celulares | pedido |
+| 13/11 | https://www.cuponito.com.br/ofertas/notebook | pedido |
+| 13/11 | https://www.cuponito.com.br/ofertas/microondas | pedido |
+| 13/11 | https://www.cuponito.com.br/ofertas/maquina-de-lavar | pedido |
+| 13/11 | https://www.cuponito.com.br/ofertas/sofa | pedido |
+| 14/11 | https://www.cuponito.com.br/ofertas/ps5 | a pedir |
+| 14/11 | https://www.cuponito.com.br/ofertas/tenis | a pedir (título novo) |
+| 14/11 | https://www.cuponito.com.br/ofertas/ventilador | a pedir |
+| 14/11 | https://www.cuponito.com.br/ | a pedir (título novo) |
+| 14/11 | https://www.cuponito.com.br/ofertas/tv | a pedir (seção nova) |
+| 14/11 | https://www.cuponito.com.br/ofertas/colchao | a pedir |
+| 14/11 | https://www.cuponito.com.br/ofertas/pneu | a pedir |
+| 14/11 | https://www.cuponito.com.br/ofertas/maquiagem | a pedir |
+| 14/11 | https://www.cuponito.com.br/ofertas/brinquedos | a pedir |
+| 14/11 | https://www.cuponito.com.br/ofertas/iphone | a pedir (título novo) |
+| 15/11 | https://www.cuponito.com.br/grupo-whatsapp/shopee | a pedir (título novo) |
+| 15/11 | https://www.cuponito.com.br/grupo-whatsapp/principal | a pedir (título novo) |
+
+Bing: as 17 já foram avisadas pelo IndexNow em 13/11 (status 200).
