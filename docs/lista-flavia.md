@@ -8,7 +8,7 @@ Junta os pedidos que estavam abertos (10/10, 18/10, 12/11 e 13/11). Conferido em
 respondem 200 com o título novo. Ordem: o que tem mais busca primeiro (as 11 páginas de ofertas de
 12/11), depois as que o ChatGPT cita e as lojas com título "Cupom … Hoje", e por último os posts antigos.
 
-- [x] **Bing (IndexNow): as 39 abaixo + `/llms.txt` enviadas pelo Claude em 15/11** (resposta 200).
+- [x] **Bing (IndexNow): as 38 abaixo + `/llms.txt` (39 no total) enviadas pelo Claude em 15/11** (resposta 200).
 - Google: Search Console → Inspecionar URL → Solicitar indexação, **até 10 por dia**.
 
 - [ ] **16/11**
