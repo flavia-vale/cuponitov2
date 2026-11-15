@@ -16,6 +16,7 @@ import { authorProfileUrl, isFlavia } from '@/lib/authors';
 import { filterOffersByTerms, parseOfferTerms, recentOffers } from '@/lib/groupOfferFeed';
 import { SITE_URL } from '@/lib/seo';
 import {
+  GROUP_DOES_NOT,
   GROUP_TRUST_FACTS,
   TRUST_POST_PATH,
   firstContentImage,
@@ -140,6 +141,7 @@ export default function OffersPage({ slug }: { slug: string }) {
           />
           <p className="mb-10 text-xs text-muted-foreground sm:text-sm">
             {GROUP_TRUST_FACTS.map(fact => `${fact.label}: ${fact.value}.`).join(' ')}{' '}
+            {GROUP_DOES_NOT.join(' ')}{' '}
             <a href={TRUST_POST_PATH} className="font-bold text-[#ff5200] hover:underline">
               É confiável? Veja como conferir
             </a>
