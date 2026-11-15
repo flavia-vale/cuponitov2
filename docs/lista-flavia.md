@@ -2,6 +2,63 @@
 
 Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 
+## 🔝 Fila única de reindexação (15/11) — substitui as listas de reindexação abaixo
+
+Junta os pedidos que estavam abertos (10/10, 18/10, 12/11 e 13/11). Conferido em 15/11: todas
+respondem 200 com o título novo. Ordem: o que tem mais busca primeiro (as 11 páginas de ofertas de
+12/11), depois as que o ChatGPT cita e as lojas com título "Cupom … Hoje", e por último os posts antigos.
+
+- [x] **Bing (IndexNow): as 39 abaixo + `/llms.txt` enviadas pelo Claude em 15/11** (resposta 200).
+- Google: Search Console → Inspecionar URL → Solicitar indexação, **até 10 por dia**.
+
+- [ ] **16/11**
+  - https://www.cuponito.com.br/ofertas/celulares
+  - https://www.cuponito.com.br/ofertas/notebook
+  - https://www.cuponito.com.br/ofertas/microondas
+  - https://www.cuponito.com.br/ofertas/maquina-de-lavar
+  - https://www.cuponito.com.br/ofertas/sofa
+  - https://www.cuponito.com.br/ofertas/ps5
+  - https://www.cuponito.com.br/ofertas/ventilador
+  - https://www.cuponito.com.br/ofertas/pneu
+  - https://www.cuponito.com.br/ofertas/colchao
+  - https://www.cuponito.com.br/ofertas/maquiagem
+
+- [ ] **17/11**
+  - https://www.cuponito.com.br/ofertas/brinquedos
+  - https://www.cuponito.com.br/
+  - https://www.cuponito.com.br/grupo-whatsapp
+  - https://www.cuponito.com.br/ofertas/tenis
+  - https://www.cuponito.com.br/ofertas/tv
+  - https://www.cuponito.com.br/ofertas/iphone
+  - https://www.cuponito.com.br/grupo-whatsapp/shopee
+  - https://www.cuponito.com.br/grupo-whatsapp/pc-gamer
+  - https://www.cuponito.com.br/desconto/cupom-desconto-amazon
+  - https://www.cuponito.com.br/desconto/cupom-desconto-shopee
+
+- [ ] **18/11**
+  - https://www.cuponito.com.br/desconto/cupom-desconto-mercado-livre
+  - https://www.cuponito.com.br/grupos-de-promocao
+  - https://www.cuponito.com.br/achadinhos-hoje
+  - https://www.cuponito.com.br/grupo-whatsapp/achadinhos
+  - https://www.cuponito.com.br/grupo-whatsapp/mercado-livre
+  - https://www.cuponito.com.br/grupo-whatsapp/amazon
+  - https://www.cuponito.com.br/grupo-whatsapp/shein
+  - https://www.cuponito.com.br/blog/grupo-de-ofertas-whatsapp-e-confiavel
+  - https://www.cuponito.com.br/blog/como-escolher-grupo-de-ofertas-whatsapp
+  - https://www.cuponito.com.br/grupo-whatsapp/celular
+
+- [ ] **19/11**
+  - https://www.cuponito.com.br/blog/mercado-livre-guia-para-economizar
+  - https://www.cuponito.com.br/blog/presentes-dia-das-maes-comprar-com-desconto
+  - https://www.cuponito.com.br/blog/cupom-shopee-vs-amazon-2026
+  - https://www.cuponito.com.br/blog/cupom-amazon-vs-mercado-livre-2026
+  - https://www.cuponito.com.br/blog/melhores-cupons-tech-vs-moda
+  - https://www.cuponito.com.br/blog/mercado-livre-vs-shopee-frete-gratis
+  - https://www.cuponito.com.br/ofertas/geladeira
+  - https://www.cuponito.com.br/ofertas/ar-condicionado
+
+Obs.: `/grupo-whatsapp/principal` não existe (404); a página do grupo geral é `/grupo-whatsapp`.
+
 ## Imagens do Gemini (docs/prompts-gemini-11-imagens.md)
 
 - [x] Lote 1 (itens 1 a 4): cashback, Shopee hoje, Mercado Livre e Dia das Mães.
@@ -25,7 +82,7 @@ Lista viva: o Claude acrescenta itens a cada entrega. Marque `[x]` quando fizer.
 - [ ] Search Console → Sitemaps → enviar `sitemap.xml` (se ainda não estiver lá; status deve ficar "Sucesso", ~110 páginas).
 - [ ] Bing Webmaster → Sitemaps → `https://www.cuponito.com.br/sitemap.xml`.
 
-## Reindexação (Search Console → Inspecionar URL → Solicitar indexação; Bing → Enviar URLs)
+## Reindexação (histórico — os abertos foram para a fila única de 15/11, no topo)
 
 Só depois da migration rodar. Até 10 por dia.
 
@@ -64,7 +121,7 @@ Só depois da migration rodar. Até 10 por dia.
 
 - [x] Rodar `supabase/migrations/20261018120000_grupo_paginas_tema_e_posts.sql` no SQL Editor (18/10).
 - [x] IndexNow das 9 URLs (Claude, 19/10: Bing respondeu 200).
-- [ ] Search Console → Inspecionar URL → Solicitar indexação (até 10 por dia):
+- [x] Movido para a fila única de 15/11 (topo). Search Console → Inspecionar URL → Solicitar indexação (até 10 por dia):
   - https://www.cuponito.com.br/grupo-whatsapp/achadinhos
   - https://www.cuponito.com.br/grupo-whatsapp/mercado-livre
   - https://www.cuponito.com.br/grupo-whatsapp/amazon
