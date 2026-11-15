@@ -181,6 +181,23 @@ export const GROUP_TRUST_FACTS: ReadonlyArray<{ label: string; value: string }> 
   },
 ];
 
+/**
+ * O que os grupos do Cuponito NÃO fazem (confirmado pela Flávia em 15/11/2026;
+ * docs/faz-nao-faz-grupo-rascunho-2026-11-15.md). Fonte única: páginas de grupo,
+ * páginas de ofertas (React e HTML do servidor) e `public/llms.txt`, que o
+ * `npm run seo:entrega` confere frase por frase. Mudou aqui, muda no llms.txt.
+ */
+export const GROUP_DOES_NOT: ReadonlyArray<string> = [
+  'Não vende nada e nunca pede PIX, cartão ou pagamento.',
+  'Não pede dados pessoais, senha nem código do WhatsApp.',
+  'Não chama ninguém no privado.',
+  'Não adiciona ninguém sem pedir; dá para sair quando quiser.',
+  'Não garante o preço: a oferta pode acabar ou mudar na loja a qualquer momento.',
+  'Não é loja: a compra, a entrega e a troca são com a loja.',
+];
+
+export const GROUP_DOES_NOT_TITLE = 'O que o grupo não faz';
+
 export interface SeasonCountdown {
   label: string;
   /** "sexta, 27/11" */

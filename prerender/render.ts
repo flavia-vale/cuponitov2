@@ -33,6 +33,8 @@ import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
   firstContentImage,
+  GROUP_DOES_NOT,
+  GROUP_DOES_NOT_TITLE,
   GROUP_TRUST_FACTS,
   TRUST_POST_PATH,
   seasonCountdown,
@@ -552,6 +554,8 @@ export function renderGroupPage(
           </p>
           <p>${escapeHtml(page.intro)}</p>
           <ul>${facts}</ul>
+          <h2>${escapeHtml(GROUP_DOES_NOT_TITLE)}</h2>
+          <ul>${GROUP_DOES_NOT.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
           <p><a href="${SITE_URL}${TRUST_POST_PATH}">Grupo de ofertas é confiável? Veja como conferir</a></p>
           ${actions}
           ${
@@ -680,7 +684,7 @@ export function renderOffersPage(
           <h2>${ctaTitle}</h2>
           <p>${escapeHtml(groupFactsSentence(info))}</p>
           ${join}
-          <p>${GROUP_TRUST_FACTS.map(fact => `${escapeHtml(fact.label)}: ${escapeHtml(fact.value)}.`).join(' ')} <a href="${SITE_URL}${TRUST_POST_PATH}">É confiável? Veja como conferir</a></p>
+          <p>${GROUP_TRUST_FACTS.map(fact => `${escapeHtml(fact.label)}: ${escapeHtml(fact.value)}.`).join(' ')} ${GROUP_DOES_NOT.map(item => escapeHtml(item)).join(' ')} <a href="${SITE_URL}${TRUST_POST_PATH}">É confiável? Veja como conferir</a></p>
           ${seasonDateFact(info) ? `<ul>${seasonDateFact(info)}</ul>` : ''}
           ${
             offers.length > 0

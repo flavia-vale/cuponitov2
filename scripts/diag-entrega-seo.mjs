@@ -7,6 +7,7 @@
 // 2. o HTML servido ao robô do ChatGPT já traz <h1>, <article> e ld+json
 //    (sem executar JavaScript)
 // 3. as URLs do site antigo redirecionam 301
+// 4. o "o que o grupo não faz" do llms.txt e da página do grupo é igual ao da fonte única
 
 const DEFAULT_HOST = 'https://www.cuponito.com.br';
 const OAI_UA = 'Mozilla/5.0 (compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot)';
@@ -146,6 +147,33 @@ for (const { path, expect } of LEGACY_CASES) {
   } catch (error) {
     failures += 1;
     console.log(`   FALHA ${path} — ${error.message}`);
+  }
+}
+
+// 4. "O que o grupo não faz": a mesma frase no llms.txt e no HTML do servidor
+//    (fonte única: GROUP_DOES_NOT em src/lib/whatsappGroup.ts).
+console.log('\n4. "O que o grupo não faz" igual ao da fonte única');
+{
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(new URL('../src/lib/whatsappGroup.ts', import.meta.url), 'utf8');
+  const block = source.match(/GROUP_DOES_NOT: ReadonlyArray<string> = \[([\s\S]*?)\];/);
+  const items = block ? [...block[1].matchAll(/'([^']+)'/g)].map(m => m[1]) : [];
+  if (items.length === 0) {
+    failures += 1;
+    console.log('   FALHA: GROUP_DOES_NOT não encontrado em src/lib/whatsappGroup.ts');
+  } else {
+    for (const path of ['/llms.txt', '/grupo-whatsapp']) {
+      try {
+        const res = await fetch(`${host}${path}`, { headers: { 'User-Agent': OAI_UA } });
+        const text = (await res.text()).replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"');
+        const missing = items.filter(item => !text.includes(item));
+        if (missing.length > 0) failures += 1;
+        console.log(`   ${missing.length === 0 ? 'OK' : 'FALHA'} ${path}${missing.length ? ` — falta: ${missing.join(' | ')}` : ''}`);
+      } catch (error) {
+        failures += 1;
+        console.log(`   FALHA ${path} — ${error.message}`);
+      }
+    }
   }
 }
 

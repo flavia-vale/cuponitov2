@@ -18,6 +18,8 @@ import { SITE_URL } from '@/lib/seo';
 import {
   GROUP_BASE_PATH,
   GROUP_HUB_SLUG,
+  GROUP_DOES_NOT,
+  GROUP_DOES_NOT_TITLE,
   GROUP_TRUST_FACTS,
   TRUST_POST_PATH,
   firstContentImage,
@@ -156,6 +158,14 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
               </li>
             ))}
           </ul>
+          <section className="mb-6" aria-labelledby="grupo-nao-faz">
+            <h2 id="grupo-nao-faz" className="mb-2 text-lg font-black text-foreground">{GROUP_DOES_NOT_TITLE}</h2>
+            <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground md:text-base">
+              {GROUP_DOES_NOT.map(item => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
           <p className="-mt-3 mb-6 text-sm">
             <a href={TRUST_POST_PATH} className="font-bold text-[#ff5200] hover:underline">
               Grupo de ofertas é confiável? Veja como conferir
