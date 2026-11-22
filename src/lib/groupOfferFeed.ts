@@ -140,7 +140,8 @@ const STORE_LABELS: Record<string, string> = {
 };
 
 export function storeLabel(store: string | null | undefined): string {
-  const key = String(store ?? '').trim().toLowerCase();
+  // "amazon+amazon" (mensagem com dois links): vale a loja do primeiro.
+  const key = String(store ?? '').split('+')[0].trim().toLowerCase();
   if (!key || key === 'unknown' || key === 'nolink') return 'Oferta';
   return STORE_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
 }
