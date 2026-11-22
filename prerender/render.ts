@@ -1,4 +1,5 @@
 import { escapeHtml, markdownToHtml, markdownToPlainText } from './markdown';
+import { categoryMetaDescription, storeMetaDescription } from '../src/lib/seo';
 import {
   CUPONITO_ORGANIZATION,
   DEFAULT_OG_IMAGE,
@@ -335,10 +336,7 @@ export function renderStorePage(
   groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/desconto/${store.slug}`;
-  const description =
-    store.meta_description ||
-    store.description ||
-    `Cupons de desconto ${store.name} verificados e atualizados pela equipe do Cuponito.`;
+  const description = storeMetaDescription(store);
 
   // dateModified = cupom mais recente da loja
   const latestUpdate = coupons.reduce<string | null>((acc, coupon) => {
@@ -968,8 +966,7 @@ export function renderCategoryPage(
   groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/categoria/${category.slug}`;
-  const description =
-    category.description || `Cupons de desconto da categoria ${category.name} verificados pelo Cuponito.`;
+  const description = categoryMetaDescription(category);
 
   const meta: HeadMeta = {
     title: `Cupons de ${category.name} | Cuponito`,

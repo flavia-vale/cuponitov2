@@ -14,6 +14,7 @@ import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
 import { useCouponCategories } from '@/hooks/useCouponCategories';
+import { storeMetaDescription } from '@/lib/seo';
 import {
   GROUP_HUB_SLUG,
   groupCtaTitle,
@@ -102,7 +103,7 @@ export default function StorePage() {
     <div className="min-h-screen bg-[#f5f3ef] font-sans antialiased text-[#1a1a1a] text-sm">
       <SEOHead
         title={`Cupom de Desconto ${storeName} Hoje | Cuponito`}
-        description={storeBrand?.meta_description || `Cupom de desconto ${storeName} válido hoje: até 80% OFF. Códigos verificados e atualizados diariamente pelo Cuponito.`}
+        description={storeMetaDescription({ name: storeName, meta_description: storeBrand?.meta_description, description: storeBrand?.description })}
         canonical={`https://www.cuponito.com.br/desconto/${slug}`}
         ogImage={storeBrand?.logo_url || undefined}
         jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filteredCoupons }}

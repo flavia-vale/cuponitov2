@@ -39,19 +39,19 @@ export const institutionalMeta = {
     path: '/como-funciona',
     title: 'Como funciona',
     description:
-      'Veja como usar o Cuponito para buscar lojas, copiar cupons verificados e economizar no carrinho.',
+      'Veja como usar o Cuponito em 4 passos: busque a loja, escolha o cupom, copie o código e cole no carrinho. Cupons verificados, sem cadastro e sem taxa.',
   },
   faq: {
     path: '/perguntas-frequentes',
     title: 'Perguntas frequentes',
     description:
-      'Tire dúvidas sobre cupons, cadastro, custo, atualização dos descontos e sugestões de lojas no Cuponito.',
+      'Perguntas frequentes do Cuponito: por que um cupom não funcionou, se precisa de cadastro, se tem custo, quando os cupons são atualizados e como sugerir lojas.',
   },
   contact: {
     path: '/fale-conosco',
     title: 'Fale conosco',
     description:
-      'Entre em contato com o time do Cuponito para avisar sobre cupons, sugerir lojas ou tirar dúvidas.',
+      'Fale com o time do Cuponito: avise sobre um cupom que não funcionou, sugira uma loja ou tire uma dúvida que não está nas perguntas frequentes.',
   },
   terms: {
     path: '/termos-de-uso',
