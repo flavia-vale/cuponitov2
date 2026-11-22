@@ -122,3 +122,18 @@ Boticário e Sephora → Perfumes.
 | 5 | 2.2 e 2.3 tela do convite e boas-vindas | Flávia | esta semana |
 | 6 | 3.4 lojas ligadas ao grupo certo | Flávia (painel) ou Claude (migration) | dezembro |
 | 7 | Revisão com os números: valor do membro por grupo, conversão, fontes | Claude | 01/12 |
+
+## 5. Foto e texto das ofertas (22/11, pedido da Flávia)
+
+- **Foto:** o feed do Espelha Grupos ganha o campo `image` (wabot, `src/modules/smart-links/feedOfferImages.js`,
+  branch `claude/focused-mccarthy-3ap2yk`): a foto do produto **na loja**, pelo mesmo buscador do card de
+  preview, a partir do link da Flávia. Nunca a foto da origem (pode ter a marca do concorrente). Liga com
+  `SMART_LINK_FEED_IMAGES=true` no `.env` da API + `pm2 restart api` (os robôs não reiniciam).
+- **Amazon incluída por decisão da Flávia (22/11)**, ciente de que o programa de afiliados da Amazon
+  restringe mostrar imagem que não venha da API deles.
+- **Cuponito:** `GroupOffer.image` (só https), coluna `group_offers.image_url` e coletor que grava a foto
+  (migration `20261122180000_foto_das_ofertas.sql`, testada num Postgres local: foto http recusada, foto que
+  chega depois completa a oferta, sem duplicar). Lista com foto (React e HTML do servidor iguais).
+- **Texto:** `formatOfferText` (`src/lib/groupOfferFeed.ts`) mostra o nome do produto (sem o gancho antes
+  do ✅, sem emojis, sem CAIXA ALTA, sem "anúncio"), o preço "de → por" e o resto (cupom, loja oficial) em
+  letra menor. Só exibição: o texto guardado não muda.
