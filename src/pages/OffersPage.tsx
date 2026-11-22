@@ -186,10 +186,13 @@ export default function OffersPage({ slug }: { slug: string }) {
           {siblings.length > 0 && (
             <nav aria-label="Veja também" className="mt-10">
               <h2 className="mb-3 text-xl font-black text-foreground md:text-2xl">Veja também</h2>
-              <ul className="space-y-2">
+              <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {siblings.map(other => (
-                  <li key={other.slug}>
-                    <a href={pagePath(other)} className="font-bold text-[#ff5200] hover:underline">
+                  <li key={other.slug} className="min-w-0">
+                    <a
+                      href={pagePath(other)}
+                      className="flex h-full items-center rounded-xl border border-border bg-[#f5f3ef] px-4 py-3 text-sm font-bold leading-snug text-[#ff5200] transition-colors hover:border-[#ff5200] hover:bg-white"
+                    >
                       {other.h1}
                     </a>
                   </li>
