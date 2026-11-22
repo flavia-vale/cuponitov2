@@ -92,7 +92,7 @@ export default function GroupJoinCTA({
         <div className="flex items-center gap-3">
           <WhatsAppIcon className="hidden h-9 w-9 shrink-0 sm:block" />
           <div>
-            <h2 className="text-base font-black leading-tight sm:text-lg">{title}</h2>
+            <h2 className="text-base font-black leading-tight text-white sm:text-lg">{title}</h2>
             <p className="mt-0.5 text-xs font-semibold text-white/90">{text ?? facts.join(' · ')}</p>
             {countdownText && (
               <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-black/15 px-2.5 py-0.5 text-[11px] font-bold">
@@ -137,7 +137,7 @@ export default function GroupJoinCTA({
           <CalendarClock className="h-4 w-4" aria-hidden="true" /> {countdownText}
         </p>
       )}
-      <h2 className="text-2xl font-black leading-tight sm:text-3xl">{title}</h2>
+      <h2 className="text-2xl font-black leading-tight text-white sm:text-3xl">{title}</h2>
       <p className="mx-auto mt-2 max-w-xl text-sm font-medium text-white/90 sm:text-base">
         {text ?? `${info.group_name}: ofertas de ${info.stores}.`}
       </p>
