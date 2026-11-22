@@ -385,3 +385,19 @@ de nicho antigos continuam em 404, tanto em `/g/<grupo>` quanto em `/g/262/<grup
 4 links novos, e os 11 de nicho antigos saíram. A Flávia repôs os 16 na lista e reiniciou a API
 (`pm2 restart api`): todos respondem 200. No site, `/achadinhos-hoje.json?g=celular` voltou com 9 ofertas e
 `?g=pc-gamer` com 40. Toda vez que um grupo novo entrar, ele vai para **o fim** da lista, sem apagar os outros.
+
+**No ar (22/11, ~16h30):** migrations rodadas e PRs #109 e #110 mesclados. IndexNow (Bing) das 12 URLs
+enviado pelo Claude via `/api/indexnow` (resposta 200): as 5 páginas novas, `/ofertas/pneu`,
+`/grupos-de-promocao`, `/grupo-whatsapp`, `/ofertas/brinquedos`, `/ofertas/perfume`, a home e `/llms.txt`.
+`npm run seo:entrega` e `npm run seo:robos` OK; as 5 páginas estão no sitemap com `<h1>`, `<article>`,
+JSON-LD e FAQ no HTML do servidor.
+
+**Achado no teste do botão:** `decoracao-de-natal` e `presentes-de-natal` levavam a `/g/promo-natal` e
+`/g/promo-presentes` (404): no banco estava a 1ª versão da migration, sem o `262`. Correção (SQL Editor):
+
+```sql
+UPDATE public.whatsapp_group_pages
+SET join_url = 'https://linkdivulgador.com.br/g/262/' || CASE slug WHEN 'decoracao-de-natal' THEN 'promo-natal' ELSE 'promo-presentes' END,
+    updated_at = now()
+WHERE slug IN ('decoracao-de-natal', 'presentes-de-natal');
+```
