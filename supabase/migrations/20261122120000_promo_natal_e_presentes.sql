@@ -22,7 +22,9 @@
 -- sort_order 2 e 3: a seção "Natal" fica logo depois dos achadinhos no diretório (a ordem da seção é a do
 -- primeiro grupo dela). Depois do Natal, a Flávia muda no painel.
 --
--- ANTES DE RODAR: conferir os dois join_url com os links criados no Link Inteligente.
+-- Links do Link Inteligente no formato novo, com o número da conta (/g/262/...), conferidos em 22/11 (302).
+-- O feed delas só entra no arquivo de ofertas com o coletor novo (20261122150000_promo_pet_e_auto.sql),
+-- que aceita /g/262/<grupo>. As duas migrations são independentes.
 
 INSERT INTO public.whatsapp_group_pages
   (slug, store_slug, title, h1, meta_description, intro, content, faq, join_url,
@@ -87,7 +89,7 @@ $md$,
     jsonb_build_object('question', 'O que conferir no pisca-pisca?', 'answer', 'Se é de LED, a voltagem (127 V, 220 V ou bivolt), se é para uso externo quando for ficar na área de fora e o selo do Inmetro na embalagem.'),
     jsonb_build_object('question', 'O grupo é pago?', 'answer', 'Não. O Promo Natal é grátis e só os administradores postam.')
   ),
-  'https://linkdivulgador.com.br/g/promo-natal',
+  'https://linkdivulgador.com.br/g/262/promo-natal',
   'Promo Natal',
   'decoração de Natal: árvores, enfeites, guirlandas e pisca-pisca',
   NULL,
@@ -146,7 +148,7 @@ $md$,
     jsonb_build_object('question', 'Quando comprar o presente de Natal mais barato?', 'answer', 'Na Black Friday, em 27 de novembro de 2026, ou logo depois. Em dezembro a procura sobe e o prazo de entrega fica mais apertado.'),
     jsonb_build_object('question', 'O grupo é pago?', 'answer', 'Não. O Promo Presentes é grátis e só os administradores postam.')
   ),
-  'https://linkdivulgador.com.br/g/promo-presentes',
+  'https://linkdivulgador.com.br/g/262/promo-presentes',
   'Promo Presentes',
   'presentes de Natal',
   NULL,
