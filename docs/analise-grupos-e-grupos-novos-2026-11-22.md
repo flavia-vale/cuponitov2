@@ -379,3 +379,9 @@ endereço com o número da conta). Se o endereço novo for outro, o Claude ajust
 **Atualização (22/11, ~15h):** os 4 feeds novos (`/g/262/promo-natal`, `promo-presentes`, `promo-pet`,
 `promo-auto-e-moto`) respondem 200, no formato que o site lê (`items[]`), ainda com 0 ofertas. Os 10 feeds
 de nicho antigos continuam em 404, tanto em `/g/<grupo>` quanto em `/g/262/<grupo>`.
+
+**Causa e correção (22/11, ~16h):** o feed do wabot só abre para os links em `SMART_LINK_PUBLIC_FEED`
+(`.env` da API). No ajuste de 22/11 às 14h58 (wabot #3445), a lista ficou só com `ofertas-fafaciane` e os
+4 links novos, e os 11 de nicho antigos saíram. A Flávia repôs os 16 na lista e reiniciou a API
+(`pm2 restart api`): todos respondem 200. No site, `/achadinhos-hoje.json?g=celular` voltou com 9 ofertas e
+`?g=pc-gamer` com 40. Toda vez que um grupo novo entrar, ele vai para **o fim** da lista, sem apagar os outros.
