@@ -93,7 +93,15 @@ reforça abrir: grupo de assunto converte ~40%, o geral ~21%.
 | **Livros e Kindle** | Hipótese. A Amazon tem promoção de livro todo dia | livros em promoção, Kindle, e-books grátis | nenhum | ticket baixo |
 | **Games (console)** | Não: já cabe no Tech Nerd (PS5 já é porta) | — | — | dividiria o grupo que mais converte |
 
-**Ordem sugerida:** Casa (dados prontos, páginas no ar) → Auto e Moto (páginas no ar, clique caro)
+**Decisão da Flávia (22/11): Natal vira dois grupos.**
+- **Promo Presentes:** presentes de Natal agora; depois Dia das Mães, Namorados, Pais e Crianças.
+- **Promo Natal:** só decoração de Natal (árvore, pisca-pisca, enfeites, mesa de Natal).
+- O Promo Festas continua como está (organizadoras de festa).
+
+Prazo: as duas páginas no ar até ~01/12, porque a busca de Natal sobe no começo de dezembro. Para
+isso, os dados do Natal (lote B1 da seção 5) vêm antes dos outros.
+
+**Ordem sugerida:** Presentes e Natal (prazo) → Casa (dados prontos, páginas no ar) → Auto e Moto (páginas no ar, clique caro)
 → Presentes/Natal (prazo) → Pet. Para cada um: criar o grupo, o link no Link Inteligente com o feed
 `ofertas.json` ligado, e preencher no painel o link, o nome e "O que chega". As páginas que já
 existem passam a levar ao grupo novo sem código.
@@ -106,17 +114,32 @@ Regra do `CLAUDE.md`: nenhuma página nova, título ou texto sem os dados.
 conseguiria espelhar de: casa (sofá, colchão, panelas), auto e moto, pet, presentes de Natal,
 decoração de Natal, ferramentas. Há grupos de origem para espelhar nesses assuntos?
 
-**B. Planejador de Palavras-chave** (Brasil, 12 meses), um lote:
+**B1. Planejador, lote do Natal (urgente, para as páginas saírem até ~01/12):**
 
 ```
 presentes de natal
 presente de natal barato
 presente de natal para homem
 presente de natal para mulher
+presente de natal para mãe
+presente de natal para criança
 amigo secreto presente
+presente até 50 reais
+kit presente
 decoração de natal
+decoração de natal barata
+árvore de natal
 árvore de natal promoção
 pisca pisca natal
+enfeites de natal
+mesa de natal decoração
+grupo de decoração de natal whatsapp
+grupo de presentes whatsapp
+```
+
+**B2. Planejador, os outros grupos** (Brasil, 12 meses):
+
+```
 capacete promoção
 capacete de moto barato
 peças de moto
@@ -146,12 +169,13 @@ material escolar promoção
 **D. ChatGPT** (janela anônima, busca ligada, print das fontes citadas):
 - "tem grupo de promoção de pet no WhatsApp?" e "onde achar ração em promoção?"
 - "tem grupo de promoção de peças de moto / acessórios de carro no WhatsApp?"
-- "tem grupo de promoção de presentes de Natal no WhatsApp?"
+- "tem grupo de promoção de presentes de Natal no WhatsApp?" e "onde achar presente de Natal barato?"
+- "tem grupo de decoração de Natal no WhatsApp?" e "onde comprar decoração de Natal barata?"
 - "tem grupo de promoção de móveis / casa no WhatsApp?"
 - "qual o melhor grupo de promoção no WhatsApp?" (para ver se ainda cita o `/grupos-de-promocao`,
   por causa da queda de 111 para ~60 cliques por dia)
 
 **E. Decisões (sim ou não):**
-1. Natal: "Promo Presentes" (dura o ano todo) ou decoração de Natal no Promo Festas? Ou os dois?
+1. ~~Natal~~ decidido em 22/11: Promo Presentes + Promo Natal (só decoração).
 2. Promo Salão → Promo Beleza?
 3. Pode começar o código da seção 3.2 (itens 1, 3 e 4 não mudam texto; o 2 e o 5 esperam os dados)?
