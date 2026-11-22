@@ -23,12 +23,18 @@ export interface GroupOffer {
 
 const FEED_HOSTS = new Set(['linkdivulgador.com.br', 'www.linkdivulgador.com.br', 'espelhagrupos.com.br', 'www.espelhagrupos.com.br']);
 
-/** Link Inteligente (`https://linkdivulgador.com.br/g/<slug>`) → endereço do feed; outro link → null. */
+/**
+ * Caminho do grupo depois de `/g/`: `promo-tech` (link antigo) ou `262/promo-pet` (link novo, com o
+ * número da conta). Mesmo padrão do coletor `collect_group_offers()` no banco.
+ */
+const FEED_PATH = /^\/g\/((?:[0-9]{1,10}\/)?[a-z0-9-]{3,40})\/?$/;
+
+/** Link Inteligente (`https://linkdivulgador.com.br/g/<slug>` ou `/g/<conta>/<slug>`) → endereço do feed; outro link → null. */
 export function offerFeedUrl(joinUrl: string | null | undefined): string | null {
   const safe = safeExternalUrl(joinUrl);
   if (!safe) return null;
   const url = new URL(safe);
-  const match = url.pathname.match(/^\/g\/([a-z0-9-]{3,40})\/?$/);
+  const match = url.pathname.match(FEED_PATH);
   if (!FEED_HOSTS.has(url.host) || !match) return null;
   return `https://${url.host}/g/${match[1]}/ofertas.json`;
 }
@@ -54,10 +60,10 @@ export function filterOffersByTerms(offers: GroupOffer[], terms: string[]): Grou
   });
 }
 
-/** Link Inteligente → slug do grupo no feed (`promo-tech`); outro link → null. O arquivo de ofertas usa este slug. */
+/** Link Inteligente → grupo no feed (`promo-tech` ou `262/promo-pet`); outro link → null. O arquivo de ofertas usa este valor. */
 export function offerFeedSlug(joinUrl: string | null | undefined): string | null {
   const feedUrl = offerFeedUrl(joinUrl);
-  return feedUrl ? (feedUrl.match(/\/g\/([a-z0-9-]+)\/ofertas\.json$/)?.[1] ?? null) : null;
+  return feedUrl ? (feedUrl.match(/\/g\/((?:[0-9]+\/)?[a-z0-9-]+)\/ofertas\.json$/)?.[1] ?? null) : null;
 }
 
 /**

@@ -330,3 +330,48 @@ duplicar):
 4. Avisar o Claude para mandar o IndexNow e rodar `npm run seo:entrega` e `npm run seo:robos`.
 5. Search Console → Inspecionar URL → pedir indexação de `/ofertas/decoracao-de-natal` primeiro.
 6. Painel → Grupos do WhatsApp: preencher "Quantas ofertas" dos dois quando souber o volume.
+
+## 8. 22/11 (tarde): Promo Pet e Promo Auto e Moto, e o link novo do Link Inteligente
+
+A Flávia criou os 4 grupos (Natal, Presentes, Pet, Auto e Moto). Os links novos têm **o número da conta**:
+`linkdivulgador.com.br/g/262/<grupo>` (conferidos: redirecionam ao convite do WhatsApp). O
+`/g/promo-natal` sem o número dá 404.
+
+**Código:** `offerFeedUrl`/`offerFeedSlug` (`src/lib/groupOfferFeed.ts`) e o coletor do arquivo de ofertas
+(`collect_group_offers()`, na migration `20261122150000_promo_pet_e_auto.sql`) aceitam os dois formatos.
+O feed do link novo fica em `/g/262/<grupo>/ofertas.json`.
+
+| Página | Grupo | Busca principal | Diretório |
+|---|---|---|---|
+| `/ofertas/acessorios-para-carro` | Promo Auto e Moto | acessórios para carro 22.200; aspirador de pó carro 18.100 (+22%) | Carro e moto |
+| `/ofertas/capacete` | Promo Auto e Moto | capacete promoção 6.600 + capacete barato 6.600; acessórios para moto 8.100 | — |
+| `/ofertas/pneu` (já existia) | Promo Auto e Moto (antes: grupo geral) | pneu ~144 mil somando as medidas | — |
+| `/ofertas/racao` | Promo Pet | ração em promoção 720 (pouca busca, lance de R$ 6 a R$ 10) | Pet |
+
+- Auto e Moto: a página deixa claro que o grupo é de acessório, capacete e pneu, **não de peça de
+  reposição** ("moto peças" 60.500 é busca de loja do bairro).
+- Testado num Postgres local: as duas migrations de 22/11 rodam duas vezes sem duplicar; o coletor
+  lista `262/promo-natal`, `262/promo-presentes`, `262/promo-pet` e `262/promo-auto-e-moto`.
+
+### Problema achado: os feeds de nicho não respondem
+
+Em 22/11 (~14h50 de Brasília), **só o feed do grupo geral (`ofertas-fafaciane`) responde**. Os 11 de nicho
+(`promo-celular`, `promo-tech`, `promo-tenis`, `promo-tv`, `promo-fit-whey-suplemento`, `promo-perfumes`,
+`promo-iphone`, `promo-eletrodomesticos`, `promo-bebes`, `promo-salao`) devolvem
+`{"error":"não encontrado"}` (404), e os 4 novos também (`/g/262/<grupo>/ofertas.json`: rota não existe).
+
+Efeito no site: as páginas de **grupo** (celular, PC gamer, manicure) saem sem "Saiu no grupo hoje", e as
+páginas de **ofertas** só mostram o arquivo (tênis e TV param em 21/11). A página vazia derruba a
+conversão: o "Saiu no grupo hoje" é a prova de que o grupo está vivo.
+
+**A conferir no Espelha Grupos:** se o feed `ofertas.json` dos links de nicho foi desligado (ou mudou de
+endereço com o número da conta). Se o endereço novo for outro, o Claude ajusta `offerFeedUrl` e o coletor.
+
+### Ordem para pôr no ar (Flávia)
+
+1. Espelha Grupos: ligar o feed `ofertas.json` dos 4 links novos e conferir os de nicho antigos (acima).
+2. SQL Editor: `20261122120000_promo_natal_e_presentes.sql` e `20261122150000_promo_pet_e_auto.sql`.
+3. Mesclar o PR (código do feed e `llms.txt`).
+4. Avisar o Claude: IndexNow das 5 páginas novas + `npm run seo:entrega` e `npm run seo:robos`.
+5. Search Console: pedir indexação de `/ofertas/decoracao-de-natal` primeiro (pico em novembro).
+6. Painel: "Quantas ofertas" dos 4 grupos quando souber o volume.
