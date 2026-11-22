@@ -179,3 +179,127 @@ material escolar promoção
 1. ~~Natal~~ decidido em 22/11: Promo Presentes + Promo Natal (só decoração).
 2. Promo Salão → Promo Beleza?
 3. Pode começar o código da seção 3.2 (itens 1, 3 e 4 não mudam texto; o 2 e o 5 esperam os dados)?
+
+## 6. Planejador de 22/11 (3 planilhas, 13.237 termos, Brasil, nov/2025 a out/2026)
+
+Arquivos em `docs/dados-2026-11-22/` (convertidos para TSV). O Planejador repete o mesmo número para
+variações próximas ("decoração de natal" e "decoracao de natal"); as somas abaixo contam cada série uma vez.
+A busca "grupo de … whatsapp" é quase zero em todos os temas (peças de moto: 20 por mês): o grupo é
+achado pelo ChatGPT e pelo diretório, e a busca do Google é pelo **produto**.
+
+### 6.1 Promo Natal (só decoração): o pico é AGORA, em novembro
+
+| Termo | Média/mês | Nov/25 | Dez/25 | Lance máx. |
+|---|---|---|---|---|
+| decoração de natal | 90.500 | **450.000** | 368.000 | 1,07 |
+| enfeites de natal | 74.000 | **368.000** | 165.000 | 0,98 |
+| guirlanda de natal | 60.500 | **368.000** | 165.000 | 0,95 |
+| árvore de natal decorada | 33.100 | **246.000** | 90.500 | 1,22 |
+| decoração de natal simples | 14.800 | 49.500 | **90.500** | 0,75 |
+| mesa de natal | 12.100 | 33.100 | **110.000** | 2,47 |
+| pisca pisca de natal | 9.900 | 60.500 | 22.200 | 0,80 (+235% no ano) |
+| decoração de natal barata e criativa | 6.600 | 33.100 | 27.100 | 1,23 |
+| decoração de natal para loja | 1.900 | 14.800 | 4.400 | 2,22 |
+| enfeites de natal promoção | 1.300 | 9.900 | 2.400 | 0,97 |
+| árvore de natal promoção | 880 | 5.400 | 2.400 | 0,80 |
+| enfeites de natal shopee | 880 | 4.400 | 880 | 1,89 |
+| **ano novo decoração** | 14.800 | 22.200 | **165.000** | 1,38 |
+| decoração mesa ano novo | 1.600 | 1.600 | 18.100 | 1,54 |
+
+Leitura:
+- **Enfeite, guirlanda, árvore e pisca-pisca têm o pico em novembro**, não em dezembro. Cada semana
+  sem página perde a maior parte da busca. O prazo de "até 01/12" vira **esta semana**.
+- A busca grande é de **ideia** ("decoração de natal", "simples"); a de **compra** ("promoção",
+  "barata", "shopee") é menor, mas ainda chega a ~10 mil por termo em novembro. A página tem que juntar
+  as duas coisas: ideias simples e baratas + as ofertas do grupo.
+- **Mesa de Natal sobe em dezembro** (110 mil) e **decoração de Ano Novo explode em dezembro**
+  (165 mil). O Promo Natal pode ir até 31/12 com Ano Novo. Já existe o post
+  `/blog/decoracao-de-ano-novo-simples-e-barata`, ligado ao Promo Festas: trocar para o Promo Natal?
+- "Decoração de natal para loja" (14.800 em nov) é do público do Promo Festas (quem decora para os outros).
+
+### 6.2 Promo Presentes: pico em dezembro, e busca o ano todo
+
+| Termo | Média/mês | Nov/25 | Dez/25 | Lance máx. |
+|---|---|---|---|---|
+| amigo secreto | 40.500 | 165.000 | **201.000** | 0,36 |
+| presentes de natal | 33.100 | 90.500 | **246.000** | 2,07 |
+| presente de natal para namorado | 5.400 | 12.100 | 49.500 | 1,97 |
+| lembrancinha de natal baratinha | 8.100 | 33.100 | 49.500 | 0,71 |
+| presentes de natal feminino | 3.600 | 8.100 | 27.100 | 2,44 |
+| presente amigo secreto | 4.400 | 18.100 | 27.100 | 1,22 |
+| presentes de amigo secreto até 50 reais | 1.300 | 4.400 | 9.900 | 0,96 |
+| presentes até 100 reais | 1.000 | 3.600 | 6.600 | 1,77 |
+| presente de natal barato | 720 | 2.400 | 5.400 | 1,53 |
+| presentes para amiga (ano todo) | 12.100 | 14.800 | 18.100 | 2,52 |
+| presentes para o papai (ano todo) | 12.100 | 12.100 | 22.200 | 2,06 |
+| ideias de presente para amigo (ano todo) | 9.900 | 12.100 | 14.800 | 1,90 |
+
+Leitura:
+- **Presente por faixa de preço** ("até 30", "até 50", "até 100 reais", amigo secreto) é o encaixe
+  natural de um grupo de ofertas: ~17 mil por mês somando, quase tudo em dezembro.
+- Presente para amiga, para o pai e para amigo têm busca **o ano todo**: confirma que o Promo
+  Presentes vive depois do Natal (Dia das Mães, Namorados, Pais, Crianças).
+- Lance de R$ 1,50 a R$ 2,50: a venda de presente vale mais que a de decoração.
+
+### 6.3 Auto e Moto: o que dá para vender online
+
+| Termo | Média/mês | Lance máx. | Serve? |
+|---|---|---|---|
+| moto peças | 60.500 | 2,55 | **não**: loja do bairro, "perto de mim", nome de loja (Galpão, Damasio) |
+| peças de carro | 18.100 | 4,87 | **não**: depende do modelo, compra local |
+| acessórios para carro | 22.200 | 3,16 (loja: até 5,49) | **sim** |
+| aspirador de pó carro + variações | ~35 mil somando | 0,76 a 1,08 | **sim** (+22% no ano) |
+| acessórios para moto + variações | ~15 mil somando | 1,28 a 1,98 | **sim** |
+| capacete promoção / capacete barato | 6.600 + 6.600 | 0,89 a 1,02 | **sim** |
+| pneu (estudo de 12/11) | ~144 mil somando | 3,64 | **sim** (página já no ar) |
+
+**Promo Auto e Moto: sim**, com portas de acessório e de produto, não de peça:
+`/ofertas/pneu` (existe), acessórios para carro, aspirador automotivo, capacete, acessórios para moto.
+
+### 6.4 Pet: pouca busca, clique caríssimo
+
+ração em promoção 720 · promoção de ração 320 · bravecto promoção 480 · ração por marca e peso de 90
+a 260 cada. **~5 mil por mês somando tudo**, mas o lance vai de **R$ 6 a R$ 10** (o mais alto de todos
+os estudos). O Google não vai trazer gente; o grupo dependeria do ChatGPT e do diretório.
+**Recomendação: depois dos outros, e só se o espelhamento tiver ≥ 10 ofertas de pet por dia.**
+Uma página só (`/ofertas/racao`), não várias.
+
+### 6.5 Casa, ferramentas, livros, escolar
+
+| Termo | Média/mês | Lance máx. |
+|---|---|---|
+| cafeteira dolce gusto promoção | 3.600 | **11,95** |
+| máquina dolce gusto promoção | 1.300 | **13,76** |
+| panela de pressão promoção | 3.600 | 1,23 |
+| jogo de panelas promoção | 2.400 | 1,34 |
+| cafeteira promoção | 2.400 | 3,55 |
+| parafusadeira / furadeira / lavadora de alta pressão promoção | 1.600 / 1.300 / 1.300 | ~1,1 |
+| livros em promoção | 3.600 (+52% no ano) | 1,18 |
+| material escolar promoção | 390 | 2,07 |
+
+("promoções de panelas de pressão" com 301 mil é o mesmo erro do Planejador visto em 12/11.)
+- **Promo Casa continua o primeiro dos grupos "do ano todo"**: sofá e colchão (12/11) + panelas +
+  cafeteira. **Dolce Gusto tem o clique mais caro depois do pet**: página própria vale a pena.
+- Ferramentas (~4 mil somando) entram no Promo Casa, não como grupo.
+- Livros: pouco, mas crescendo. Fica como hipótese.
+- Material escolar: quase nada no Planejador. Não fazer.
+
+### 6.6 Nova ordem
+
+| # | O que | Quando | Página (proposta) |
+|---|---|---|---|
+| 1 | **Promo Natal** | **esta semana** (pico de novembro) | `/ofertas/decoracao-de-natal` (enfeites, árvore, guirlanda, pisca-pisca; em dezembro, mesa de Natal e Ano Novo) |
+| 2 | **Promo Presentes** | até ~01/12 (pico de dezembro) | `/ofertas/presentes-de-natal`, com seções por faixa de preço e amigo secreto |
+| 3 | Promo Casa | dezembro | `/ofertas/sofa` e `/ofertas/colchao` (existem) + cafeteira Dolce Gusto, panelas |
+| 4 | Promo Auto e Moto | dezembro | `/ofertas/pneu` (existe) + acessórios para carro, aspirador automotivo, capacete |
+| 5 | Promo Pet | só com oferta no feed | `/ofertas/racao` |
+
+**Para pôr o Promo Natal no ar esta semana, a Flávia faz:**
+1. Cria o grupo **Promo Natal** no WhatsApp e o link `promo-natal` no Link Inteligente, com o feed
+   `ofertas.json` ligado no Espelha Grupos.
+2. Diz quantas ofertas de decoração de Natal por dia o espelhamento consegue.
+3. Opcional (pela pressa): as respostas do ChatGPT para "onde comprar decoração de Natal barata?" e
+   "tem grupo de decoração de Natal no WhatsApp?". Sem elas, a página sai com os dados do Planejador,
+   como em 12/11, e a rodada de IA vem depois.
+
+O mesmo para o **Promo Presentes** (`promo-presentes`) até 01/12.
