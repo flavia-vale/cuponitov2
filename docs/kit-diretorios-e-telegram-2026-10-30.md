@@ -164,3 +164,31 @@ Grátis, só os admins postam 👉 https://linkdivulgador.com.br/g/promo-celular
 ```
 
 Sem "últimas vagas", contador ou sorteio: não é verdade, e sorteio precisa de autorização (Lei 5.768/71).
+
+## 6. Grupos novos de 22/11 (Natal, Presentes, Pet, Auto e Moto)
+
+Convites diretos conferidos em 22/11 (o diretório não aceita o Link Inteligente). Se o grupo encher e
+o Link Inteligente abrir outro, o convite muda: atualizar no diretório.
+
+| Grupo | Convite | Categoria sugerida |
+|---|---|---|
+| Promo Natal | https://chat.whatsapp.com/DaC6jxtLXxFCtcAgb19Iek | Casa e decoração / Promoções |
+| Promo Presentes | https://chat.whatsapp.com/KQDPKjjbcMjEDNJBjxuXhZ | Promoções / Compras |
+| Promo Pet | https://chat.whatsapp.com/BFstrUlQgs39TxPMYsNP9Z | Animais / Pets / Promoções |
+| Promo Auto e Moto | https://chat.whatsapp.com/Lp4L6xS1uVJ2BRNCNkCg3F | Carros e motos / Promoções |
+
+**Promo Natal**
+- Curta (até 100): `Promoções de decoração de Natal: árvore, enfeites, guirlanda e pisca-pisca. Só admins postam.`
+- Longa: `Grupo do Cuponito (cuponito.com.br) só de decoração de Natal em promoção: árvores, enfeites, bolas, guirlandas, pisca-pisca e mesa de Natal, com o preço do momento e o link da loja oficial. Só os administradores postam. Entrada grátis.`
+
+**Promo Presentes**
+- Curta: `Presentes de Natal em promoção: até 50 e até 100 reais, amigo secreto. Só admins postam.`
+- Longa: `Grupo do Cuponito (cuponito.com.br) só de presentes de Natal em promoção: ideias até 30, 50 e 100 reais, amigo secreto, para ela e para ele, com o preço do momento e o link da loja oficial. Só os administradores postam. Entrada grátis.`
+
+**Promo Pet**
+- Curta: `Ração para cachorro e gato, areia e antipulgas em promoção. Só admins postam.`
+- Longa: `Grupo do Cuponito (cuponito.com.br) com promoções para cachorro e gato: ração, areia, antipulgas, petiscos e acessórios, com o preço do momento e o link da loja oficial. Só os administradores postam. Entrada grátis.`
+
+**Promo Auto e Moto**
+- Curta: `Acessórios para carro e moto, capacete, aspirador e pneu em promoção. Só admins postam.`
+- Longa: `Grupo do Cuponito (cuponito.com.br) com promoções para carro e moto: acessórios, aspirador automotivo, multimídia, capacetes e pneus, com o preço do momento e o link da loja oficial. Não é grupo de peças de reposição. Só os administradores postam. Entrada grátis.`
