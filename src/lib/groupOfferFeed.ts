@@ -115,7 +115,7 @@ export function parseGroupOffers(raw: unknown, max = 40): GroupOffer[] {
   for (const item of items) {
     if (!item || typeof item !== 'object') continue;
     const value = item as Record<string, unknown>;
-    const text = typeof value.text === 'string' ? value.text.trim().slice(0, 200) : '';
+    const text = typeof value.text === 'string' ? value.text.trim().slice(0, 240) : '';
     const link = safeExternalUrl(typeof value.link === 'string' ? value.link : null);
     if (!text || !link) continue;
     const sentAt = typeof value.sentAt === 'string' && !Number.isNaN(Date.parse(value.sentAt)) ? value.sentAt : null;
@@ -140,7 +140,8 @@ const STORE_LABELS: Record<string, string> = {
 };
 
 export function storeLabel(store: string | null | undefined): string {
-  const key = String(store ?? '').trim().toLowerCase();
+  // "amazon+amazon" (mensagem com dois links): vale a loja do primeiro.
+  const key = String(store ?? '').split('+')[0].trim().toLowerCase();
   if (!key || key === 'unknown' || key === 'nolink') return 'Oferta';
   return STORE_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
 }
@@ -200,9 +201,13 @@ const AD_TAG_RE = /\s*#an[uú]ncio\b|\s+an[uú]ncio\s*$/gi;
 const ANY_PRICE_RE = new RegExp(String.raw`R\$\s?\d{1,3}(?:\.\d{3})*(?:,\d{2})?`);
 // Cupom cortado no fim ("Cupom:…"): sem o código, não serve para nada.
 const CUT_COUPON_RE = /\s*(?:🎟️\s*)?cupom:?\s*…\s*$/i;
-const PRICE = String.raw`R\$\s?\d{1,3}(?:\.\d{3})*(?:,\d{2})?`;
-const OLD_PRICE_RE = new RegExp(String.raw`\bDe\s+(${PRICE})`, 'i');
-const NEW_PRICE_RE = new RegExp(String.raw`\bPOR\s+(${PRICE})((?:\s+(?:no|à|a)\s+(?:Pix|vista|prazo))?(?:\s*\([^)]{1,30}\))?)`, 'i');
+// "R$ 1.100,00", "R$49" ou, depois de "De:"/"Por:", só "499,00" (grupos que não escrevem o R$).
+const PRICE = String.raw`(?:R\$\s?\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d{1,3}(?:\.\d{3})*,\d{2})`;
+const OLD_PRICE_RE = new RegExp(String.raw`\bDe:?\s*(${PRICE})`, 'i');
+const NEW_PRICE_RE = new RegExp(String.raw`\bPOR:?\s*(${PRICE})((?:\s+(?:no|à|a)\s+(?:Pix|vista|prazo))?(?:\s*\([^)]{1,30}\))?)`, 'i');
+// "Link para comprar:" e parecidos, que sobram quando o link sai do texto.
+const LINK_CALL_RE = /\s*(?:link\s+(?:para|pra)\s+comprar|compre\s+aqui|link)\s*:?\s*$/i;
+const asReais = (value: string) => (value.startsWith('R$') ? value.replace(/^R\$\s?/, 'R$ ') : `R$ ${value}`);
 // Siglas e marcas que ficam como estão quando o texto vem em CAIXA ALTA.
 const KEEP_UPPER = new Set(['TV', 'LED', 'USB', 'SSD', 'HD', 'LG', 'JBL', 'PC', 'RGB', 'HDMI', 'NFC', 'GPS', 'DVD', 'UV', 'BT', 'XL', 'XG', 'GG', 'PP']);
 const FIXED_CASE: Record<string, string> = { pix: 'Pix', iphone: 'iPhone', ipad: 'iPad', 'wi-fi': 'Wi-Fi', wifi: 'Wi-Fi', airpods: 'AirPods', ps5: 'PS5', ps4: 'PS4' };
@@ -225,7 +230,7 @@ export function tidyOfferCase(text: string): string {
   }).replace(/([.!?]\s+)([a-zà-ÿ])/g, (_m, sep: string, ch: string) => sep + ch.toLocaleUpperCase('pt-BR'));
 }
 
-const clean = (value: string) => value.replace(/\s+/g, ' ').replace(/^[\s,;:.\-–—|]+|[\s,;:\-–—|]+$/g, '').trim();
+const clean = (value: string) => value.replace(/\s+/g, ' ').replace(/^[\s,;:.\-–—|]+|[\s,;:.\-–—|]+$/g, '').trim();
 
 /**
  * Texto do grupo ("CORRE, PREÇÃO ✅ BIKE ERGOMÉTRICA De R$ 1.100,00 🔥POR R$ 489,90 no Pix🔥 Loja Oficial")
@@ -238,11 +243,16 @@ export function formatOfferText(raw: string): OfferDisplay {
   // O gancho ("CORRE, PREÇÃO NA…") vem antes do primeiro ✅; o produto, depois.
   const check = base.indexOf('✅');
   const body = (check > 0 && check < base.length - 10 ? base.slice(check + 1) : base).replace(DECOR_RE, ' ');
-  const plain = clean(body.replace(/\s+/g, ' '));
+  const plain = clean(body.replace(/\s+/g, ' ').replace(LINK_CALL_RE, ''));
   const newMatch = NEW_PRICE_RE.exec(plain);
   const oldMatch = OLD_PRICE_RE.exec(plain);
   if (!newMatch) {
     // Preço solto, sem "POR" ("Perfume X 200 ml R$169,20 Cupom: ABC"): o primeiro preço vale.
+    // "… De R$ 500,99 POR R$…" (texto cortado antes do preço novo): o único preço é o ANTIGO.
+    // Mostrar como preço atual enganaria; sai só o nome do produto.
+    if (oldMatch) {
+      return { title: tidyOfferCase(clean(plain.slice(0, oldMatch.index))) || tidyOfferCase(clean(plain)), oldPrice: null, price: null, priceNote: null, details: null };
+    }
     const loose = ANY_PRICE_RE.exec(plain);
     if (!loose || loose.index < 3) {
       return { title: tidyOfferCase(clean(plain)), oldPrice: null, price: null, priceNote: null, details: null };
@@ -263,8 +273,8 @@ export function formatOfferText(raw: string): OfferDisplay {
   const note = clean(newMatch[2] ?? '');
   return {
     title,
-    oldPrice: oldMatch && oldMatch.index < newMatch.index ? oldMatch[1].replace(/\s/g, ' ') : null,
-    price: newMatch[1],
+    oldPrice: oldMatch && oldMatch.index < newMatch.index ? asReais(oldMatch[1]) : null,
+    price: asReais(newMatch[1]),
     priceNote: note ? tidyOfferCase(note).replace(/^No pix$/i, 'no Pix').replace(/^À vista$/i, 'à vista') : null,
     details: details || null,
   };
