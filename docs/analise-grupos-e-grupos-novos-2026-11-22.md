@@ -303,3 +303,30 @@ Uma página só (`/ofertas/racao`), não várias.
    como em 12/11, e a rodada de IA vem depois.
 
 O mesmo para o **Promo Presentes** (`promo-presentes`) até 01/12.
+
+## 7. 22/11: páginas do Promo Natal e do Promo Presentes
+
+Decisão da Flávia: **Promo Natal só com decoração de Natal** (Ano Novo fica fora; o post de Ano Novo
+continua no Promo Festas) e **Promo Presentes com presentes de Natal**. Grupos e links criados por ela.
+
+Migration `20261122120000_promo_natal_e_presentes.sql` (testada num Postgres local, roda duas vezes sem
+duplicar):
+
+| Página | Grupo | Busca principal | Seção do diretório |
+|---|---|---|---|
+| `/ofertas/decoracao-de-natal` | Promo Natal | decoração de natal 450 mil em nov/25; enfeites e guirlanda 368 mil | Natal (logo depois dos achadinhos) |
+| `/ofertas/presentes-de-natal` | Promo Presentes | presentes de natal 246 mil em dez/25; amigo secreto 201 mil | Natal |
+
+- Sem `offer_terms`: os dois grupos são só do assunto, então a página mostra todas as ofertas do grupo.
+- Links internos: grupo geral (lista por assunto), brinquedos, perfume, e as duas páginas entre si;
+  diretório e home listam sozinhos. Resposta "quais são os grupos" do diretório e `llms.txt` atualizados.
+- Respostas das IAs: ainda não levantadas (a decoração tem o pico em novembro). Rodada depois.
+
+**Ordem para pôr no ar (Flávia):**
+1. Conferir os links: em 22/11, `linkdivulgador.com.br/g/promo-natal` e `/g/promo-presentes` davam 404.
+   Se o link tiver outro nome, avisar o Claude (ou trocar no painel depois de rodar).
+2. Ligar o feed `ofertas.json` dos dois links no Espelha Grupos.
+3. SQL Editor: rodar `20261122120000_promo_natal_e_presentes.sql`. Mesclar o PR (por causa do `llms.txt`).
+4. Avisar o Claude para mandar o IndexNow e rodar `npm run seo:entrega` e `npm run seo:robos`.
+5. Search Console → Inspecionar URL → pedir indexação de `/ofertas/decoracao-de-natal` primeiro.
+6. Painel → Grupos do WhatsApp: preencher "Quantas ofertas" dos dois quando souber o volume.
