@@ -6,7 +6,8 @@
 --
 -- Pode rodar antes do Espelha ligar a foto: sem `image` no feed, a coluna fica vazia. O site lê a
 -- coluna com fallback (prerender/data.ts), então também pode rodar antes ou depois do deploy.
--- Igual ao coletor de 20261122150000; muda só o INSERT (coluna image_url) e o ON CONFLICT.
+-- Igual ao coletor de 20261122150000; muda o INSERT (coluna image_url; texto até 240 caracteres, como o
+-- feed do Espelha desde 22/11) e o ON CONFLICT. Pode rodar de novo: tudo é idempotente.
 
 ALTER TABLE public.group_offers ADD COLUMN IF NOT EXISTS image_url TEXT;
 
@@ -35,8 +36,8 @@ BEGIN
       SELECT
         response.feed_slug,
         left(trim(item->>'link'), 2000),
-        left(trim(item->>'text'), 200),
-        lower(extensions.unaccent(left(trim(item->>'text'), 200))),
+        left(trim(item->>'text'), 240),
+        lower(extensions.unaccent(left(trim(item->>'text'), 240))),
         nullif(left(trim(item->>'store'), 40), ''),
         coalesce(public.safe_timestamptz(item->>'sentAt'), now()),
         -- Foto da loja (`image` do feed): só https, sem espaço, até 1000 caracteres.
