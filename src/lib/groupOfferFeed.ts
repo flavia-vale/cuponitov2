@@ -19,6 +19,20 @@ export interface GroupOffer {
   link: string;
   store: string | null;
   sentAt: string | null;
+  /** Foto do produto na loja (feed do Espelha Grupos, `image`); só https. */
+  image?: string | null;
+}
+
+/** Endereço de foto que pode ir para `<img src>`: só https, sem usuário/senha na URL. */
+export function safeOfferImage(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== 'https:' || url.username || url.password) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 const FEED_HOSTS = new Set(['linkdivulgador.com.br', 'www.linkdivulgador.com.br', 'espelhagrupos.com.br', 'www.espelhagrupos.com.br']);
@@ -105,7 +119,7 @@ export function parseGroupOffers(raw: unknown, max = 40): GroupOffer[] {
     const link = safeExternalUrl(typeof value.link === 'string' ? value.link : null);
     if (!text || !link) continue;
     const sentAt = typeof value.sentAt === 'string' && !Number.isNaN(Date.parse(value.sentAt)) ? value.sentAt : null;
-    offers.push({ text, link, store: typeof value.store === 'string' ? value.store : null, sentAt });
+    offers.push({ text, link, store: typeof value.store === 'string' ? value.store : null, sentAt, image: safeOfferImage(value.image) });
     if (offers.length >= max) break;
   }
   return offers;
@@ -168,4 +182,90 @@ export function offerTime(iso: string | null | undefined): string | null {
 /** "19 de outubro de 2026", no fuso de São Paulo. */
 export function todayLabel(now: Date = new Date()): string {
   return now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
+}
+
+/** Oferta pronta para mostrar: nome do produto, preço "de → por" e o resto em letra menor. */
+export interface OfferDisplay {
+  title: string;
+  oldPrice: string | null;
+  price: string | null;
+  priceNote: string | null;
+  details: string | null;
+}
+
+// Emojis de enfeite das mensagens (🔥 ✅ 🎟️ 👉…): somem da página, a informação fica no texto.
+const DECOR_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu;
+// "anúncio"/"#anúncio" que o grupo põe no fim: a página já avisa dos links de afiliado.
+const AD_TAG_RE = /\s*#an[uú]ncio\b|\s+an[uú]ncio\s*$/gi;
+const ANY_PRICE_RE = new RegExp(String.raw`R\$\s?\d{1,3}(?:\.\d{3})*(?:,\d{2})?`);
+// Cupom cortado no fim ("Cupom:…"): sem o código, não serve para nada.
+const CUT_COUPON_RE = /\s*(?:🎟️\s*)?cupom:?\s*…\s*$/i;
+const PRICE = String.raw`R\$\s?\d{1,3}(?:\.\d{3})*(?:,\d{2})?`;
+const OLD_PRICE_RE = new RegExp(String.raw`\bDe\s+(${PRICE})`, 'i');
+const NEW_PRICE_RE = new RegExp(String.raw`\bPOR\s+(${PRICE})((?:\s+(?:no|à|a)\s+(?:Pix|vista|prazo))?(?:\s*\([^)]{1,30}\))?)`, 'i');
+// Siglas e marcas que ficam como estão quando o texto vem em CAIXA ALTA.
+const KEEP_UPPER = new Set(['TV', 'LED', 'USB', 'SSD', 'HD', 'LG', 'JBL', 'PC', 'RGB', 'HDMI', 'NFC', 'GPS', 'DVD', 'UV', 'BT', 'XL', 'XG', 'GG', 'PP']);
+const FIXED_CASE: Record<string, string> = { pix: 'Pix', iphone: 'iPhone', ipad: 'iPad', 'wi-fi': 'Wi-Fi', wifi: 'Wi-Fi', airpods: 'AirPods', ps5: 'PS5', ps4: 'PS4' };
+
+/** Texto quase todo em CAIXA ALTA → só a primeira letra maiúscula; siglas e medidas (1080P, 16A) ficam. */
+export function tidyOfferCase(text: string): string {
+  const letters = text.replace(/[^A-Za-zÀ-ÿ]/g, '');
+  const upper = letters.replace(/[^A-ZÀ-Þ]/g, '').length;
+  if (letters.length < 8 || upper / letters.length < 0.6) return text;
+  let first = true;
+  return text.replace(/[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'’-]*/g, word => {
+    const lower = word.toLocaleLowerCase('pt-BR');
+    let out: string;
+    if (FIXED_CASE[lower]) out = FIXED_CASE[lower];
+    else if (/\d/.test(word) || KEEP_UPPER.has(word)) out = word;
+    else out = lower;
+    if (first && /^[a-zà-ÿ]/.test(out)) out = out.charAt(0).toLocaleUpperCase('pt-BR') + out.slice(1);
+    first = false;
+    return out;
+  }).replace(/([.!?]\s+)([a-zà-ÿ])/g, (_m, sep: string, ch: string) => sep + ch.toLocaleUpperCase('pt-BR'));
+}
+
+const clean = (value: string) => value.replace(/\s+/g, ' ').replace(/^[\s,;:.\-–—|]+|[\s,;:\-–—|]+$/g, '').trim();
+
+/**
+ * Texto do grupo ("CORRE, PREÇÃO ✅ BIKE ERGOMÉTRICA De R$ 1.100,00 🔥POR R$ 489,90 no Pix🔥 Loja Oficial")
+ * → { title: "Bike ergométrica", oldPrice: "R$ 1.100,00", price: "R$ 489,90", priceNote: "no Pix",
+ * details: "Loja oficial" }. Sem preço reconhecido, o texto inteiro vira o título. Só exibição:
+ * o texto guardado não muda.
+ */
+export function formatOfferText(raw: string): OfferDisplay {
+  const base = String(raw ?? '').replace(AD_TAG_RE, ' ');
+  // O gancho ("CORRE, PREÇÃO NA…") vem antes do primeiro ✅; o produto, depois.
+  const check = base.indexOf('✅');
+  const body = (check > 0 && check < base.length - 10 ? base.slice(check + 1) : base).replace(DECOR_RE, ' ');
+  const plain = clean(body.replace(/\s+/g, ' '));
+  const newMatch = NEW_PRICE_RE.exec(plain);
+  const oldMatch = OLD_PRICE_RE.exec(plain);
+  if (!newMatch) {
+    // Preço solto, sem "POR" ("Perfume X 200 ml R$169,20 Cupom: ABC"): o primeiro preço vale.
+    const loose = ANY_PRICE_RE.exec(plain);
+    if (!loose || loose.index < 3) {
+      return { title: tidyOfferCase(clean(plain)), oldPrice: null, price: null, priceNote: null, details: null };
+    }
+    const rest = clean(plain.slice(loose.index + loose[0].length).replace(CUT_COUPON_RE, ''));
+    return {
+      title: tidyOfferCase(clean(plain.slice(0, loose.index))),
+      oldPrice: null,
+      price: loose[0].replace(/^R\$\s?/, 'R$ '),
+      priceNote: null,
+      details: rest ? tidyOfferCase(rest) : null,
+    };
+  }
+  const cutAt = Math.min(oldMatch && oldMatch.index < newMatch.index ? oldMatch.index : newMatch.index, newMatch.index);
+  const title = tidyOfferCase(clean(plain.slice(0, cutAt))) || tidyOfferCase(clean(plain));
+  const after = plain.slice(newMatch.index + newMatch[0].length);
+  const details = clean(tidyOfferCase(after.replace(CUT_COUPON_RE, '')));
+  const note = clean(newMatch[2] ?? '');
+  return {
+    title,
+    oldPrice: oldMatch && oldMatch.index < newMatch.index ? oldMatch[1].replace(/\s/g, ' ') : null,
+    price: newMatch[1],
+    priceNote: note ? tidyOfferCase(note).replace(/^No pix$/i, 'no Pix').replace(/^À vista$/i, 'à vista') : null,
+    details: details || null,
+  };
 }

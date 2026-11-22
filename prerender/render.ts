@@ -53,7 +53,7 @@ import {
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
 import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
-import { ACHADINHOS_PATH, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
+import { ACHADINHOS_PATH, formatOfferText, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 export interface FeaturedPost {
   title: string;
@@ -443,14 +443,27 @@ function telegramLink(href: string | null | undefined): string {
     : '';
 }
 
-/** Lista de ofertas reais do grupo: texto, loja, horário e o link da loja. */
+/**
+ * Lista de ofertas reais do grupo: foto, nome do produto, preço "de → por", loja, horário e o
+ * link da loja. Mesmo conteúdo do React (`GroupOfferList`).
+ */
 function offerListItems(offers: GroupOffer[]): string {
   return offers
     .map(offer => {
       const time = offerWhen(offer.sentAt);
-      return `<li><strong>${escapeHtml(storeLabel(offer.store))}</strong>${
+      const shown = formatOfferText(offer.text);
+      const image = offer.image
+        ? `<img src="${escapeHtml(offer.image)}" alt="${escapeHtml(shown.title)}" width="112" height="112" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="width:80px;height:80px;object-fit:contain;float:left;margin:0 12px 8px 0"> `
+        : '';
+      const price = shown.price
+        ? ` — ${shown.oldPrice ? `de <s>${escapeHtml(shown.oldPrice)}</s> ` : ''}por <strong>${escapeHtml(shown.price)}</strong>${
+            shown.priceNote ? ` ${escapeHtml(shown.priceNote)}` : ''
+          }`
+        : '';
+      const details = shown.details ? ` · ${escapeHtml(shown.details)}` : '';
+      return `<li style="overflow:hidden">${image}<strong>${escapeHtml(storeLabel(offer.store))}</strong>${
         time ? ` · <time datetime="${escapeHtml(offer.sentAt ?? '')}">${time}</time>` : ''
-      } — ${escapeHtml(offer.text)} <a href="${escapeHtml(offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
+      } — <strong>${escapeHtml(shown.title)}</strong>${price}${details} <a href="${escapeHtml(offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
     })
     .join('');
 }

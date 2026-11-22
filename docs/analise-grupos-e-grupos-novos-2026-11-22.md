@@ -375,3 +375,29 @@ endereço com o número da conta). Se o endereço novo for outro, o Claude ajust
 4. Avisar o Claude: IndexNow das 5 páginas novas + `npm run seo:entrega` e `npm run seo:robos`.
 5. Search Console: pedir indexação de `/ofertas/decoracao-de-natal` primeiro (pico em novembro).
 6. Painel: "Quantas ofertas" dos 4 grupos quando souber o volume.
+
+**Atualização (22/11, ~15h):** os 4 feeds novos (`/g/262/promo-natal`, `promo-presentes`, `promo-pet`,
+`promo-auto-e-moto`) respondem 200, no formato que o site lê (`items[]`), ainda com 0 ofertas. Os 10 feeds
+de nicho antigos continuam em 404, tanto em `/g/<grupo>` quanto em `/g/262/<grupo>`.
+
+**Causa e correção (22/11, ~16h):** o feed do wabot só abre para os links em `SMART_LINK_PUBLIC_FEED`
+(`.env` da API). No ajuste de 22/11 às 14h58 (wabot #3445), a lista ficou só com `ofertas-fafaciane` e os
+4 links novos, e os 11 de nicho antigos saíram. A Flávia repôs os 16 na lista e reiniciou a API
+(`pm2 restart api`): todos respondem 200. No site, `/achadinhos-hoje.json?g=celular` voltou com 9 ofertas e
+`?g=pc-gamer` com 40. Toda vez que um grupo novo entrar, ele vai para **o fim** da lista, sem apagar os outros.
+
+**No ar (22/11, ~16h30):** migrations rodadas e PRs #109 e #110 mesclados. IndexNow (Bing) das 12 URLs
+enviado pelo Claude via `/api/indexnow` (resposta 200): as 5 páginas novas, `/ofertas/pneu`,
+`/grupos-de-promocao`, `/grupo-whatsapp`, `/ofertas/brinquedos`, `/ofertas/perfume`, a home e `/llms.txt`.
+`npm run seo:entrega` e `npm run seo:robos` OK; as 5 páginas estão no sitemap com `<h1>`, `<article>`,
+JSON-LD e FAQ no HTML do servidor.
+
+**Achado no teste do botão:** `decoracao-de-natal` e `presentes-de-natal` levavam a `/g/promo-natal` e
+`/g/promo-presentes` (404): no banco estava a 1ª versão da migration, sem o `262`. Correção (SQL Editor):
+
+```sql
+UPDATE public.whatsapp_group_pages
+SET join_url = 'https://linkdivulgador.com.br/g/262/' || CASE slug WHEN 'decoracao-de-natal' THEN 'promo-natal' ELSE 'promo-presentes' END,
+    updated_at = now()
+WHERE slug IN ('decoracao-de-natal', 'presentes-de-natal');
+```

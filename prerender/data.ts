@@ -492,11 +492,18 @@ export async function fetchArchivedOffers(feedSlug: string | null, terms: string
   const since = new Date(Date.now() - OFFER_MAX_AGE_DAYS * 86_400_000).toISOString();
   const patterns = terms.map(archiveTermPattern).filter((p): p is string => Boolean(p));
   const filter = patterns.length ? `&or=(${patterns.map(p => `text_norm.ilike.${encodeURIComponent(p)}`).join(',')})` : '';
-  const rows = await tryQuery<{ text: string; link: string; store: string | null; sent_at: string | null }>(
+  const query = (columns: string) =>
     `group_offers?feed_slug=eq.${encodeURIComponent(feedSlug)}&sent_at=gte.${encodeURIComponent(since)}${filter}` +
-      `&select=text,link,store,sent_at&order=sent_at.desc&limit=${limit}`
+    `&select=${columns}&order=sent_at.desc&limit=${limit}`;
+  // `image_url` entrou em 22/11 (migration 20261122180000): sem a coluna ainda, lê sem a foto.
+  const rows =
+    (await tryQuery<{ text: string; link: string; store: string | null; sent_at: string | null; image_url?: string | null }>(
+      query('text,link,store,sent_at,image_url')
+    )) ?? (await tryQuery<{ text: string; link: string; store: string | null; sent_at: string | null }>(query('text,link,store,sent_at')));
+  return parseGroupOffers(
+    { items: (rows ?? []).map(row => ({ text: row.text, link: row.link, store: row.store, sentAt: row.sent_at, image: 'image_url' in row ? row.image_url : null })) },
+    limit
   );
-  return parseGroupOffers({ items: (rows ?? []).map(row => ({ text: row.text, link: row.link, store: row.store, sentAt: row.sent_at })) }, limit);
 }
 
 export async function fetchGroupOffers(joinUrl: string | null): Promise<GroupOffer[]> {
