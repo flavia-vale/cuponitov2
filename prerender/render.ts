@@ -54,7 +54,7 @@ import {
 } from '../src/lib/whatsappGroup';
 import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
 import { buildOfferClickHref } from '../src/lib/offerClickTracking';
-import { ACHADINHOS_PATH, formatOfferText, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
+import { ACHADINHOS_PATH, formatOfferText, newestDate, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 export interface FeaturedPost {
   title: string;
@@ -567,6 +567,7 @@ export function renderGroupPage(
             ${page.updated_at ? `· Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time>` : ''}
           </p>
           <p>${escapeHtml(page.intro)}</p>
+          ${joinUrl ? `<p><a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a></p>` : ''}
           <ul>${facts}</ul>
           <h2>${escapeHtml(GROUP_DOES_NOT_TITLE)}</h2>
           <ul>${GROUP_DOES_NOT.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
@@ -730,18 +731,32 @@ export interface DirectoryContext {
   /** slug → botões já montados (passam pelo /entrar). */
   joinLinks: Record<string, { join: string; telegram: string | null }>;
   author: PrerenderAuthor | null;
+  /** slug do grupo → última oferta dele (view group_offers_latest). Vazio = sem a linha. */
+  latestOffers?: Record<string, GroupOffer>;
+}
+
+/** "Última oferta: 14h05 · Bicicleta ergométrica por R$ 489,90" (mesmo texto do React). */
+function latestOfferLine(offer: GroupOffer | undefined): string {
+  if (!offer) return '';
+  const when = offerWhen(offer.sentAt);
+  const shown = formatOfferText(offer.text);
+  return `<li><strong>Última oferta${when ? ` (${when})` : ''}:</strong> ${escapeHtml(shown.title)}${
+    shown.price ? ` por ${escapeHtml(shown.price)}` : ''
+  }</li>`;
 }
 
 export function renderDirectoryPage(page: WhatsappGroupPageData, context: DirectoryContext, links: ChromeLinks): RenderedPage {
   const canonical = `${SITE_URL}${DIRECTORY_PATH}`;
   const faq = parseGroupFaq(page.faq);
   const groups = context.sections.flatMap(section => section.groups);
+  // A lista muda quando sai oferta nos grupos: "atualizado em" é a mais recente das duas datas.
+  const updatedAt = newestDate(page.updated_at, ...Object.values(context.latestOffers ?? {}).map(offer => offer.sentAt));
 
   const meta: HeadMeta = {
     title: page.title,
     description: page.meta_description,
     canonical,
-    modifiedTime: page.updated_at,
+    modifiedTime: updatedAt ?? page.updated_at,
     ogImage: firstContentImage(page.content) ?? undefined,
   };
 
@@ -761,7 +776,7 @@ export function renderDirectoryPage(page: WhatsappGroupPageData, context: Direct
         url: canonical,
         inLanguage: 'pt-BR',
         isPartOf: { '@id': `${SITE_URL}/#organization` },
-        ...(page.updated_at ? { dateModified: page.updated_at } : {}),
+        ...(page.updated_at ? { dateModified: updatedAt ?? page.updated_at } : {}),
         ...(context.author ? { author: authorPersonSchema(context.author) } : {}),
         mainEntity: { '@id': `${canonical}#grupos` },
       },
@@ -803,7 +818,9 @@ export function renderDirectoryPage(page: WhatsappGroupPageData, context: Direct
           const buttons = context.joinLinks[group.slug];
           const facts = [
             `<li><strong>O que chega:</strong> ${escapeHtml(group.topics)}</li>`,
-            `<li><strong>Quantas ofertas:</strong> ${group.volume ? escapeHtml(group.volume) : 'não informado'}</li>`,
+            // Sem volume informado no painel, a linha sai (antes: "não informado").
+            group.volume ? `<li><strong>Quantas ofertas:</strong> ${escapeHtml(group.volume)}</li>` : '',
+            latestOfferLine(context.latestOffers?.[group.slug]),
             `<li><strong>Plataforma:</strong> WhatsApp${group.hasTelegram ? ' e Telegram' : ''} · grátis · só os administradores postam</li>`,
           ].join('');
           return `<div id="${escapeHtml(group.slug)}">
@@ -828,7 +845,7 @@ export function renderDirectoryPage(page: WhatsappGroupPageData, context: Direct
           <h1>${escapeHtml(page.h1)}</h1>
           <p>
             ${context.author ? authorByline(context.author) : ''}
-            ${page.updated_at ? `· Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time>` : ''}
+            ${updatedAt ? `· Atualizado em <time datetime="${escapeHtml(updatedAt)}">${formatDatePtBr(updatedAt)}</time>` : ''}
           </p>
           <p>${escapeHtml(page.intro)}</p>
           ${sectionsHtml}

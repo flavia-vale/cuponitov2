@@ -20,6 +20,7 @@ import {
   fetchCategory,
   fetchCategoryCoupons,
   fetchDirectoryGroups,
+  fetchLatestGroupOffers,
   fetchDirectoryPage,
   fetchFeaturedPosts,
   fetchFeaturedStores,
@@ -75,6 +76,7 @@ import {
   ACHADINHOS_FEED_PATH,
   ACHADINHOS_PATH,
   filterOffersByTerms,
+  latestOffersByGroup,
   mergeOffers,
   offerFeedSlug,
   parseOfferTerms,
@@ -295,13 +297,15 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const page = await fetchDirectoryPage();
     if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
     if (!page) return null;
-    const [groupSettings, groupRows, stores, posts, author] = await Promise.all([
+    const [groupSettings, groupRows, stores, posts, author, latestRows] = await Promise.all([
       fetchGroupSettings(),
       fetchDirectoryGroups(),
       fetchFeaturedStores(6),
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
+      fetchLatestGroupOffers(),
     ]);
+    const latestOffers = latestOffersByGroup(groupRows, groupSettings.globalJoinUrl, latestRows);
     const sections = buildDirectorySections(groupRows, groupSettings.info);
     const joinLinks = Object.fromEntries(
       sections.flatMap(section =>
@@ -316,7 +320,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
         ])
       )
     );
-    return renderDirectoryPage(page, { sections, joinLinks, author }, { stores, posts });
+    return renderDirectoryPage(page, { sections, joinLinks, author, latestOffers }, { stores, posts });
   }
 
   const groupMatch = pathname.match(/^\/grupo-whatsapp(?:\/([^/]+))?\/?$/);

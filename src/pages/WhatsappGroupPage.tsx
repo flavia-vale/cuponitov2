@@ -22,6 +22,8 @@ import {
   GROUP_DOES_NOT_TITLE,
   GROUP_TRUST_FACTS,
   TRUST_POST_PATH,
+  groupCtaTitle,
+  groupFactsSentence,
   firstContentImage,
   groupInfoForPage,
   groupPagePath,
@@ -147,6 +149,17 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
           </p>
 
           <p className="mb-6 text-base leading-relaxed text-muted-foreground md:text-lg">{page.intro}</p>
+
+          {/* Botão no topo (como nas páginas de ofertas): a decisão é na primeira tela. Captação: group_page_top. */}
+          <GroupJoinCTA
+            compact
+            title={groupCtaTitle(page, info, 'Entrar no grupo de ofertas')}
+            text={groupFactsSentence(info)}
+            groupSlug={page.slug}
+            source="group_page_top"
+            context={page.slug}
+            className="mb-6"
+          />
 
           <ul className="mb-6 grid grid-cols-1 gap-2 rounded-2xl bg-[#f8f9fa] p-4 text-sm sm:grid-cols-2 md:text-base">
             {facts.map(fact => (

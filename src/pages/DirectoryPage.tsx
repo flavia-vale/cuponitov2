@@ -9,6 +9,9 @@ import AuthorBox from '@/components/blog/AuthorBox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBlogAuthors } from '@/hooks/useBlog';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
+import { useLatestGroupOffers } from '@/hooks/useLatestGroupOffers';
+import { useSettings } from '@/hooks/useSettings';
+import { formatOfferText, latestOffersByGroup, newestDate, offerWhen, type GroupOffer } from '@/lib/groupOfferFeed';
 import { trackEvent } from '@/lib/analytics';
 import { currentGclid } from '@/lib/adClickId';
 import { authorProfileUrl, isFlavia } from '@/lib/authors';
@@ -32,7 +35,20 @@ function formatUpdatedAt(iso: string | null | undefined): string | null {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
 }
 
-function GroupCard({ group, gclid }: { group: DirectoryGroup; gclid: string | null }) {
+/** "Última oferta (14h05): Bicicleta ergométrica por R$ 489,90" — mesmo texto do HTML do servidor. */
+function LatestOffer({ offer }: { offer: GroupOffer | undefined }) {
+  if (!offer) return null;
+  const when = offerWhen(offer.sentAt);
+  const shown = formatOfferText(offer.text);
+  return (
+    <li>
+      <strong className="text-foreground">Última oferta{when ? ` (${when})` : ''}:</strong> {shown.title}
+      {shown.price ? ` por ${shown.price}` : ''}
+    </li>
+  );
+}
+
+function GroupCard({ group, gclid, latest }: { group: DirectoryGroup; gclid: string | null; latest?: GroupOffer }) {
   const join = buildJoinTrackingHref({ origin: 'directory', groupSlug: group.slug, pagePath: DIRECTORY_PATH, gclid });
   const telegram = group.hasTelegram
     ? buildJoinTrackingHref({ origin: 'directory', groupSlug: group.slug, pagePath: DIRECTORY_PATH, channel: 'telegram', gclid })
@@ -44,9 +60,13 @@ function GroupCard({ group, gclid }: { group: DirectoryGroup; gclid: string | nu
         <li>
           <strong className="text-foreground">O que chega:</strong> {group.topics}
         </li>
-        <li>
-          <strong className="text-foreground">Quantas ofertas:</strong> {group.volume || 'não informado'}
-        </li>
+        {/* Sem volume informado no painel, a linha sai (antes: "não informado"). */}
+        {group.volume && (
+          <li>
+            <strong className="text-foreground">Quantas ofertas:</strong> {group.volume}
+          </li>
+        )}
+        <LatestOffer offer={latest} />
         <li>
           <strong className="text-foreground">Plataforma:</strong> WhatsApp{group.hasTelegram ? ' e Telegram' : ''} · grátis · só os
           administradores postam
@@ -98,7 +118,15 @@ export default function DirectoryPage() {
   const sections = useMemo(() => buildDirectorySections(pages ?? [], globalInfo), [pages, globalInfo]);
   const faq = useMemo(() => parseGroupFaq(page?.faq), [page]);
   const gclid = currentGclid();
-  const updatedAt = formatUpdatedAt(page?.updated_at);
+  const { data: latestRows } = useLatestGroupOffers();
+  const { data: settings } = useSettings();
+  const latestOffers = useMemo(
+    () => latestOffersByGroup(pages ?? [], settings?.global_links?.whatsapp_group ?? null, latestRows ?? []),
+    [pages, settings, latestRows]
+  );
+  // A lista muda quando sai oferta nos grupos: "atualizado em" é a mais recente das duas datas (igual ao servidor).
+  const newest = newestDate(page?.updated_at, ...Object.values(latestOffers).map(offer => offer.sentAt));
+  const updatedAt = formatUpdatedAt(newest);
 
   if (isLoading) {
     return (
@@ -135,7 +163,7 @@ export default function DirectoryPage() {
         description={page.meta_description}
         canonical={`${SITE_URL}${DIRECTORY_PATH}`}
         ogImage={firstContentImage(page.content) ?? undefined}
-        ogUpdatedTime={page.updated_at ?? undefined}
+        ogUpdatedTime={newest ?? page.updated_at ?? undefined}
       />
       <Header />
 
@@ -186,7 +214,7 @@ export default function DirectoryPage() {
               <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">{section.name}</h2>
               <div className="grid gap-4 md:grid-cols-2">
                 {section.groups.map(group => (
-                  <GroupCard key={group.slug} group={group} gclid={gclid} />
+                  <GroupCard key={group.slug} group={group} gclid={gclid} latest={latestOffers[group.slug]} />
                 ))}
               </div>
             </section>

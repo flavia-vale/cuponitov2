@@ -11,6 +11,7 @@ import { notExpiredFilter } from '../src/lib/couponValidity';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
 import type { CouponClickRow } from '../src/lib/couponClickTracking';
 import type { OfferClickRow } from '../src/lib/offerClickTracking';
+import type { LatestOfferRow } from '../src/lib/groupOfferFeed';
 import {
   archiveTermPattern,
   OFFER_MAX_AGE_DAYS,
@@ -375,6 +376,11 @@ export async function fetchDirectoryGroups(): Promise<Array<WhatsappGroupPageDat
       `whatsapp_group_pages?directory_section=not.is.null&order=sort_order&select=${GROUP_PAGE_COLUMN_TIERS[0]},is_published`
     )) ?? []
   );
+}
+
+/** Última oferta de cada grupo (view `group_offers_latest`, migration 20261122210000). Sem a view → []. */
+export async function fetchLatestGroupOffers(): Promise<LatestOfferRow[]> {
+  return (await tryQuery<LatestOfferRow>('group_offers_latest?select=feed_slug,text,link,store,sent_at,image_url')) ?? [];
 }
 
 export async function fetchGroupPages(): Promise<WhatsappGroupPageData[]> {
