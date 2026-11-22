@@ -184,7 +184,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
           {offers && offers.length > 0 && (
             <section className="mb-10">
               <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">Saiu no grupo hoje</h2>
-              <GroupOfferList offers={offers.slice(0, 6)} />
+              <GroupOfferList offers={offers.slice(0, 6)} groupSlug={page.join_url ? page.slug : null} origin="group_page_offer" />
               {!niche && (
                 <a href={ACHADINHOS_PATH} className="mt-4 inline-block font-bold text-[#ff5200] hover:underline">
                   Ver todos os achadinhos de hoje

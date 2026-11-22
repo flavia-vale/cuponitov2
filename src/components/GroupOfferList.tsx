@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useRouterState } from '@tanstack/react-router';
 import { ExternalLink, ShoppingBag } from 'lucide-react';
 import { formatOfferText, offerWhen, storeLabel, type GroupOffer } from '@/lib/groupOfferFeed';
+import { buildOfferClickHref } from '@/lib/offerClickTracking';
 
 /** Foto da loja; sem foto (ou se a loja não deixar carregar), um ícone no mesmo espaço. */
 function OfferImage({ src, alt }: { src?: string | null; alt: string }) {
@@ -30,7 +32,18 @@ function OfferImage({ src, alt }: { src?: string | null; alt: string }) {
  * Ofertas reais do grupo: foto, nome do produto, preço "de → por", loja, horário e o link
  * da loja. Mesmo conteúdo do HTML do servidor (`offerListItems` em prerender/render.ts).
  */
-export default function GroupOfferList({ offers }: { offers: GroupOffer[] }) {
+export default function GroupOfferList({
+  offers,
+  groupSlug = null,
+  origin,
+}: {
+  offers: GroupOffer[];
+  /** Página do grupo cujo feed tem as ofertas (o /ir confere o link nele); sem ela, o grupo geral. */
+  groupSlug?: string | null;
+  /** Onde fica a lista, para a aba "Cliques em cupom": `group_page_offer`, `offers_page_offer`… */
+  origin: string;
+}) {
+  const pathname = useRouterState({ select: state => state.location.pathname });
   return (
     <ul className="space-y-3">
       {offers.map(offer => {
@@ -61,7 +74,7 @@ export default function GroupOfferList({ offers }: { offers: GroupOffer[] }) {
               )}
               {shown.details && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{shown.details}</p>}
               <a
-                href={offer.link}
+                href={buildOfferClickHref({ link: offer.link, groupSlug, origin, pagePath: pathname }) ?? offer.link}
                 target="_blank"
                 rel="sponsored nofollow noopener"
                 className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-[#ff5200] hover:underline"

@@ -53,6 +53,7 @@ import {
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
 import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
+import { buildOfferClickHref } from '../src/lib/offerClickTracking';
 import { ACHADINHOS_PATH, formatOfferText, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 export interface FeaturedPost {
@@ -447,7 +448,7 @@ function telegramLink(href: string | null | undefined): string {
  * Lista de ofertas reais do grupo: foto, nome do produto, preço "de → por", loja, horário e o
  * link da loja. Mesmo conteúdo do React (`GroupOfferList`).
  */
-function offerListItems(offers: GroupOffer[]): string {
+function offerListItems(offers: GroupOffer[], click: { groupSlug: string | null; origin: string; pagePath: string }): string {
   return offers
     .map(offer => {
       const time = offerWhen(offer.sentAt);
@@ -463,7 +464,7 @@ function offerListItems(offers: GroupOffer[]): string {
       const details = shown.details ? ` · ${escapeHtml(shown.details)}` : '';
       return `<li style="overflow:hidden">${image}<strong>${escapeHtml(storeLabel(offer.store))}</strong>${
         time ? ` · <time datetime="${escapeHtml(offer.sentAt ?? '')}">${time}</time>` : ''
-      } — <strong>${escapeHtml(shown.title)}</strong>${price}${details} <a href="${escapeHtml(offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
+      } — <strong>${escapeHtml(shown.title)}</strong>${price}${details} <a href="${escapeHtml(buildOfferClickHref({ link: offer.link, ...click }) ?? offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
     })
     .join('');
 }
@@ -573,7 +574,7 @@ export function renderGroupPage(
           ${actions}
           ${
             context.offers && context.offers.length > 0
-              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6))}</ul>${
+              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6), { groupSlug: page.join_url ? page.slug : null, origin: 'html_group_page_offer', pagePath: path })}</ul>${
                   // /achadinhos-hoje é o feed do grupo geral: não é "ver todas" de um nicho.
                   isNichePage(page) ? '' : `<p><a href="${SITE_URL}${ACHADINHOS_PATH}">Ver todos os achadinhos de hoje</a></p>`
                 }`
@@ -701,7 +702,7 @@ export function renderOffersPage(
           ${seasonDateFact(info) ? `<ul>${seasonDateFact(info)}</ul>` : ''}
           ${
             offers.length > 0
-              ? `<h2>Ofertas de hoje</h2><ul>${offerListItems(offers)}</ul>`
+              ? `<h2>Ofertas de hoje</h2><ul>${offerListItems(offers, { groupSlug: page.slug, origin: 'html_offers_page_offer', pagePath: pagePath(page) })}</ul>`
               : `<p>As ofertas de hoje aparecem aqui assim que saem no grupo. Para receber na hora, entre no grupo.</p>`
           }
           ${markdownToHtml(page.content || '')}
@@ -925,7 +926,7 @@ export function renderAchadinhosPage(context: AchadinhosContext, links: ChromeLi
           ${join}
           ${
             offers.length > 0
-              ? `<h2>Ofertas que saíram no grupo</h2><ul>${offerListItems(offers)}</ul>`
+              ? `<h2>Ofertas que saíram no grupo</h2><ul>${offerListItems(offers, { groupSlug: null, origin: 'html_achadinhos_offer', pagePath: ACHADINHOS_PATH })}</ul>`
               : `<p>As ofertas de hoje aparecem aqui assim que saem no grupo. Enquanto isso, veja os <a href="${SITE_URL}/cupons">cupons de hoje</a>.</p>`
           }
           <h2>Como aproveitar</h2>
