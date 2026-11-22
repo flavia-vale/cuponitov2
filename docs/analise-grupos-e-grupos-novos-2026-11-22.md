@@ -375,3 +375,7 @@ endereço com o número da conta). Se o endereço novo for outro, o Claude ajust
 4. Avisar o Claude: IndexNow das 5 páginas novas + `npm run seo:entrega` e `npm run seo:robos`.
 5. Search Console: pedir indexação de `/ofertas/decoracao-de-natal` primeiro (pico em novembro).
 6. Painel: "Quantas ofertas" dos 4 grupos quando souber o volume.
+
+**Atualização (22/11, ~15h):** os 4 feeds novos (`/g/262/promo-natal`, `promo-presentes`, `promo-pet`,
+`promo-auto-e-moto`) respondem 200, no formato que o site lê (`items[]`), ainda com 0 ofertas. Os 10 feeds
+de nicho antigos continuam em 404, tanto em `/g/<grupo>` quanto em `/g/262/<grupo>`.
