@@ -1,4 +1,5 @@
 import { escapeHtml, markdownToHtml, markdownToPlainText } from './markdown';
+import { categoryMetaDescription, storeMetaDescription } from '../src/lib/seo';
 import {
   CUPONITO_ORGANIZATION,
   DEFAULT_OG_IMAGE,
@@ -53,7 +54,8 @@ import {
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
 import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
-import { ACHADINHOS_PATH, formatOfferText, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
+import { buildOfferClickHref } from '../src/lib/offerClickTracking';
+import { ACHADINHOS_PATH, formatOfferText, newestDate, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
 export interface FeaturedPost {
   title: string;
@@ -334,10 +336,7 @@ export function renderStorePage(
   groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/desconto/${store.slug}`;
-  const description =
-    store.meta_description ||
-    store.description ||
-    `Cupons de desconto ${store.name} verificados e atualizados pela equipe do Cuponito.`;
+  const description = storeMetaDescription(store);
 
   // dateModified = cupom mais recente da loja
   const latestUpdate = coupons.reduce<string | null>((acc, coupon) => {
@@ -447,7 +446,7 @@ function telegramLink(href: string | null | undefined): string {
  * Lista de ofertas reais do grupo: foto, nome do produto, preço "de → por", loja, horário e o
  * link da loja. Mesmo conteúdo do React (`GroupOfferList`).
  */
-function offerListItems(offers: GroupOffer[]): string {
+function offerListItems(offers: GroupOffer[], click: { groupSlug: string | null; origin: string; pagePath: string }): string {
   return offers
     .map(offer => {
       const time = offerWhen(offer.sentAt);
@@ -463,7 +462,7 @@ function offerListItems(offers: GroupOffer[]): string {
       const details = shown.details ? ` · ${escapeHtml(shown.details)}` : '';
       return `<li style="overflow:hidden">${image}<strong>${escapeHtml(storeLabel(offer.store))}</strong>${
         time ? ` · <time datetime="${escapeHtml(offer.sentAt ?? '')}">${time}</time>` : ''
-      } — <strong>${escapeHtml(shown.title)}</strong>${price}${details} <a href="${escapeHtml(offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
+      } — <strong>${escapeHtml(shown.title)}</strong>${price}${details} <a href="${escapeHtml(buildOfferClickHref({ link: offer.link, ...click }) ?? offer.link)}" rel="sponsored nofollow noopener">Ver oferta</a></li>`;
     })
     .join('');
 }
@@ -566,6 +565,7 @@ export function renderGroupPage(
             ${page.updated_at ? `· Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time>` : ''}
           </p>
           <p>${escapeHtml(page.intro)}</p>
+          ${joinUrl ? `<p><a class="cta" href="${escapeHtml(joinUrl)}" rel="nofollow noopener">Entrar no grupo grátis</a></p>` : ''}
           <ul>${facts}</ul>
           <h2>${escapeHtml(GROUP_DOES_NOT_TITLE)}</h2>
           <ul>${GROUP_DOES_NOT.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
@@ -573,7 +573,7 @@ export function renderGroupPage(
           ${actions}
           ${
             context.offers && context.offers.length > 0
-              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6))}</ul>${
+              ? `<h2>Saiu no grupo hoje</h2><ul>${offerListItems(context.offers.slice(0, 6), { groupSlug: page.join_url ? page.slug : null, origin: 'html_group_page_offer', pagePath: path })}</ul>${
                   // /achadinhos-hoje é o feed do grupo geral: não é "ver todas" de um nicho.
                   isNichePage(page) ? '' : `<p><a href="${SITE_URL}${ACHADINHOS_PATH}">Ver todos os achadinhos de hoje</a></p>`
                 }`
@@ -701,7 +701,7 @@ export function renderOffersPage(
           ${seasonDateFact(info) ? `<ul>${seasonDateFact(info)}</ul>` : ''}
           ${
             offers.length > 0
-              ? `<h2>Ofertas de hoje</h2><ul>${offerListItems(offers)}</ul>`
+              ? `<h2>Ofertas de hoje</h2><ul>${offerListItems(offers, { groupSlug: page.slug, origin: 'html_offers_page_offer', pagePath: pagePath(page) })}</ul>`
               : `<p>As ofertas de hoje aparecem aqui assim que saem no grupo. Para receber na hora, entre no grupo.</p>`
           }
           ${markdownToHtml(page.content || '')}
@@ -729,18 +729,32 @@ export interface DirectoryContext {
   /** slug → botões já montados (passam pelo /entrar). */
   joinLinks: Record<string, { join: string; telegram: string | null }>;
   author: PrerenderAuthor | null;
+  /** slug do grupo → última oferta dele (view group_offers_latest). Vazio = sem a linha. */
+  latestOffers?: Record<string, GroupOffer>;
+}
+
+/** "Última oferta: 14h05 · Bicicleta ergométrica por R$ 489,90" (mesmo texto do React). */
+function latestOfferLine(offer: GroupOffer | undefined): string {
+  if (!offer) return '';
+  const when = offerWhen(offer.sentAt);
+  const shown = formatOfferText(offer.text);
+  return `<li><strong>Última oferta${when ? ` (${when})` : ''}:</strong> ${escapeHtml(shown.title)}${
+    shown.price ? ` por ${escapeHtml(shown.price)}` : ''
+  }</li>`;
 }
 
 export function renderDirectoryPage(page: WhatsappGroupPageData, context: DirectoryContext, links: ChromeLinks): RenderedPage {
   const canonical = `${SITE_URL}${DIRECTORY_PATH}`;
   const faq = parseGroupFaq(page.faq);
   const groups = context.sections.flatMap(section => section.groups);
+  // A lista muda quando sai oferta nos grupos: "atualizado em" é a mais recente das duas datas.
+  const updatedAt = newestDate(page.updated_at, ...Object.values(context.latestOffers ?? {}).map(offer => offer.sentAt));
 
   const meta: HeadMeta = {
     title: page.title,
     description: page.meta_description,
     canonical,
-    modifiedTime: page.updated_at,
+    modifiedTime: updatedAt ?? page.updated_at,
     ogImage: firstContentImage(page.content) ?? undefined,
   };
 
@@ -760,7 +774,7 @@ export function renderDirectoryPage(page: WhatsappGroupPageData, context: Direct
         url: canonical,
         inLanguage: 'pt-BR',
         isPartOf: { '@id': `${SITE_URL}/#organization` },
-        ...(page.updated_at ? { dateModified: page.updated_at } : {}),
+        ...(page.updated_at ? { dateModified: updatedAt ?? page.updated_at } : {}),
         ...(context.author ? { author: authorPersonSchema(context.author) } : {}),
         mainEntity: { '@id': `${canonical}#grupos` },
       },
@@ -802,7 +816,9 @@ export function renderDirectoryPage(page: WhatsappGroupPageData, context: Direct
           const buttons = context.joinLinks[group.slug];
           const facts = [
             `<li><strong>O que chega:</strong> ${escapeHtml(group.topics)}</li>`,
-            `<li><strong>Quantas ofertas:</strong> ${group.volume ? escapeHtml(group.volume) : 'não informado'}</li>`,
+            // Sem volume informado no painel, a linha sai (antes: "não informado").
+            group.volume ? `<li><strong>Quantas ofertas:</strong> ${escapeHtml(group.volume)}</li>` : '',
+            latestOfferLine(context.latestOffers?.[group.slug]),
             `<li><strong>Plataforma:</strong> WhatsApp${group.hasTelegram ? ' e Telegram' : ''} · grátis · só os administradores postam</li>`,
           ].join('');
           return `<div id="${escapeHtml(group.slug)}">
@@ -827,7 +843,7 @@ export function renderDirectoryPage(page: WhatsappGroupPageData, context: Direct
           <h1>${escapeHtml(page.h1)}</h1>
           <p>
             ${context.author ? authorByline(context.author) : ''}
-            ${page.updated_at ? `· Atualizado em <time datetime="${escapeHtml(page.updated_at)}">${formatDatePtBr(page.updated_at)}</time>` : ''}
+            ${updatedAt ? `· Atualizado em <time datetime="${escapeHtml(updatedAt)}">${formatDatePtBr(updatedAt)}</time>` : ''}
           </p>
           <p>${escapeHtml(page.intro)}</p>
           ${sectionsHtml}
@@ -925,7 +941,7 @@ export function renderAchadinhosPage(context: AchadinhosContext, links: ChromeLi
           ${join}
           ${
             offers.length > 0
-              ? `<h2>Ofertas que saíram no grupo</h2><ul>${offerListItems(offers)}</ul>`
+              ? `<h2>Ofertas que saíram no grupo</h2><ul>${offerListItems(offers, { groupSlug: null, origin: 'html_achadinhos_offer', pagePath: ACHADINHOS_PATH })}</ul>`
               : `<p>As ofertas de hoje aparecem aqui assim que saem no grupo. Enquanto isso, veja os <a href="${SITE_URL}/cupons">cupons de hoje</a>.</p>`
           }
           <h2>Como aproveitar</h2>
@@ -950,8 +966,7 @@ export function renderCategoryPage(
   groupCta?: StoreGroupCta
 ): RenderedPage {
   const canonical = `${SITE_URL}/categoria/${category.slug}`;
-  const description =
-    category.description || `Cupons de desconto da categoria ${category.name} verificados pelo Cuponito.`;
+  const description = categoryMetaDescription(category);
 
   const meta: HeadMeta = {
     title: `Cupons de ${category.name} | Cuponito`,

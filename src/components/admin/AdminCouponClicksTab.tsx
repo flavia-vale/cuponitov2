@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCouponClicks } from '@/hooks/useCouponClicks';
+import { useOfferClicks } from '@/hooks/useOfferClicks';
 import { summarizeCouponClicks } from '@/lib/couponClickTracking';
 import { RankedTable } from './AdminGroupFunnelTab';
 
@@ -15,6 +16,13 @@ export function AdminCouponClicksTab() {
   const [days, setDays] = useState<(typeof PERIODS)[number]>(7);
   const { data: rows, isLoading, error } = useCouponClicks(days);
   const summary = useMemo(() => summarizeCouponClicks(rows ?? [], days), [rows, days]);
+  const { data: offerRows, isLoading: offersLoading, error: offersError } = useOfferClicks(days);
+  const offerSummary = useMemo(() => summarizeCouponClicks(offerRows ?? [], days), [offerRows, days]);
+  // Mesmo resumo, contando pelo grupo no lugar da loja ("Por grupo").
+  const offerByGroup = useMemo(
+    () => summarizeCouponClicks((offerRows ?? []).map(row => ({ ...row, store: row.group_slug ?? 'principal' })), days).byStore,
+    [offerRows, days]
+  );
   const mobileShare = summary.total ? Math.round((summary.mobile / summary.total) * 100) : 0;
   const empty = 'Nenhum clique no período.';
 
@@ -70,9 +78,35 @@ export function AdminCouponClicksTab() {
         <RankedTable title="Por botão (origem)" rows={summary.byOrigin} emptyText={empty} />
       </div>
 
+      <div className="space-y-4 border-t border-border pt-6">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Cliques em oferta</h2>
+          <p className="text-sm text-muted-foreground">
+            Cliques em "Ver oferta" nas listas "Saiu no grupo" (páginas de grupo, de ofertas e achadinhos). É quem já quer comprar.
+          </p>
+        </div>
+        {offersError && (
+          <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+            Não foi possível ler os cliques em oferta. Confira se a migration 20261122200000_offer_clicks.sql foi rodada.
+          </p>
+        )}
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-3xl font-black tabular-nums">{offersLoading ? '…' : offerSummary.total}</p>
+            <p className="text-sm text-muted-foreground">cliques em oferta em {days} dias</p>
+          </CardContent>
+        </Card>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <RankedTable title="Por grupo" rows={offerByGroup} emptyText={empty} />
+          <RankedTable title="Por loja" rows={offerSummary.byStore} emptyText={empty} />
+          <RankedTable title="Por página" rows={offerSummary.byPage} emptyText={empty} />
+          <RankedTable title="Por fonte (de onde a pessoa chegou ao site)" rows={offerSummary.bySource} emptyText={empty} />
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Por dia</CardTitle>
+          <CardTitle className="text-base">Por dia (cupons)</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="divide-y divide-border text-sm">

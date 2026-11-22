@@ -279,3 +279,42 @@ export function formatOfferText(raw: string): OfferDisplay {
     details: details || null,
   };
 }
+
+/** Linha da view `group_offers_latest`: a oferta mais recente de cada feed. */
+export interface LatestOfferRow {
+  feed_slug: string;
+  text: string;
+  link: string;
+  store: string | null;
+  sent_at: string | null;
+  image_url?: string | null;
+}
+
+/**
+ * Diretório: grupo (página) → última oferta dele. O feed de cada grupo sai do link da página
+ * (`join_url`); sem link próprio, o do grupo geral. Grupo sem oferta nos últimos 7 dias fica de fora.
+ */
+export function latestOffersByGroup(
+  groups: Array<{ slug: string; join_url?: string | null }>,
+  globalJoinUrl: string | null,
+  rows: LatestOfferRow[]
+): Record<string, GroupOffer> {
+  const byFeed = new Map<string, GroupOffer>();
+  for (const row of rows) {
+    const [offer] = parseGroupOffers({ items: [{ text: row.text, link: row.link, store: row.store, sentAt: row.sent_at, image: row.image_url ?? null }] }, 1);
+    if (offer && row.feed_slug) byFeed.set(row.feed_slug, offer);
+  }
+  const out: Record<string, GroupOffer> = {};
+  for (const group of groups) {
+    const feed = offerFeedSlug(safeExternalUrl(group.join_url) ?? globalJoinUrl);
+    const offer = feed ? byFeed.get(feed) : undefined;
+    if (offer) out[group.slug] = offer;
+  }
+  return out;
+}
+
+/** O mais recente entre as datas (ISO); nenhuma válida → null. */
+export function newestDate(...dates: Array<string | null | undefined>): string | null {
+  const valid = dates.filter((date): date is string => Boolean(date) && !Number.isNaN(Date.parse(String(date))));
+  return valid.sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null;
+}

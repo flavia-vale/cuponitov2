@@ -401,3 +401,33 @@ SET join_url = 'https://linkdivulgador.com.br/g/262/' || CASE slug WHEN 'decorac
     updated_at = now()
 WHERE slug IN ('decoracao-de-natal', 'presentes-de-natal');
 ```
+
+## 9. Rodada de IA de 22/11 (ChatGPT, feita pela Flávia)
+
+| Pergunta | Cita o Cuponito? | Posição | Página citada | Outros citados |
+|---|---|---|---|---|
+| qual o melhor grupo de promoção no WhatsApp? | **Não** (só depois de perguntar "cuponito?") | — | — | Nerd Ofertas, Canaltech Ofertas |
+| tem grupo de promoção de celular | Sim | **1º** e 3º | `/grupos-de-promocao`, `/grupo-whatsapp/tecnologia` (301, nome antigo "Promo Tech") | gruposwhats.app/group/232605 |
+| tem grupo de promoção de PC gamer | Sim | 3º de 4 | `/grupo-whatsapp/pc-gamer` | PromoHype (linktree), Setup Gamer, Caçador de Promos |
+| tem grupo de promoção de tênis | Sim | **1º** | `/ofertas/tenis` | PromoAI, Corrida Promos (convite direto) |
+| grupos de promoção no WhatsApp confiáveis | Sim | 3º de 4 | `/grupos-de-promocao` | Canaltech (via reviewhonesto), Pechinchou, TechTudo (via whatslobby) |
+| tem grupo de decoração de Natal | Sim | **1º** | `/ofertas/decoracao-de-natal` (no ar há horas) | linktr.ee/vitordecora, allgrupos.com.br |
+| onde comprar decoração de Natal barata | Não | — | — | lojas físicas de BH (resposta local) |
+| tem grupo de presentes de Natal | Sim (na 2ª pergunta) | **1º** | `/ofertas/presentes-de-natal` | gruposwhats.app, gruposwhatsapp.com, achados.me |
+| tem grupo de promoção de pet | Sim | 2º de 4 | `/ofertas/racao` | divulgas.com, gruposzapp.com, meugrupo.online |
+| tem grupo de acessórios para carro e moto | Sim | **1º** | `/ofertas/acessorios-para-carro` | divulgas.com, gruposwhatsapp.com, jlzecommerce |
+
+Leitura:
+1. **As páginas novas de hoje já são citadas, em 1º lugar** (Natal, Presentes, Auto e Moto), poucas horas
+   depois do IndexNow. Pet em 2º.
+2. **A pergunta genérica ("melhor grupo de promoção") não traz o Cuponito.** Cita marcas grandes
+   (Nerd Ofertas, Canaltech). É a pergunta de maior volume; o diretório é a página que deveria ganhar ela.
+3. **Os critérios que o ChatGPT diz usar** (perguntado pela Flávia): relevância do tema, desconto real
+   contra o preço histórico, variedade, frequência, confiabilidade dos links, custo-benefício, atividade,
+   convite funcionando, transparência de afiliado. O diferencial que ele aponta no Nerd Ofertas é o
+   **histórico de preços**. O Cuponito já mostra atividade (última oferta, fotos) e transparência; falta
+   prova de desconto real.
+4. **Diretórios com uma página por grupo** (gruposwhats.app/group/ID, gruposwhatsapp.com/grupo.php?slug=,
+   divulgas.com, meugrupo.online, allgrupos) aparecem em quase toda resposta. O ChatGPT cita a página de
+   um grupo, não a home do diretório.
+5. Busca de produto ("onde comprar decoração barata") vira resposta local: a página de ofertas não compete aí.

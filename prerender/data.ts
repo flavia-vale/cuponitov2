@@ -10,6 +10,8 @@ import {
 import { notExpiredFilter } from '../src/lib/couponValidity';
 import type { JoinClickRow } from '../src/lib/groupJoinTracking';
 import type { CouponClickRow } from '../src/lib/couponClickTracking';
+import type { OfferClickRow } from '../src/lib/offerClickTracking';
+import type { LatestOfferRow } from '../src/lib/groupOfferFeed';
 import {
   archiveTermPattern,
   OFFER_MAX_AGE_DAYS,
@@ -376,6 +378,11 @@ export async function fetchDirectoryGroups(): Promise<Array<WhatsappGroupPageDat
   );
 }
 
+/** Última oferta de cada grupo (view `group_offers_latest`, migration 20261122210000). Sem a view → []. */
+export async function fetchLatestGroupOffers(): Promise<LatestOfferRow[]> {
+  return (await tryQuery<LatestOfferRow>('group_offers_latest?select=feed_slug,text,link,store,sent_at,image_url')) ?? [];
+}
+
 export async function fetchGroupPages(): Promise<WhatsappGroupPageData[]> {
   return (await tryGroupPages('is_published=is.true&order=sort_order&order=slug')) ?? [];
 }
@@ -467,6 +474,35 @@ export async function recordCouponClick(row: CouponClickRow): Promise<boolean> {
   const { url, key } = credentials();
   try {
     const response = await fetch(`${url}/rest/v1/coupon_clicks`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(row),
+      signal: AbortSignal.timeout(QUERY_TIMEOUT_MS),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Uma oferta do clique (/ir?u=…) já guardada no arquivo do grupo? Devolve a loja dela; senão null. */
+export async function fetchArchivedOfferStore(link: string): Promise<{ store: string | null } | null> {
+  const rows = await tryQuery<{ store: string | null }>(
+    `group_offers?link=eq.${encodeURIComponent(link)}&select=store&limit=1`
+  );
+  return rows && rows.length ? { store: rows[0].store ?? null } : null;
+}
+
+/** Grava o clique numa oferta do grupo (tabela `offer_clicks`). Falha = só não conta. */
+export async function recordOfferClick(row: OfferClickRow): Promise<boolean> {
+  const { url, key } = credentials();
+  try {
+    const response = await fetch(`${url}/rest/v1/offer_clicks`, {
       method: 'POST',
       headers: {
         apikey: key,

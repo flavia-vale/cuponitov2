@@ -57,7 +57,7 @@ export default function AchadinhosHojePage() {
           ) : list.length > 0 ? (
             <section>
               <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">Ofertas que saíram no grupo</h2>
-              <GroupOfferList offers={list} />
+              <GroupOfferList offers={list} origin="achadinhos_offer" />
             </section>
           ) : (
             <p className="text-muted-foreground">

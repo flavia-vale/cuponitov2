@@ -155,7 +155,7 @@ export default function OffersPage({ slug }: { slug: string }) {
                 <Skeleton className="h-24 w-full" />
               </div>
             ) : offers.length > 0 ? (
-              <GroupOfferList offers={offers} />
+              <GroupOfferList offers={offers} groupSlug={page.slug} origin="offers_page_offer" />
             ) : (
               <p className="text-muted-foreground">
                 As ofertas de hoje aparecem aqui assim que saem no grupo. Para receber na hora, entre no grupo.

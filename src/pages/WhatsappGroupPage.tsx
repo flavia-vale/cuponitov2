@@ -22,6 +22,8 @@ import {
   GROUP_DOES_NOT_TITLE,
   GROUP_TRUST_FACTS,
   TRUST_POST_PATH,
+  groupCtaTitle,
+  groupFactsSentence,
   firstContentImage,
   groupInfoForPage,
   groupPagePath,
@@ -148,6 +150,17 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
 
           <p className="mb-6 text-base leading-relaxed text-muted-foreground md:text-lg">{page.intro}</p>
 
+          {/* Botão no topo (como nas páginas de ofertas): a decisão é na primeira tela. Captação: group_page_top. */}
+          <GroupJoinCTA
+            compact
+            title={groupCtaTitle(page, info, 'Entrar no grupo de ofertas')}
+            text={groupFactsSentence(info)}
+            groupSlug={page.slug}
+            source="group_page_top"
+            context={page.slug}
+            className="mb-6"
+          />
+
           <ul className="mb-6 grid grid-cols-1 gap-2 rounded-2xl bg-[#f8f9fa] p-4 text-sm sm:grid-cols-2 md:text-base">
             {facts.map(fact => (
               <li key={fact.label} className="flex items-start gap-2">
@@ -184,7 +197,7 @@ export default function WhatsappGroupPage({ slug = GROUP_HUB_SLUG }: WhatsappGro
           {offers && offers.length > 0 && (
             <section className="mb-10">
               <h2 className="mb-4 text-xl font-black text-foreground md:text-2xl">Saiu no grupo hoje</h2>
-              <GroupOfferList offers={offers.slice(0, 6)} />
+              <GroupOfferList offers={offers.slice(0, 6)} groupSlug={page.join_url ? page.slug : null} origin="group_page_offer" />
               {!niche && (
                 <a href={ACHADINHOS_PATH} className="mt-4 inline-block font-bold text-[#ff5200] hover:underline">
                   Ver todos os achadinhos de hoje

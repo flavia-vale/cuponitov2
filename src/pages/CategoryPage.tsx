@@ -14,7 +14,7 @@ import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { isExpired, isStale, sortCoupons } from '@/lib/utils';
 import { getMonthYear } from '@/lib/utils';
-import { SITE_URL, getLatestUpdatedLabel } from '@/lib/seo';
+import { SITE_URL, categoryMetaDescription, getLatestUpdatedLabel } from '@/lib/seo';
 import {
   Accordion,
   AccordionContent,
@@ -105,7 +105,7 @@ export default function CategoryPage() {
     <div className="min-h-screen bg-[#f8f9fa]">
       <SEOHead
         title={`Cupons de ${categoryName} — ${monthYear} | Cuponito`}
-        description={description}
+        description={categoryMetaDescription({ name: matchedCategory?.name ?? '', description })}
         canonical={canonical}
         jsonLdRoute={{ type: 'categoria', categoryName, slug: slug!, coupons: active }}
         robots={!isLoading && !hasLiveCoupon ? 'noindex, follow' : undefined}

@@ -20,6 +20,7 @@ import {
   fetchCategory,
   fetchCategoryCoupons,
   fetchDirectoryGroups,
+  fetchLatestGroupOffers,
   fetchDirectoryPage,
   fetchFeaturedPosts,
   fetchFeaturedStores,
@@ -33,6 +34,8 @@ import {
   fetchCouponDestination,
   fetchHomeSeo,
   recordCouponClick,
+  fetchArchivedOfferStore,
+  recordOfferClick,
   fetchPost,
   fetchStore,
   fetchPublishedPosts,
@@ -68,10 +71,12 @@ import {
   sanitizeToken,
 } from './src/lib/groupJoinTracking';
 import { COUPON_CLICK_PATH, parseCouponClickQuery, safeAffiliateUrl } from './src/lib/couponClickTracking';
+import { parseOfferClickQuery } from './src/lib/offerClickTracking';
 import {
   ACHADINHOS_FEED_PATH,
   ACHADINHOS_PATH,
   filterOffersByTerms,
+  latestOffersByGroup,
   mergeOffers,
   offerFeedSlug,
   parseOfferTerms,
@@ -292,13 +297,15 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     const page = await fetchDirectoryPage();
     if (page === undefined) throw new Error('whatsapp_group_pages indisponível');
     if (!page) return null;
-    const [groupSettings, groupRows, stores, posts, author] = await Promise.all([
+    const [groupSettings, groupRows, stores, posts, author, latestRows] = await Promise.all([
       fetchGroupSettings(),
       fetchDirectoryGroups(),
       fetchFeaturedStores(6),
       fetchFeaturedPosts(3),
       fetchAuthorByName(FLAVIA_VALE_NAME),
+      fetchLatestGroupOffers(),
     ]);
+    const latestOffers = latestOffersByGroup(groupRows, groupSettings.globalJoinUrl, latestRows);
     const sections = buildDirectorySections(groupRows, groupSettings.info);
     const joinLinks = Object.fromEntries(
       sections.flatMap(section =>
@@ -313,7 +320,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
         ])
       )
     );
-    return renderDirectoryPage(page, { sections, joinLinks, author }, { stores, posts });
+    return renderDirectoryPage(page, { sections, joinLinks, author, latestOffers }, { stores, posts });
   }
 
   const groupMatch = pathname.match(/^\/grupo-whatsapp(?:\/([^/]+))?\/?$/);
@@ -510,6 +517,50 @@ async function handleCouponClick(url: URL, request: Request, context?: Middlewar
   });
 }
 
+/**
+ * A oferta do clique saiu mesmo num grupo do Cuponito? Primeiro no arquivo (`group_offers`);
+ * a oferta dos últimos ~10 min ainda não foi arquivada, então depois no feed ao vivo do grupo
+ * `g` (ou do geral). Devolve a loja; link desconhecido → null (o /ir não redireciona para ele).
+ */
+async function verifyOfferLink(link: string, groupSlug: string | null): Promise<{ store: string | null } | null> {
+  const archived = await fetchArchivedOfferStore(link);
+  if (archived) return archived;
+  const [{ globalJoinUrl }, page] = await Promise.all([
+    fetchGroupSettings(),
+    groupSlug ? fetchJoinPage(groupSlug) : Promise.resolve(null),
+  ]);
+  const live = await fetchGroupOffers(resolveJoinUrl(page ?? null, globalJoinUrl));
+  const hit = live.find(offer => offer.link === link);
+  return hit ? { store: hit.store } : null;
+}
+
+/**
+ * /ir?u=<link>: clique em "Ver oferta" numa lista do grupo. Grava loja, grupo, página, botão e
+ * fonte e redireciona para o link de afiliado da oferta, só se ela saiu num grupo (sem
+ * redirecionamento aberto). Link desconhecido → a página de onde veio (ou os achadinhos).
+ */
+async function handleOfferClick(url: URL, request: Request, context?: MiddlewareContext): Promise<Response> {
+  const parsed = parseOfferClickQuery(url.searchParams, request.headers.get('user-agent'), request.headers.get('cookie'));
+  const verified = parsed.link ? await verifyOfferLink(parsed.link, parsed.group_slug) : null;
+  const destination = verified && parsed.link ? parsed.link : `${SITE_URL}${parsed.page_path ?? ACHADINHOS_PATH}`;
+
+  if (verified && !isLikelyBot(request.headers.get('user-agent'), request.headers.get('accept-language'))) {
+    const { link: _link, ...row } = parsed;
+    const recording = recordOfferClick({ ...row, store: verified.store?.split('+')[0]?.slice(0, 60) ?? null });
+    if (context?.waitUntil) context.waitUntil(recording);
+    else await recording;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: destination,
+      'Cache-Control': 'no-store',
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
+  });
+}
+
 export default async function middleware(request: Request, context?: MiddlewareContext): Promise<Response | undefined> {
   const url = new URL(request.url);
   const { pathname } = url;
@@ -519,6 +570,8 @@ export default async function middleware(request: Request, context?: MiddlewareC
   }
 
   if (pathname === COUPON_CLICK_PATH) {
+    // /ir?u=<link> = oferta do grupo; /ir?c=<id> = cupom.
+    if (url.searchParams.has('u') && !url.searchParams.has('c')) return handleOfferClick(url, request, context);
     return handleCouponClick(url, request, context);
   }
 
