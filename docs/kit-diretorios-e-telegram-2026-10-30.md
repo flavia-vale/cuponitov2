@@ -192,3 +192,72 @@ o Link Inteligente abrir outro, o convite muda: atualizar no diretório.
 **Promo Auto e Moto**
 - Curta: `Acessórios para carro e moto, capacete, aspirador e pneu em promoção. Só admins postam.`
 - Longa: `Grupo do Cuponito (cuponito.com.br) com promoções para carro e moto: acessórios, aspirador automotivo, multimídia, capacetes e pneus, com o preço do momento e o link da loja oficial. Não é grupo de peças de reposição. Só os administradores postam. Entrada grátis.`
+
+## 7. Descrição dentro do WhatsApp, todos os grupos (22/11)
+
+Para a tela do grupo (Descrição do grupo). A primeira linha é a que aparece sem abrir: vai nela o assunto.
+Só fatos confirmados: volume só onde a Flávia já informou; "não faz" é o bloco confirmado em 15/11.
+O fim é igual em todos (copiar o bloco "Fim comum" depois do texto de cada grupo).
+
+**Fim comum**
+```
+✅ Só os administradores postam. Grátis.
+✅ Toda oferta vai com o link da loja oficial. A compra é na loja.
+🚫 Não vendemos nada, não pedimos Pix, senha nem código, não chamamos ninguém no privado.
+🔕 Muita notificação? Toque no nome do grupo → Silenciar. Você continua recebendo, sem barulho.
+🔗 Os links são de afiliado: o Cuponito pode ganhar uma comissão, sem custo extra para você.
+📋 Outros grupos por assunto: cuponito.com.br/grupos-de-promocao
+```
+
+| Grupo | Nome sugerido | Texto (antes do fim comum) |
+|---|---|---|
+| Ofertas Fafaciane (os 2) | Ofertas Fafaciane · Achadinhos | 🛍️ Achadinhos e ofertas de Shopee, Mercado Livre, Amazon, Magalu e Shein. Cerca de 200 ofertas por dia, com o preço do momento. |
+| Promo Tech | Promo Tech Nerd · PC, games e TV | 🎮 Promoções de PC gamer, placa de vídeo, peças, notebook, monitor, PS5, jogos e TV. Cerca de 200 ofertas por dia. |
+| Promo Celular | Promo Celular · ofertas de celular | 📱 Promoções de celular: Samsung, Motorola, Xiaomi e outros. Só as que valem a pena, com o preço do momento. |
+| Promo iPhone | Promo iPhone · só iPhone novo | 🍎 Só iPhone novo em promoção. Cerca de 2 avisos por semana, quando o preço cai. Pouca mensagem, só o que importa. |
+| Promo TV | Promo TV · Smart TV em promoção | 📺 Só promoções de TV e Smart TV, de todas as polegadas, com o preço do momento. |
+| Promo Tênis | Promo Tênis · tênis em promoção | 👟 Tênis em promoção: Nike, Adidas, New Balance, corrida e academia, masculino e feminino. Cerca de 50 ofertas por dia. |
+| Promo Fit | Promo Fit · whey e suplementos | 💪 Promoções de whey, creatina e suplementos. Dica: compare pelo preço do grama de proteína. |
+| Promo Perfumes | Promo Perfumes · importados e nacionais | 🌸 Perfume em promoção: importados e nacionais, masculino e feminino, e kits para presente. |
+| Promo Eletrodomésticos | Promo Eletro · geladeira, ar e air fryer | 🏠 Promoções de geladeira, ar-condicionado, air fryer, micro-ondas, máquina de lavar e ventilador. Cerca de 30 ofertas por dia. |
+| Promo Bebês | Promo Bebês · fraldas e brinquedos | 👶 Promoções de fraldas, produtos para bebê e brinquedos. Dica: compare pelo preço de cada fralda. |
+| Promo Salão | Promo Salão · manicure e beleza | 💅 Promoções para manicure e salão: esmaltes, gel, alicates, cabines e materiais de unha. |
+| Promo Festas | Promo Festas · balões e decoração | 🎈 Promoções de balões, kits pegue e monte, painéis e artigos de festa. |
+| Promo Natal | Promo Natal · decoração de Natal | 🎄 Só decoração de Natal em promoção: árvores, enfeites, bolas, guirlandas, pisca-pisca e mesa de Natal. |
+| Promo Presentes | Promo Presentes · presentes de Natal | 🎁 Presentes de Natal em promoção: ideias até 30, 50 e 100 reais, amigo secreto, para ela e para ele. |
+| Promo Pet | Promo Pet · ração e produtos pet | 🐾 Promoções para cachorro e gato: ração, areia, antipulgas, petiscos e acessórios. Dica: compare pelo preço do quilo. |
+| Promo Auto e Moto | Promo Auto e Moto · acessórios e pneus | 🚗🏍️ Promoções para carro e moto: acessórios, aspirador, multimídia, capacete e pneu. Não é grupo de peças de reposição. |
+
+**Mensagem fixada de boas-vindas** (fixar em cada grupo, trocando o assunto):
+```
+👋 Bem-vindo(a) ao [NOME DO GRUPO]!
+Aqui chegam só promoções de [ASSUNTO], com o link da loja oficial. Só os admins postam.
+🔕 Para não encher o celular: toque no nome do grupo → Silenciar. As ofertas continuam aqui quando você quiser olhar.
+📋 Tem grupo de outros assuntos (celular, tênis, perfume, pet…): cuponito.com.br/grupos-de-promocao
+```
+
+## 8. Perguntas para o ChatGPT (rodada de 22/11)
+
+Como fazer: janela anônima, ChatGPT com **busca ligada**, uma pergunta por conversa nova. Para cada uma,
+anotar: (1) cita o Cuponito? (2) qual página? (3) quais outros sites e grupos cita? Print da resposta e
+das fontes.
+
+**Prioridade 1: as que já trazem gente (ver se a queda de 16/11 veio daqui)**
+1. qual o melhor grupo de promoção no WhatsApp?
+2. tem grupo de promoção de celular no WhatsApp?
+3. tem grupo de promoção de PC gamer no WhatsApp?
+4. tem grupo de promoção de tênis no WhatsApp?
+5. grupos de promoção no WhatsApp confiáveis
+
+**Prioridade 2: os grupos novos (Natal tem prazo)**
+6. tem grupo de decoração de Natal no WhatsApp?
+7. onde comprar decoração de Natal barata?
+8. tem grupo de presentes de Natal no WhatsApp?
+9. presente de amigo secreto até 50 reais
+10. tem grupo de promoção de pet no WhatsApp?
+11. tem grupo de promoção de acessórios para carro e moto no WhatsApp?
+
+**Prioridade 3: Black Friday (lead quente, até 27/11)**
+12. onde achar TV em promoção na Black Friday?
+13. tem grupo de promoção de perfume no WhatsApp?
+14. grupo de ofertas no WhatsApp é confiável?
