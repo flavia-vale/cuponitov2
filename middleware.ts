@@ -23,6 +23,7 @@ import {
   fetchLatestGroupOffers,
   fetchDirectoryPage,
   fetchFeaturedPosts,
+  fetchRecentPosts,
   fetchFeaturedStores,
   fetchArchivedOffers,
   fetchGroupOffers,
@@ -84,6 +85,7 @@ import {
   type GroupOffer,
 } from './src/lib/groupOfferFeed';
 import { FLAVIA_VALE_NAME } from './src/lib/authors';
+import { primaryStoreSlug } from './src/lib/seo';
 import {
   renderAboutPage,
   renderAchadinhosPage,
@@ -245,10 +247,11 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   const blogMatch = pathname.match(/^\/blog\/([^/]+)\/?$/);
   if (blogMatch) {
     const slug = decodeURIComponent(blogMatch[1]);
-    const [post, stores, posts] = await Promise.all([
+    const [post, stores, posts, allPosts] = await Promise.all([
       fetchPost(slug),
       fetchFeaturedStores(3),
       fetchFeaturedPosts(4),
+      fetchRecentPosts(50),
     ]);
     if (!post) return null;
     const groupSlug = post.group_slug?.trim() || null;
@@ -268,7 +271,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
             learnMoreUrl: publishedPage ? pagePath(publishedPage) : groupPagePath(GROUP_HUB_SLUG),
           }
         : undefined;
-    return renderBlogPost(post, author, { stores, posts }, groupCta);
+    return renderBlogPost(post, author, { stores, posts }, groupCta, allPosts);
   }
 
   const storeMatch = pathname.match(/^\/desconto\/([^/]+)\/?$/);
@@ -285,12 +288,15 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
       fetchCategories(),
     ]);
     const groupPage = groupPageForStore(groupPages, store.slug, nicheGroupSlug(coupons, categories));
+    // Loja repetida (UUID no slug): o canonical vai para a principal, se ela existir.
+    const mainSlug = primaryStoreSlug(store.slug);
+    const canonicalSlug = mainSlug !== store.slug && (await fetchStore(mainSlug)) ? mainSlug : undefined;
     return renderStorePage(store, coupons, { stores, posts }, {
       page: groupPage,
       // O botão passa pelo /entrar (mede a página); o destino é resolvido lá, com a mesma regra.
       joinUrl: buildJoinTrackingHref({ origin: 'html_store', groupSlug: groupPage?.slug, pagePath: `/desconto/${store.slug}` }),
       info: groupInfoForPage(groupSettings.info, groupPage),
-    });
+    }, canonicalSlug);
   }
 
   if (pathname === DIRECTORY_PATH || pathname === `${DIRECTORY_PATH}/`) {

@@ -6,7 +6,7 @@ import { Clock, User, Share2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Header from '@/components/Header';
-import { useBlogPost, useBlogAuthors, useBlogCategories, useIncrementBlogViews, useRelatedBlogPosts } from '@/hooks/useBlog';
+import { useBlogPost, useBlogAuthors, useBlogCategories, useIncrementBlogViews, useBlogPosts } from '@/hooks/useBlog';
 import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/InlineCouponBox';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
@@ -17,13 +17,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead';
 import { calcReadingTime } from '@/lib/blog';
 import { SITE_URL } from '@/lib/seo';
+import { relatedPosts as pickRelatedPosts } from '@/lib/relatedPosts';
 
 export default function BlogPost() {
   const { slug } = useParams({ strict: false });
   const { data: post, isLoading } = useBlogPost(slug || '');
   const { data: authors } = useBlogAuthors();
   const { data: categories = [] } = useBlogCategories();
-  const { data: relatedPosts = [] } = useRelatedBlogPosts(post?.id ?? '', post?.category_id);
+  const { data: allPosts = [] } = useBlogPosts();
+  const relatedPosts = post ? pickRelatedPosts(allPosts, post.slug) : [];
   const incrementViews = useIncrementBlogViews();
 
   useEffect(() => {

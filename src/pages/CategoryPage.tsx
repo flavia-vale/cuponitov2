@@ -14,7 +14,7 @@ import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { isExpired, isStale, sortCoupons } from '@/lib/utils';
 import { getMonthYear } from '@/lib/utils';
-import { SITE_URL, categoryMetaDescription, getLatestUpdatedLabel } from '@/lib/seo';
+import { SITE_URL, categoryHeading, categoryMetaDescription, getLatestUpdatedLabel } from '@/lib/seo';
 import {
   Accordion,
   AccordionContent,
@@ -104,7 +104,7 @@ export default function CategoryPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
       <SEOHead
-        title={`Cupons de ${categoryName} — ${monthYear} | Cuponito`}
+        title={`${categoryHeading(categoryName)} — ${monthYear} | Cuponito`}
         description={categoryMetaDescription({ name: matchedCategory?.name ?? '', description })}
         canonical={canonical}
         jsonLdRoute={{ type: 'categoria', categoryName, slug: slug!, coupons: active }}
@@ -126,7 +126,7 @@ export default function CategoryPage() {
           <Link to="/cupons" className="flex items-center gap-1 text-sm font-bold text-[#ff5200] hover:underline">
             <ArrowLeft size={14} /> Cupons
           </Link>
-          <h1 className="text-xl font-bold text-foreground">Cupons de {categoryName}</h1>
+          <h1 className="text-xl font-bold text-foreground">{categoryHeading(categoryName)}</h1>
         </div>
 
         <p className="text-sm text-muted-foreground">{description}</p>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Coupon } from '@/hooks/useCoupons';
-import { SITE_URL } from '@/lib/seo';
+import { SITE_URL, categoryHeading } from '@/lib/seo';
 import { DEFAULT_CHANNEL_URL } from '@/lib/whatsappGroup';
 import { authorPersonSchema, FLAVIA_VALE_LINKEDIN, type AuthorProfile } from '@/lib/authors';
 
@@ -127,6 +127,7 @@ function aboutOrgSchema() {
   return {
     ...orgSchema(),
     founder: FLAVIA_VALE_PERSON,
+    email: 'contato@cuponito.com.br',
     sameAs: [
       "https://espelhagrupos.com.br/quem-somos",
       DEFAULT_CHANNEL_URL,
@@ -396,9 +397,9 @@ export function useJsonLd(route?: JsonLdRoute | null): object[] {
               { "@type": "ListItem", position: 3, name: safeRoute.categoryName, item: `${SITE_URL}/categoria/${safeRoute.slug}` },
             ],
           },
-          collectionPageSchema(`Cupons de ${safeRoute.categoryName}`, `Lista de cupons da categoria ${safeRoute.categoryName}.`, `/categoria/${safeRoute.slug}`),
+          collectionPageSchema(categoryHeading(safeRoute.categoryName), `Lista de cupons da categoria ${safeRoute.categoryName}.`, `/categoria/${safeRoute.slug}`),
           ...(safeRoute.coupons.length > 0
-            ? [couponItemList(`Cupons de ${safeRoute.categoryName}`, safeRoute.coupons)]
+            ? [couponItemList(categoryHeading(safeRoute.categoryName), safeRoute.coupons)]
             : []),
         ];
       case 'generic':

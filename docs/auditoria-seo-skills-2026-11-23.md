@@ -39,7 +39,7 @@ Palavras por tipo de página (piso de cobertura, não meta):
 
 Problemas encontrados:
 1. **Três URLs duplicadas da Lomadee** no sitemap (`cupom-desconto-loja-lomadee` e duas com UUID no slug), mesmo título e mesmo texto. Canonicalizar para uma e tirar as outras do sitemap.
-2. **Títulos fracos**: "Cupons de Geral", "Cupons de Ofertas no link", "Cupom de Desconto Netshoes WL" (sufixo interno vazando), "C&amp;A" com entidade HTML dupla no H1.
+2. **Títulos fracos**: "Cupons de Geral", "Cupons de Ofertas no link" e "Cupom de Desconto Netshoes WL" (sufixo interno no nome da loja). *Correção (23/11): o `&amp;` no H1 da C&A é o escape correto de HTML para `&`, não é erro; retirado da lista.*
 3. **Conteúdo desatualizado**: post "Presentes para o Dia das Mães 2026" no ar em novembro, com 1 link interno de entrada.
 4. **Quem somos** não nomeia a equipe nem a Flávia como pessoa responsável (só marca) e não tem canal de contato com endereço/CNPJ. A relação com o Espelha Grupos está divulgada, o que é bom (Quem/Como/Por quê).
 5. **Os comparativos** têm perfil de página rasa: sem dados próprios, tabela ou data de verificação. Para citação por IA, o que mais pesa é dado próprio e tabela; hoje eles não têm.
@@ -86,7 +86,7 @@ Flávia antes de construir. O que dá para fazer já, só com links:
 ## 6. Prioridades
 
 1. Resolver as 3 URLs duplicadas da Lomadee (canonical + sitemap).
-2. Corrigir títulos "Cupons de Geral", "Ofertas no link" e "Netshoes WL"; escape do "C&amp;A".
+2. Corrigir títulos "Cupons de Geral", "Ofertas no link" e "Netshoes WL".
 3. **Não engordar os 5 comparativos por enquanto** (ver seção 8: não há medição de busca para eles). Decidir entre medir, fundir ou despublicar.
 4. Subir links internos para comparativos, categorias e lojas (≥3 entradas cada).
 5. Atualizar ou arquivar o post de Dia das Mães.
@@ -151,3 +151,20 @@ rodada de ChatGPT de 22/11 e painel de Captação/Search Console resumido nos pl
 3. Mexer no que não depende de volume: Lomadee duplicada, títulos fracos, links internos, schema.
 4. Pergunta genérica do ChatGPT: o diretório `/grupos-de-promocao` é a página que deve ganhar; falta prova de desconto real (histórico de preço).
 5. Rodar Perplexity, Gemini e Visão geral de IA com as mesmas 10 perguntas do ChatGPT.
+
+## 9. Feito em 23/11 (branch `claude/tender-planck-coqsuz`)
+
+| Item | O que mudou |
+|---|---|
+| Lomadee duplicada | Loja com UUID no slug passa a ter o canonical na loja principal (`primaryStoreSlug` em `src/lib/seo.ts`, no HTML do servidor e no React) e sai do sitemap quando a principal existe |
+| Títulos de categoria | "Geral" e "Ofertas no link" viram "Cupons de desconto gerais" e "Ofertas com desconto direto no link" (título, H1, JSON-LD, meta); as demais seguem "Cupons de <nome>" |
+| Links internos | Todo post do blog passa a mostrar "Continue economizando" com 4 posts, em ordem circular (`src/lib/relatedPosts.ts`), no servidor e no React: nenhum post fica com menos de 4 entradas |
+| Dia das Mães | Migration `20261123120000_arquiva_post_dia_das_maes.sql` volta o post para rascunho (não apaga) |
+| Quem somos | Seção "Quem responde pelo Cuponito": Flávia Vale (LinkedIn) e contato@cuponito.com.br; `email` no schema da Organization |
+| Imagens | `docs/prompts-imagens-capas-faltando-2026-11-23.md`: 5 capas que faltam |
+
+Não feito, por depender de decisão ou dado seu:
+- **"Netshoes WL"**: o sufixo está no nome da loja no banco. Renomear em Admin → Lojas, conferindo antes se os cupons dela apontam por `store_id` (o sitemap também casa por nome).
+- **Razão social/CNPJ** em Quem somos: não foi informado; não inventei.
+- **Links para lojas e categorias** (1 a 5 entradas): o rodapé usa lojas e posts marcados como "destaque" no painel; marque ali o que quiser empurrar.
+- **A migration precisa ser aplicada** no Supabase (`supabase db push`) para o post sair do ar.
