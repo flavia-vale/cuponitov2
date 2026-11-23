@@ -325,3 +325,13 @@ e os dois posts que citam o Espelha Grupos. Ver `docs/espelha-grupos-entrega-htm
 // Errado: ratio fixo grande demais em mobile
 "aspect-[16/9]"
 ```
+
+
+## Skills de SEO/GEO/growth instaladas (2026-11-23)
+
+Em `.claude/skills/`: `seo-google`, `seo-drift`, `seo-content` (E-E-A-T), `seo-geo`, `seo-local`, `seo-cluster`
+(de AgriciDaniel/claude-seo, MIT; scripts em `.claude/scripts/`) e `content-strategy`, `site-architecture`,
+`link-building`, `competitors`, `customer-research`, `copywriting`, `copy-editing`, `referrals`, `lead-magnets`,
+`free-tools`, `analytics`, `conversion-tracking`, `ab-testing`, `product-marketing` (de coreyhaines31/marketingskills, MIT).
+**As regras deste arquivo prevalecem sobre as skills**: elas são genéricas e podem sugerir o que já foi medido e
+derrubado (ex.: `aggregateRating`, página por cidade, promessa de resultado). Dado de mercado antes de construir.
