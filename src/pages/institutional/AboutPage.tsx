@@ -1,4 +1,12 @@
 import InstitutionalLayout from './InstitutionalLayout';
+import { FLAVIA_VALE_LINKEDIN } from '@/lib/authors';
+import {
+  aboutResponsibleName,
+  aboutResponsibleText,
+  aboutResponsibleTitle,
+  contactEmail,
+  contactMailto,
+} from './content';
 
 export default function AboutPage() {
   return (
@@ -31,6 +39,21 @@ export default function AboutPage() {
         espelha ofertas de grupos e canais de origem para os seus grupos, troca cada link pelo seu
         código de afiliada (Shopee, Mercado Livre, Amazon, Magalu, SHEIN, AliExpress) e publica com
         filas, intervalos e histórico de envios. Teste grátis de 7 dias; Pro R$ 69 por 30 dias.
+      </p>
+
+      <h2 className="pt-2 text-xl font-black text-foreground md:text-2xl">{aboutResponsibleTitle}</h2>
+      <p>
+        <a href={FLAVIA_VALE_LINKEDIN} className="font-bold text-[#ff5200] hover:underline" rel="noopener">
+          {aboutResponsibleName}
+        </a>
+        , {aboutResponsibleText}
+      </p>
+      <p>
+        Contato:{' '}
+        <a href={contactMailto} className="font-bold text-[#ff5200] hover:underline">
+          {contactEmail}
+        </a>
+        .
       </p>
     </InstitutionalLayout>
   );

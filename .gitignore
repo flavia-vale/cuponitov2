@@ -36,5 +36,8 @@ dist-ssr
 .vercel
 supabase/.temp/
 
-# cache do Python dos scripts de SEO (.claude/scripts)
+# runtime local do claude-seo e cache do Python dos scripts de SEO (.claude/scripts)
+.claude/ms-playwright/
+.claude/runtime-state.json
 .claude/scripts/__pycache__/
+.claude/.venv*/

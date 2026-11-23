@@ -21,6 +21,9 @@ function pagePath(page: { slug: string; page_type?: string | null }): string {
   return page.page_type === 'offers' ? `/ofertas/${page.slug}` : groupPagePath(page.slug)
 }
 
+// Mesma regra de `primaryStoreSlug` (src/lib/seo.ts), copiada pelo mesmo motivo do `groupPagePath`.
+const STORE_DUPLICATE_SUFFIX = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 type GroupPageRow = { slug: string; updated_at: string | null; page_type?: string | null }
 
 /** Páginas do grupo e de ofertas; coluna `page_type` ainda não migrada = todas são do grupo. */
@@ -121,9 +124,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const liveStoreIds = new Set((liveCoupons ?? []).map(c => c.store_id).filter(Boolean))
   const liveStoreNames = new Set((liveCoupons ?? []).map(c => c.store).filter(Boolean))
   const liveCategories = new Set((liveCoupons ?? []).map(c => c.category).filter(Boolean))
-  const stores = (storesResult.data ?? []).filter(
-    store => !liveCoupons || liveStoreIds.has(store.id) || liveStoreNames.has(store.name)
-  )
+  const allStores = storesResult.data ?? []
+  const allSlugs = new Set(allStores.map(store => store.slug))
+  const stores = allStores
+    .filter(store => !liveCoupons || liveStoreIds.has(store.id) || liveStoreNames.has(store.name))
+    // Loja repetida (UUID no slug) com a principal no ar: só a principal entra no sitemap.
+    .filter(store => !(STORE_DUPLICATE_SUFFIX.test(store.slug) && allSlugs.has(store.slug.replace(STORE_DUPLICATE_SUFFIX, ''))))
   const posts = postsResult.data ?? []
   const categories = (categoriesResult.data ?? []).filter(
     category => !liveCoupons || liveCategories.has(category.name)

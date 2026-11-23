@@ -72,6 +72,12 @@ export const contactParagraphs = [
   'Manda mensagem aqui embaixo. O time do Cuponito lê tudo e te responde o mais rápido possível.',
   'Adoramos ouvir, de verdade.',
 ];
+export const contactEmail = 'contato@cuponito.com.br';
+
+export const aboutResponsibleTitle = 'Quem responde pelo Cuponito';
+export const aboutResponsibleName = 'Flávia Vale';
+export const aboutResponsibleText =
+  'fundadora do Cuponito e do Espelha Grupos, responde pelo site. Os guias do blog levam o nome de quem os escreveu, e cupom que não funcionou pode ser avisado pelo e-mail abaixo.';
 export const contactMailto = 'mailto:contato@cuponito.com.br?subject=Contato%20pelo%20Cuponito';
 
 export const termsIntro =

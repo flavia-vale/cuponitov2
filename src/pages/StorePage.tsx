@@ -14,7 +14,7 @@ import StoreIcon from '@/components/StoreIcon';
 import StoreQuickAccessCard from '@/components/StoreQuickAccessCard';
 import { useWhatsappGroupInfo, useWhatsappGroupPages } from '@/hooks/useWhatsappGroupPages';
 import { useCouponCategories } from '@/hooks/useCouponCategories';
-import { storeMetaDescription } from '@/lib/seo';
+import { primaryStoreSlug, storeMetaDescription } from '@/lib/seo';
 import {
   GROUP_HUB_SLUG,
   groupCtaTitle,
@@ -46,6 +46,12 @@ export default function StorePage() {
   }, [storeBrands, slug]);
 
   const { data: storeCouponsData, isLoading: couponsLoading } = useStoreCoupons(storeBrand?.id, storeBrand?.name);
+  // Loja repetida (UUID no slug): o canonical vai para a principal, se ela existir (mesma regra do servidor).
+  const canonicalSlug = useMemo(() => {
+    if (!slug) return slug;
+    const main = primaryStoreSlug(slug);
+    return main !== slug && storeBrands?.some((b) => b.slug === main) ? main : slug;
+  }, [storeBrands, slug]);
   const storeName = storeBrand?.name || slug?.replace(/cupom-desconto-/g, '').replace(/-/g, ' ') || '';
   const brandColor = storeBrand?.brand_color || '#FF4D00';
   const { data: groupPages } = useWhatsappGroupPages();
@@ -104,7 +110,7 @@ export default function StorePage() {
       <SEOHead
         title={`Cupom de Desconto ${storeName} Hoje | Cuponito`}
         description={storeMetaDescription({ name: storeName, meta_description: storeBrand?.meta_description, description: storeBrand?.description })}
-        canonical={`https://www.cuponito.com.br/desconto/${slug}`}
+        canonical={`https://www.cuponito.com.br/desconto/${canonicalSlug}`}
         ogImage={storeBrand?.logo_url || undefined}
         jsonLdRoute={{ type: 'store', storeName, slug: slug!, coupons: filteredCoupons }}
         robots={!isLoading && activeCoupons.length === 0 ? 'noindex, follow' : undefined}

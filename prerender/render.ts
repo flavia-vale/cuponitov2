@@ -1,5 +1,6 @@
 import { escapeHtml, markdownToHtml, markdownToPlainText } from './markdown';
-import { categoryMetaDescription, storeMetaDescription } from '../src/lib/seo';
+import { relatedPosts } from '../src/lib/relatedPosts';
+import { categoryHeading, categoryMetaDescription, storeMetaDescription } from '../src/lib/seo';
 import {
   CUPONITO_ORGANIZATION,
   DEFAULT_OG_IMAGE,
@@ -20,6 +21,10 @@ import type {
 } from './data';
 import {
   contactMailto,
+  contactEmail,
+  aboutResponsibleName,
+  aboutResponsibleText,
+  aboutResponsibleTitle,
   contactParagraphs,
   faqs,
   howItWorksClosing,
@@ -53,7 +58,7 @@ import {
   type WhatsappGroupInfo,
   type WhatsappGroupPageData,
 } from '../src/lib/whatsappGroup';
-import { authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
+import { FLAVIA_VALE_LINKEDIN, authorPersonSchema, authorProfileUrl } from '../src/lib/authors';
 import { buildOfferClickHref } from '../src/lib/offerClickTracking';
 import { ACHADINHOS_PATH, formatOfferText, newestDate, offerTime, offerWhen, storeLabel, todayLabel, type GroupOffer } from '../src/lib/groupOfferFeed';
 
@@ -171,9 +176,12 @@ export function renderBlogPost(
   post: PrerenderPost,
   author: PrerenderAuthor | null,
   links: ChromeLinks,
-  groupCta?: StoreGroupCta
+  groupCta?: StoreGroupCta,
+  /** Todos os posts publicados (do mais novo ao mais antigo), para o bloco "Continue economizando". */
+  allPosts: Array<Pick<PrerenderPost, 'title' | 'slug'>> = []
 ): RenderedPage {
   const canonical = `${SITE_URL}/blog/${post.slug}`;
+  const related = relatedPosts(allPosts, post.slug);
   const publishedIso = post.published_at || post.created_at || null;
   const modifiedIso = post.updated_at || publishedIso;
   const description =
@@ -232,6 +240,13 @@ export function renderBlogPost(
           ${markdownToHtml(post.content || '', { demoteHeadings: 1 })}
           ${groupCta ? groupCtaSection('Receba as ofertas no WhatsApp', groupCta) : ''}
           ${authorBox(author)}
+          ${
+            related.length > 0
+              ? `<h2>Continue economizando</h2><ul>${related
+                  .map(other => `<li><a href="${SITE_URL}/blog/${escapeHtml(other.slug)}">${escapeHtml(other.title)}</a></li>`)
+                  .join('')}</ul>`
+              : ''
+          }
         </article>
       </main>`,
     [
@@ -333,9 +348,11 @@ export function renderStorePage(
   store: PrerenderStore,
   coupons: PrerenderCoupon[],
   links: ChromeLinks,
-  groupCta?: StoreGroupCta
+  groupCta?: StoreGroupCta,
+  /** Slug da loja principal quando esta é duplicata (UUID no slug) e a principal existe. */
+  canonicalSlug?: string
 ): RenderedPage {
-  const canonical = `${SITE_URL}/desconto/${store.slug}`;
+  const canonical = `${SITE_URL}/desconto/${canonicalSlug ?? store.slug}`;
   const description = storeMetaDescription(store);
 
   // dateModified = cupom mais recente da loja
@@ -969,7 +986,7 @@ export function renderCategoryPage(
   const description = categoryMetaDescription(category);
 
   const meta: HeadMeta = {
-    title: `Cupons de ${category.name} | Cuponito`,
+    title: `${categoryHeading(category.name)} | Cuponito`,
     description,
     canonical,
     modifiedTime: category.updated_at,
@@ -983,7 +1000,7 @@ export function renderCategoryPage(
       {
         '@type': 'CollectionPage',
         '@id': `${canonical}#page`,
-        name: `Cupons de ${category.name}`,
+        name: categoryHeading(category.name),
         description,
         url: canonical,
         inLanguage: 'pt-BR',
@@ -995,7 +1012,7 @@ export function renderCategoryPage(
         { name: 'Cupons', url: `${SITE_URL}/cupons` },
         { name: category.name, url: canonical },
       ]),
-      ...(coupons.length > 0 ? [couponOfferList(`Cupons de ${category.name}`, coupons)] : []),
+      ...(coupons.length > 0 ? [couponOfferList(categoryHeading(category.name), coupons)] : []),
     ],
   };
 
@@ -1003,7 +1020,7 @@ export function renderCategoryPage(
     `
       <main>
         <article>
-          <h1>Cupons de ${escapeHtml(category.name)}</h1>
+          <h1>${escapeHtml(categoryHeading(category.name))}</h1>
           <p>${escapeHtml(description)}</p>
           ${groupCta ? groupCtaSection('Receba cupons e achadinhos no WhatsApp', groupCta) : ''}
           ${
@@ -1051,6 +1068,7 @@ export function renderAboutPage(links: ChromeLinks): RenderedPage {
         description:
           'Cupons de desconto atualizados diariamente para Amazon, Shopee e Mercado Livre.',
         founder: { '@id': FLAVIA_VALE_PERSON['@id'] },
+        email: contactEmail,
         sameAs: ['https://espelhagrupos.com.br/quem-somos'],
       },
       FLAVIA_VALE_PERSON,
@@ -1085,6 +1103,9 @@ export function renderAboutPage(links: ChromeLinks): RenderedPage {
             afiliada (Shopee, Mercado Livre, Amazon, Magalu, SHEIN, AliExpress) e publica com
             filas, intervalos e histórico de envios. Teste grátis de 7 dias; Pro R$ 69 por 30 dias.
           </p>
+          <h2>${escapeHtml(aboutResponsibleTitle)}</h2>
+          <p><a href="${escapeHtml(FLAVIA_VALE_LINKEDIN)}">${escapeHtml(aboutResponsibleName)}</a>, ${escapeHtml(aboutResponsibleText)}</p>
+          <p>Contato: <a href="${escapeHtml(contactMailto)}">${escapeHtml(contactEmail)}</a>.</p>
         </article>
       </main>`,
     [
@@ -1204,7 +1225,7 @@ function categoryListItems(categories: PrerenderCategory[]): string {
   return categories
     .map(
       category =>
-        `<li><a href="${SITE_URL}/categoria/${category.slug}">Cupons de ${escapeHtml(category.name)}</a></li>`
+        `<li><a href="${SITE_URL}/categoria/${category.slug}">${escapeHtml(categoryHeading(category.name))}</a></li>`
     )
     .join('');
 }
