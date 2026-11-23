@@ -35,3 +35,9 @@ dist-ssr
 .dyad/
 .vercel
 supabase/.temp/
+
+# runtime local do claude-seo
+.claude/ms-playwright/
+.claude/runtime-state.json
+.claude/scripts/__pycache__/
+.claude/.venv*/
