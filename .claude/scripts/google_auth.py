@@ -1155,6 +1155,10 @@ def main():
 
     args = parser.parse_args()
 
+    if args.indexing:
+        print("Error: --indexing desativado neste projeto (escopo de escrita no Google; decisão da Flávia, 23/11/2026)", file=sys.stderr)
+        sys.exit(1)
+
     if args.indexing and not args.auth:
         print("Error: --indexing only applies together with --auth", file=sys.stderr)
         sys.exit(1)
