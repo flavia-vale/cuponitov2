@@ -335,3 +335,4 @@ Em `.claude/skills/`: `seo-google`, `seo-drift`, `seo-content` (E-E-A-T), `seo-g
 `free-tools`, `analytics`, `conversion-tracking`, `ab-testing`, `product-marketing` (de coreyhaines31/marketingskills, MIT).
 **As regras deste arquivo prevalecem sobre as skills**: elas são genéricas e podem sugerir o que já foi medido e
 derrubado (ex.: `aggregateRating`, página por cidade, promessa de resultado). Dado de mercado antes de construir.
+**Não instalado de propósito:** `indexing_notify.py` (escreve no Google via Indexing API) e a flag `--indexing` do `google_auth.py`. O login do Google é só leitura.
