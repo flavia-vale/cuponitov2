@@ -87,7 +87,7 @@ Flávia antes de construir. O que dá para fazer já, só com links:
 
 1. Resolver as 3 URLs duplicadas da Lomadee (canonical + sitemap).
 2. Corrigir títulos "Cupons de Geral", "Ofertas no link" e "Netshoes WL"; escape do "C&amp;A".
-3. Engordar os 5 comparativos com tabela e dado verificado (preço/prazo/data), depois de ter os dados.
+3. **Não engordar os 5 comparativos por enquanto** (ver seção 8: não há medição de busca para eles). Decidir entre medir, fundir ou despublicar.
 4. Subir links internos para comparativos, categorias e lojas (≥3 entradas cada).
 5. Atualizar ou arquivar o post de Dia das Mães.
 6. Quem somos: pessoa responsável, razão social/CNPJ e contato.
@@ -109,3 +109,45 @@ Pedido à Flávia, como manda o CLAUDE.md, antes de escrever páginas novas ou d
 - Chromium do `claude-seo` não instalou (host bloqueado), então nenhuma página foi renderizada com JavaScript; as medidas usam o HTML do servidor, que é o que os robôs sem JS veem.
 - Foi preciso liberar o proxy do sandbox (`CLAUDE_SEO_TRUSTED_PROXIES=127.0.0.1:40127`) só nos comandos de fetch para as ferramentas funcionarem. Não é permanente nem vai para o repositório.
 - O runtime foi criado em `.claude/.venv*`; confira se está no `.gitignore` antes de commitar.
+
+## 8. Cruzamento com as medições de 12, 15 e 22/11
+
+Fontes: Planejador de 15/11 (1.148 termos) e de 22/11 (13.237 termos únicos), `docs/dados-2026-11-15/leitura.md`,
+rodada de ChatGPT de 22/11 e painel de Captação/Search Console resumido nos planos de 12 e 22/11.
+
+### 8.1 Planejador de Palavras-chave
+| Tema da auditoria | O que os dados mostram | Consequência |
+|---|---|---|
+| **Comparativos** ("X vs Y", cashback) | 0 termos de cashback e só 2 de "qual o melhor" (10/mês cada). **Atenção:** as listas foram pedidas para concorrentes, "é confiável" e nichos de produto; isso mostra que **não foi medido**, não que o volume é zero | Pedir uma lista própria ("cupom shopee vs amazon", "cashback vs cupom", "mercado livre vs shopee frete grátis") antes de investir nos 5 posts |
+| **Cupom por loja** | "cupom mercado livre pelando" 2.900, "cupom shopee pelando" 480, "cupom amazon pelando" 320, "cupom desconto ml" 880. A página do termo simples ("cupom shopee") não está nas listas | Medir os termos simples de cada loja; as páginas `/desconto/*` e os "Cupom … Hoje" já existem |
+| **Pague Menos** | "cupom pague menos" 22.200 (+23%), mais ~4.000 em farmácia. Sem página no site | Maior oportunidade de loja; depende de afiliado (Awin, Rakuten, Lomadee ou direto) |
+| "É confiável" | Dafiti ~1.100, Zattini ~150, Casas Bahia ~150; "cuponito é confiável" sem volume | Não fazer página "Cuponito é confiável"; responder "a loja X é confiável?" na página da loja |
+| Concorrentes pelo nome | pelando 246.000, méliuz 175.500, promobit 110.000, cuponomia 60.500; "promobit whatsapp" 210 (+175%) | Quem busca isso quer o site deles; não fazer página de comparativo com marca |
+| Sazonalidade (substitui o Trends) | "presentes de natal": 90.500 (nov/25), 246.000 (dez/25), 5.400 (jan/26). "Dia das Mães" quase sem busca nas listas | O post de Dia das Mães não tem justificativa de volume agora; arquivar ou reaproveitar em abril. Natal já tem as duas páginas |
+
+### 8.2 ChatGPT (rodada de 22/11, 10 perguntas)
+- Citou o Cuponito em 8 de 10; em **1º** em tênis, decoração de Natal, presentes de Natal e acessórios para carro; 2º em pet.
+- **Não citou** na pergunta genérica "qual o melhor grupo de promoção no WhatsApp?" (citou Nerd Ofertas e Canaltech Ofertas).
+- Concorrentes citados: gruposwhats.app, gruposwhatsapp.com, divulgas.com, meugrupo.online, allgrupos, Nerd Ofertas, Canaltech, PromoHype, Setup Gamer, Corrida Promos.
+- Critérios que o ChatGPT diz usar: tema, desconto real contra o histórico de preço, variedade, frequência, links confiáveis, convite funcionando, transparência de afiliado. A lacuna do Cuponito é a **prova de desconto real**.
+- Canal: 81% dos cliques em "Entrar no grupo" vêm do ChatGPT (422 de ~520), Google 1%, Gemini ~2% em 12/11.
+
+### 8.3 Google, Search Console e Trends
+- Search Console (resumo de 12/11): 40 cliques em 3 meses; grupos nas posições 6 a 10; cupons nas posições 60 a 90 (AliExpress, Casas Bahia, KaBuM, Amazon). Isso confirma que **as páginas de loja e de cupom quase não aparecem no Google**, o que reforça a auditoria (conteúdo fino, poucos links).
+- Prints de 15/11: "celular em promoção" é dominada por Shopping e varejo grande; "pelando whatsapp" traz pelando.com.br/grupos e gruposwhats.app; "grupo de ofertas whatsapp é confiável" mostra visão de IA com critérios, Reclame Aqui, Reddit e YouTube.
+
+### 8.4 O que continua faltando
+| Item pedido | Situação |
+|---|---|
+| Search Console, consultas e páginas | só resumo; **falta a exportação de 28 dias** (necessária para decidir o que fazer com lojas, categorias e comparativos) |
+| Google Trends | só os 4 termos listados para 22/11 (natal, decoração de natal, ração, capacete), sem dados; a sazonalidade acima vem do Planejador |
+| Perplexity | nenhuma rodada |
+| Gemini e Visão geral de IA | Gemini só como fonte de clique (4); Visão geral de IA só nos 3 prints de 15/11 |
+| Concorrentes que ranqueiam em cupom por loja e em comparativos | não levantado |
+
+### 8.5 Prioridades revisadas
+1. Pedir a exportação do Search Console (28 dias) e uma lista do Planejador para comparativos e "cupom <loja>".
+2. Decidir sobre a Pague Menos (afiliado) antes de qualquer página.
+3. Mexer no que não depende de volume: Lomadee duplicada, títulos fracos, links internos, schema.
+4. Pergunta genérica do ChatGPT: o diretório `/grupos-de-promocao` é a página que deve ganhar; falta prova de desconto real (histórico de preço).
+5. Rodar Perplexity, Gemini e Visão geral de IA com as mesmas 10 perguntas do ChatGPT.
