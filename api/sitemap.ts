@@ -91,7 +91,7 @@ function latestDate(rows: Array<{ updated_at?: string | null }>): string | null 
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const [storesResult, postsResult, categoriesResult, couponsResult, groupPages, liveCoupons] = await Promise.all([
+  const [storesResult, postsResult, categoriesResult, couponsResult, groupPages, liveCoupons, latestOfferResult] = await Promise.all([
     supabase
       .from('stores')
       .select('id, name, slug, updated_at')
@@ -115,6 +115,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1),
     fetchGroupPages(),
     fetchLiveCoupons(),
+    // Data da última oferta guardada do grupo: é a mudança real da página /achadinhos-hoje.
+    supabase
+      .from('group_offers')
+      .select('sent_at')
+      .order('sent_at', { ascending: false })
+      .limit(1),
   ])
 
   // Loja: o cupom aponta por `store_id` (= stores.id) ou pelo nome, como no prerender.
@@ -142,13 +148,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .sort()
     .pop() ?? null
 
+  // Sem a tabela (ou sem ofertas) a data some: `lastmod` de "hoje" sem mudança real não informa nada.
+  const achadinhosLastmod = latestOfferResult.error
+    ? null
+    : formatDate((latestOfferResult.data?.[0] as { sent_at?: string | null } | undefined)?.sent_at)
+
   const staticUrls = [
     urlEntry(`${BASE_URL}/`, homeLastmod, 'daily', 1.0),
     urlEntry(`${BASE_URL}/cupons`, couponsLastmod, 'daily', 0.9),
     urlEntry(`${BASE_URL}/lojas`, storesLastmod, 'weekly', 0.8),
     urlEntry(`${BASE_URL}/blog`, postsLastmod, 'weekly', 0.7),
     // Ofertas do grupo, refeitas ao longo do dia (feed do Link Inteligente).
-    urlEntry(`${BASE_URL}/achadinhos-hoje`, new Date().toISOString().split('T')[0], 'hourly', 0.8),
+    urlEntry(`${BASE_URL}/achadinhos-hoje`, achadinhosLastmod, 'hourly', 0.8),
     urlEntry(`${BASE_URL}/quem-somos`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/como-funciona`, null, 'monthly', 0.5),
     urlEntry(`${BASE_URL}/fale-conosco`, null, 'monthly', 0.5),

@@ -11,7 +11,7 @@ import InlineCouponBox, { type InlineCouponConfig } from '@/components/blog/Inli
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogWhatsAppCTA from '@/components/blog/BlogWhatsAppCTA';
 import AuthorBox from '@/components/blog/AuthorBox';
-import { authorProfileUrl } from '@/lib/authors';
+import { authorProfileUrl, DEFAULT_POST_AUTHOR, isFlavia } from '@/lib/authors';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEOHead from '@/components/SEOHead';
@@ -30,7 +30,11 @@ export default function BlogPost() {
     if (post?.id && slug) incrementViews.mutate({ postId: post.id, slug });
   }, [post?.id, slug]);
 
-  const author = authors?.find((a) => a.id === post?.author_id);
+  // Sem autor cadastrado no post, a Flávia (decisão dela): assinatura verificável, não "Equipe".
+  const author =
+    authors?.find((a) => a.id === post?.author_id) ??
+    authors?.find((a) => isFlavia(a.name)) ??
+    DEFAULT_POST_AUTHOR;
   const category = categories.find((c) => c.id === post?.category_id);
   const publishedDate = post?.published_at
     ? new Date(post.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -113,7 +117,7 @@ export default function BlogPost() {
                               {author.name}
                             </a>
                           ) : (
-                            author?.name || 'Equipe Cuponito'
+                            author.name
                           )}
                           {author?.job_title && <span className="font-medium text-[#888]"> · {author.job_title}</span>}
                         </p>

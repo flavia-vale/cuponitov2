@@ -83,7 +83,7 @@ import {
   recentOffers,
   type GroupOffer,
 } from './src/lib/groupOfferFeed';
-import { FLAVIA_VALE_NAME } from './src/lib/authors';
+import { DEFAULT_POST_AUTHOR, FLAVIA_VALE_NAME } from './src/lib/authors';
 import {
   renderAboutPage,
   renderAchadinhosPage,
@@ -224,6 +224,15 @@ async function offersForPage(page: WhatsappGroupPageData, joinUrl: string): Prom
   return mergeOffers(recentOffers(filterOffersByTerms(live, terms)), archived);
 }
 
+/** Autor do post; sem autor cadastrado, a Flávia (perfil do banco, ou só o nome se o banco não o tem). */
+async function resolvePostAuthor(authorId: string | null) {
+  return (
+    (await fetchAuthor(authorId)) ??
+    (await fetchAuthorByName(FLAVIA_VALE_NAME)) ??
+    DEFAULT_POST_AUTHOR
+  );
+}
+
 async function renderRoute(pathname: string): Promise<RenderedPage | null> {
   if (pathname === ACHADINHOS_PATH) {
     const [groupSettings, stores, posts] = await Promise.all([
@@ -253,7 +262,7 @@ async function renderRoute(pathname: string): Promise<RenderedPage | null> {
     if (!post) return null;
     const groupSlug = post.group_slug?.trim() || null;
     const [author, joinPage, publishedPage, groupSettings] = await Promise.all([
-      fetchAuthor(post.author_id),
+      resolvePostAuthor(post.author_id),
       groupSlug ? fetchJoinPage(groupSlug) : Promise.resolve(null),
       groupSlug ? fetchGroupPage(groupSlug) : Promise.resolve(null),
       groupSlug ? fetchGroupSettings() : Promise.resolve(null),

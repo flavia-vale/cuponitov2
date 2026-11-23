@@ -9,9 +9,9 @@ dias para lojas como Amazon, Shopee, Mercado Livre, Magalu, SHEIN e AliExpress.
 - Usuários que querem comparar lojas e encontrar melhores descontos por categoria.
 - Administradores de grupos de cupons e afiliados que republicam ofertas.
 
-## Números
-- Mais de 60 páginas de loja com cupons próprios (`/desconto/{slug}`).
-- 25 categorias de cupons (`/categoria/{slug}`).
+## Cobertura
+- Uma página por loja com cupons próprios, atualizada com os cupons ativos (`/desconto/{slug}`); a lista completa está em https://www.cuponito.com.br/lojas.
+- Páginas por categoria de cupons (`/categoria/{slug}`); o sitemap em https://www.cuponito.com.br/sitemap.xml lista todas as que existem hoje.
 - Blog editorial com comparativos e guias práticos (`/blog/{slug}`).
 
 ## Páginas canônicas

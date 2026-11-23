@@ -23,6 +23,19 @@ export interface AuthorProfile {
   avatar_url?: string | null;
 }
 
+/**
+ * Autora padrão do post sem autor cadastrado (decisão da Flávia, 23/11/2026): a assinatura
+ * "Equipe Cuponito" não leva a uma pessoa que o leitor ou a IA possa verificar. Só o nome:
+ * cargo e bio vêm do cadastro em `blog_authors`, quando a Flávia estiver lá.
+ */
+export const DEFAULT_POST_AUTHOR = {
+  name: FLAVIA_VALE_NAME,
+  bio: null,
+  linkedin_url: null,
+  job_title: null,
+  avatar_url: null,
+} satisfies AuthorProfile;
+
 export function isFlavia(name: string | null | undefined): boolean {
   return (name ?? '').trim().toLowerCase() === FLAVIA_VALE_NAME.toLowerCase();
 }
